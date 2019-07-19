@@ -1,2 +1,2 @@
 # white_cats
-White Cats are definition Pure functions
+White Cats define Pure functions
