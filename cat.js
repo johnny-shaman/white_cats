@@ -25,55 +25,47 @@
       value (...f) {
         return this._ == null ? this : f.reduce((a, g) => g(a), this._)
       }
-    },
-    fork: {
-      value (f = _.id, g = _.id) {
-        return _.Pair(this.flat(f), this.flat(g));
-      }
     }
   });
-
-  _.Pair = function (R, L) {
-    return Object.create(_.Types.Pair, {
-      R_: {
-        get () {
-          return R;
-        }
+  Object.assign(_, {
+    Types: Object.create(Object.prototype, {
+      Object: {
+        value: Object.create(_.prototype, {
+          fold: {
+            value (f) {
+              return this.endo(Object.entries, (a) => a.reduce((p, [k, v]) => f(p, k, v)))
+            }
+          },
+          keys: {
+            get () {
+              return this.endo(Object.keys);
+            }
+          },
+          vals: {
+            get () {
+              return this.endo(Object.values);
+            }
+          },
+          entries: {
+            get () {
+              return this.endo(Object.entries);
+            }
+          },
+          get: {
+            value (k) {
+              return this.endo(o => o[k]);
+            }
+          },
+          set: {
+            value (k, v) {
+              return this.endo(o => (o[k] = v, o));
+            }
+          },
+        })
       },
-      L_: {
-        get () {
-          return L;
-        }
+      Array: {
+
       }
-    });_(f(this))
-  }
-
-  _.Types = {
-    Pair: Object.create(_.prototype, {
-      constructor: {
-        configurable: true,
-        writable: true,
-        value: _.Pair
-      },
-      join: {
-        value (...f) {
-          return f(this);
-        }
-      },
-      swap: {
-        value (f = _.id, g = _.id) {
-          return _.Pair(f(this.L_), g(this.R_));
-        }
-      },
-      flat: {
-        value (...f) {
-          return this.fork()
-        }
-      },
     })
-  }
-
-  _.id = v => v;
-  _.of = v => v.constructor;
-  
+  });
 })();
