@@ -9,7 +9,6 @@
       }
     });
   }
-
   Object.defineProperties(_.prototype, {
     lift: {
       value (...f) {
@@ -51,16 +50,39 @@
               return this.endo(Object.entries);
             }
           },
+          define: {
+            value (o) {
+              return this.endo(p => Object.defineProperties(p, o));
+            }
+          },
           get: {
-            value (k) {
-              return this.endo(o => o[k]);
+            value (...k) {
+              return this.lift(t => k.reduce((p, c) => p.set));
             }
           },
           set: {
-            value (k, v) {
-              return this.endo(o => (o[k] = v, o));
+            value (...o) {
+              return this.endo(p => Object.assign(p, ...o));
             }
           },
+          call: {
+            value (k, ...v) {
+              return this.endo(o => o[k](...v));
+            }
+          },
+          been: {
+            get () {
+              return new Proxy(this._, {
+                get (t, k) {
+                  switch (k) {
+                    case 'to': return this;
+                    case '_': return this._;
+                    default: return (...v) => t[k].constructor === Function && t[k](...v) , t;
+                  }
+                }
+              })
+            }
+          }
         })
       },
       Array: {
