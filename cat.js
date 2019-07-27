@@ -28,30 +28,6 @@
         return this._ == null ? this : f.reduce((a, g) => g(a), this._)
       }
     },
-    eq: {
-      configurable: true,
-      value (f) {
-        return (...g) => this.flat(f) ? this.endo(...g) : this;
-      }
-    },
-    nt: {
-      configurable: true,
-      value (f) {
-        return (...g) => this.flat(f) ? this : this.endo(...g);
-      }
-    },
-    is: {
-      configurable: true,
-      value (t) {
-        return this.eq(o => o.constructor === t);
-      }
-    },
-    of: {
-      configurable: true,
-      value (t) {
-        return this.eq(o => o instanceof t);
-      }
-    },
     json: {
       configurable: true,
       get () {
@@ -79,7 +55,7 @@
         return this.endo(Object.values);
       }
     },
-    entries: {
+    sets: {
       configurable: true,
       get () {
         return this.endo(Object.entries);
@@ -113,15 +89,43 @@
       configurable: true,
       get () {
         return new Proxy(this._, {
-          get (t, k) {
-            switch (k) {
-              case 'to': return this;
-              case '_': return this._;
-              default: return (...v) => t[k].constructor === Function && t[k](...v) , this.been;
-            }
+          to: this,
+          _:  this._,
+          get (t, k, r) {
+            return r[k] != null ? r[k] : (...v) => (t[k](...v), r[k].been);
           }
         });
       }
+    }
+  });
+  Object.assign(_.Types, {Array: Object.create(_.Types.Object)});
+  Object.defineProperties(_.Types.Array, {
+    map: {
+      configurable: true,
+      value (...f) {
+        return this.endo(a => f.reduce((a, g) => a.map(g), a));
+      }
+    },
+    foldL: {
+      configurable: true,
+    },
+    foldR: {
+      configurable: true,
+    },
+    pushL: {
+      configurable: true,
+    },
+    pushR: {
+      configurable: true,
+    },
+    popL: {
+      configurable: true,
+    },
+    popR: {
+      configurable: true,
+    },
+    flat: {
+      configurable: true,
     }
   });
 })();
