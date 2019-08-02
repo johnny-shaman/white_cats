@@ -19,14 +19,14 @@
   Object.defineProperties(_.prototype, {
     lift: {
       configurable: true,
-      value (...f) {
-        return _(this).endo(...f)
+      value (s, ...f) {
+        return _(this, s).endo(...f)
       }
     },
     endo: {
       configurable: true,
       value (...f) {
-        return _(this.flat(...f));
+        return _(this.flat(...f), this.$);
       }
     },
     flat: {
@@ -39,12 +39,6 @@
       configurable: true,
       get () {
         return _(this.$, this._);
-      }
-    },
-    fork: {
-      configurable: true,
-      value (...f) {
-        return (...g) => _(this.flat(...f), this.flat(...g));
       }
     },
     json: {
@@ -71,37 +65,41 @@
     fold: {
       configurable: true,
       value (f) {
-        return this.endo(Object.entries, a => a.reduce((p, [k, v]) => f(p, k, v)));
+        return this.lift(this._, t => t.flat(
+          Object.entries, a => a.reduce((p, [k, v]) => f(p, k, v))
+        ));
       }
     },
     keys: {
       configurable: true,
       get () {
-        return this.endo(Object.keys);
+        return this.lift(this._, t => t.flat(Object.keys));
       }
     },
     vals: {
       configurable: true,
       get () {
-        return this.endo(Object.values);
+        return this.lift(this._, t => t.flat(Object.values));
       }
     },
     sets: {
       configurable: true,
       get () {
-        return this.endo(Object.entries);
+        return this.lift(this._, t => t.flat(Object.entries));
       }
     },
     define: {
       configurable: true,
       value (o) {
-        return this.mapR(p => Object.defineProperties(p, o));
+        return this.endo(p => Object.defineProperties(p, o));
       }
     },
     get: {
       configurable: true,
       value (...k) {
-        return this.endo(o => k.reduce((p, c) => p.set({[c]: o[c]}), _({})));
+        return this.lift(this._, t => t.flat(
+          o => k.reduce((p, c) => p.set({[c]: o[c]}), _({}))
+        ));
       }
     },
     put: {
@@ -113,22 +111,18 @@
     call: {
       configurable: true,
       value (k, ...v) {
-        return this.endo(o => o[k](...v));
+        return this.lift(this._, t => t.flat(o => o[k](...v)));
       }
     },
     collect: {
       configurable: true,
       value ({get, call}) {
-        return _(
-          this._,
-          this
-          .fork(
-            o => get.reduce((p, c) => p.set({[c]: o[c]}), _({}))
-          )(
-            o => _(call).sets.R._.reduce((p, [k, a]) => p.set({[k]: o[k].apply(o, a)}), _({}))
+        return this.lift(this._, t => _(
+          t.get(get),
+          t.flat(
+            o => _(call).sets._.reduce((p, [k, a]) => p.set({[k]: o[k].apply(o, a)}), _({}))
           )
-          .put(this.$)
-        );
+        ));
       }
     },
     map: {
@@ -140,11 +134,11 @@
     been: {
       configurable: true,
       get () {
-        return new Proxy(this.fork(_.id)(_.id).$, {
-          to: this.swap,
+        return new Proxy(this._, {
+          to: this,
           _:  this._,
           get (t, k, r) {
-            return r[k] != null ? r[k] : (...v) => (t[k](...v), this.been);
+            return r[k] != null ? r[k] : (...v) => this.endo(o => t[k](...v), () => t);
           }
         });
       }
@@ -168,7 +162,7 @@
     foldL: {
       configurable: true,
       value (f) {
-        return this.endo(a => a.reduce(f));
+        return this.lift(this._, t => t.flat(a => a.reduce(f)));
       }
     },
     foldR: {
