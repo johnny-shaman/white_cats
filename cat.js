@@ -94,11 +94,20 @@
         return this.endo(p => Object.defineProperties(p, o));
       }
     },
-    get: {
+    pick: {
       configurable: true,
       value (...k) {
         return this.lift(this._, t => t.flat(
-          o => k.reduce((p, c) => p.set({[c]: o[c]}), _({}))
+          o => k.reduce((p, c) => p.put({[c]: o[c]}), _({}))
+        ));
+      }
+    },
+    drop: {
+      //Not Implemented!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      configurable: true,
+      value (...k) {
+        return this.lift(this._, t => t.flat(
+          o => k.reduce((p, c) => p.put({[c]: o[c]}), _({}))
         ));
       }
     },
@@ -117,11 +126,11 @@
     collect: {
       configurable: true,
       value ({get, call}) {
-        return this.lift(this._, t => _(
-          t.get(get),
-          t.flat(
+        return this.lift(this._, t => t.lift(
+          t._, u => u.get(get).swap.endo(
             o => _(call).sets._.reduce((p, [k, a]) => p.set({[k]: o[k].apply(o, a)}), _({}))
-          )
+          ),
+          u => u.put(u.$)
         ));
       }
     },
@@ -161,39 +170,85 @@
     },
     foldL: {
       configurable: true,
-      value (f) {
-        return this.lift(this._, t => t.flat(a => a.reduce(f)));
+      value (f, ...v) {
+        return this.call("reduce", f, ...v);
       }
     },
     foldR: {
       configurable: true,
-      value (f) {
-        return this.endo(a => a.reduceRight(f));
+      value (f, ...v) {
+        return this.call("reduceRight", f, ...v);
+      }
+    },
+    filter: {
+      configurable: true,
+      value (...f) {
+        return this.lift(this._, t => f.reduce((a, g) => a.filter(g), t._));
       }
     },
     pushL: {
       configurable: true,
       value (...v) {
-        return this.endo(a => a.unshift(...v));
+        return this.call("unshift", ...v).swap;
       }
     },
     pushR: {
       configurable: true,
       value (...v) {
-        return this.endo(a => a.push(...v));
+        return this.call("push", ...v).swap;
       }
     },
     popL: {
       configurable: true,
       get () {
-        
+        return this.call("shift").swap;        
       }
     },
     popR: {
       configurable: true,
+      get () {
+        return this.call("pop").swap;        
+      }
     },
-    flat: {
+    fMap: {
       configurable: true,
+      value (...f) {
+        return this.endo(a => f.reduce((b, g) => b.flatMap(g), a));
+      }
+    },
+    back: {
+      configurable: true,
+      get () {
+        return this.endo(a => a.reverce());
+      }
+    },
+    adaptL: {
+      configurable: true,
+      value (...v) {
+        return this.map(w => w == null && v.shift())
+      }
+    },
+    adaptR: {
+      configurable: true,
+      value (...w) {
+        return this.endo(
+          a => a.reverse(),
+          a => a.map(w => w == null && v.shift()),
+          a.reverse()
+        );
+      }
+    },
+    adapt: {
+      configurable: true,
+      get () {
+        return this.adaptL;
+      }
+    },
+    concat: {
+      configurable: true,
+      value (...v) {
+        return this.endo(a => a.concat(...v));
+      }
     }
   });
 })();
