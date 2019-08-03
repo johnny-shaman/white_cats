@@ -2,7 +2,15 @@
   "use strict";
 
   let _ = function (v, c) {
-    return Object.create(_.Types[v.constructor.name] || _.Types[v.constructor.constructor.name] || _.Types.Object, {
+    return Object.create(
+      v == null
+      ? _.prototype
+      : _.Types[
+        v.constructor.name
+      ] || _.Types[
+        v.constructor.constructor.name
+      ] || _.Types.Object,
+      {
       _: {
         get () {
           return v;
@@ -21,6 +29,12 @@
       configurable: true,
       value (s, ...f) {
         return _(this, s).endo(...f)
+      }
+    },
+    doSt: {
+      configurable: true,
+      value (s, ...f) {
+        return _(this.flat(...f), s);
       }
     },
     endo: {
@@ -64,10 +78,34 @@
   Object.defineProperties(_.Types.Object, {
     fold: {
       configurable: true,
-      value (f) {
+      value (f, v) {
         return this.lift(this._, t => t.flat(
-          Object.entries, a => a.reduce((p, [k, v]) => f(p, k, v))
+          Object.entries, a => a.reduce((p, [k, w]) => f(p, k, w), v)
         ));
+      }
+    },
+    map: {
+      configurable: true,
+      value (f) {
+        return this.fold((p, k, v) => p.put({[k]: f(k, v)}), this);
+      }
+    },
+    filterT: {
+      configurable: true,
+      value (f) {
+        return this.fold((p, k, v) => f(k, v) && p.put({[k]: f(k, v)}), _({}));
+      }
+    },
+    filterF: {
+      configurable: true,
+      value (f) {
+        return this.fold((p, k, v) => !f(k, v) && p.put({[k]: f(k, v)}), _({}));
+      }
+    },
+    filter: {
+      configurable: true,
+      get () {
+        return this. filterT;
       }
     },
     keys: {
@@ -97,18 +135,12 @@
     pick: {
       configurable: true,
       value (...k) {
-        return this.lift(this._, t => t.flat(
-          o => k.reduce((p, c) => p.put({[c]: o[c]}), _({}))
-        ));
+        return this.filterT(k.includes);
       }
     },
     drop: {
-      //Not Implemented!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      configurable: true,
       value (...k) {
-        return this.lift(this._, t => t.flat(
-          o => k.reduce((p, c) => p.put({[c]: o[c]}), _({}))
-        ));
+        return this.filterF(k.includes);
       }
     },
     put: {
@@ -134,12 +166,6 @@
         ));
       }
     },
-    map: {
-      configurable: true,
-      value (f) {
-        return this.endo(Object.entries, a => a.reduce((p, [k, v]) => p.put({[k]: f(k, v)}), this));
-      }
-    },
     been: {
       configurable: true,
       get () {
@@ -147,13 +173,13 @@
           to: this,
           _:  this._,
           get (t, k, r) {
-            return r[k] != null ? r[k] : (...v) => this.endo(o => t[k](...v), () => t);
+            return r[k] != null ? r[k] : (...v) => this.lift(t, () => t[k](...v)).swap;
           }
         });
       }
     }
   });
-  
+
   Object.assign(_.Types, {Array: Object.create(_.Types.Object)});
   Object.defineProperties(_.Types.Array, {
     map: {
@@ -180,10 +206,22 @@
         return this.call("reduceRight", f, ...v);
       }
     },
+    filterT: {
+      configurable: true,
+      value (f) {
+        return this.lift(this._, t => t.flat(a => a.filter(f)));
+      }
+    },
+    filterF: {
+      configurable: true,
+      value (f) {
+        return this.lift(this._, t => t.flat(a => a.filter((v, k) => !f(v, k))));
+      }
+    },
     filter: {
       configurable: true,
-      value (...f) {
-        return this.lift(this._, t => f.reduce((a, g) => a.filter(g), t._));
+      value (f) {
+        return this.call("filter", f);
       }
     },
     pushL: {
@@ -225,7 +263,9 @@
     adaptL: {
       configurable: true,
       value (...v) {
-        return this.map(w => w == null && v.shift())
+        return this.endo(
+          a => Array(a.length).fill(undefined).map((_, k) => a[k] == null ? v.shift() : a[k])
+        )
       }
     },
     adaptR: {
@@ -233,8 +273,8 @@
       value (...w) {
         return this.endo(
           a => a.reverse(),
-          a => a.map(w => w == null && v.shift()),
-          a.reverse()
+          a => Array(a.length).fill(undefined).map((_, k) => a[k] == null ? v.shift() : a[k]),
+          a => a.reverse()
         );
       }
     },
@@ -248,6 +288,18 @@
       configurable: true,
       value (...v) {
         return this.endo(a => a.concat(...v));
+      }
+    },
+    replace: {
+      configurable: true,
+      value (...v) {
+        return this.call("splice", ...v);
+      }
+    },
+    slice: {
+      configurable: true,
+      value (...v) {
+        return this.call("slice", ...v);
       }
     }
   });
