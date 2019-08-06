@@ -239,13 +239,13 @@
     popL: {
       configurable: true,
       get () {
-        return this.call("shift").swap;        
+        return this.call("shift").swap;
       }
     },
     popR: {
       configurable: true,
       get () {
-        return this.call("pop").swap;        
+        return this.call("pop").swap;
       }
     },
     fMap: {
@@ -287,7 +287,7 @@
     concat: {
       configurable: true,
       value (...v) {
-        return this.endo(a => a.concat(...v));
+        return this.call("concat", ...v);
       }
     },
     replace: {
@@ -301,6 +301,18 @@
       value (...v) {
         return this.call("slice", ...v);
       }
-    }
+    },
+    sum: {
+      configurable: true,
+      get () {
+        return this.fold((p, c) => p + c, 0);
+      }
+    },
+    average: {
+      configurable: true,
+      get () {
+        return this.fold((p, c) => p + c, 0);
+      }
+    },
   });
 })();
