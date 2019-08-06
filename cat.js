@@ -311,7 +311,7 @@
     average: {
       configurable: true,
       get () {
-        return this.fold((p, c) => p + c, 0);
+        return this.fold((p, c) => p + c, 0).map(n => n / this.$.length);
       }
     },
   });
