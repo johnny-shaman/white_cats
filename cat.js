@@ -79,9 +79,9 @@
     fold: {
       configurable: true,
       value (f, v) {
-        return this.lift(this._, t => t.flat(
-          Object.entries, a => a.reduce((p, [k, w]) => f(p, k, w), v)
-        ));
+        return this.doSt(
+          this._, Object.entries, a => a.reduce((p, [k, w]) => f(p, k, w), v)
+        );
       }
     },
     map: {
@@ -111,19 +111,19 @@
     keys: {
       configurable: true,
       get () {
-        return this.lift(this._, t => t.flat(Object.keys));
+        return this.doSt(this._, Object.keys);
       }
     },
     vals: {
       configurable: true,
       get () {
-        return this.lift(this._, t => t.flat(Object.values));
+        return this.doSt(this._, Object.values);
       }
     },
     sets: {
       configurable: true,
       get () {
-        return this.lift(this._, t => t.flat(Object.entries));
+        return this.doSt(this._, Object.entries);
       }
     },
     define: {
@@ -143,7 +143,7 @@
         return this.filterF(k.includes);
       }
     },
-    put: {
+    give: {
       configurable: true,
       value (...o) {
         return this.endo(p => Object.assign(p, ...o));
@@ -152,7 +152,7 @@
     call: {
       configurable: true,
       value (k, ...v) {
-        return this.lift(this._, t => t.flat(o => o[k](...v)));
+        return this.doSt(this._, o => o[k](...v));
       }
     },
     collect: {
@@ -173,7 +173,7 @@
           to: this,
           _:  this._,
           get (t, k, r) {
-            return r[k] != null ? r[k] : (...v) => this.lift(t, () => t[k](...v)).swap;
+            return r[k] != null ? r[k] : (...v) => this.doSt(t, () => t[k](...v)).swap;
           }
         });
       }
@@ -209,13 +209,13 @@
     filterT: {
       configurable: true,
       value (f) {
-        return this.lift(this._, t => t.flat(a => a.filter(f)));
+        return this.doSt(this._, a => a.filter(f));
       }
     },
     filterF: {
       configurable: true,
       value (f) {
-        return this.lift(this._, t => t.flat(a => a.filter((v, k) => !f(v, k))));
+        return this.doSt(this._, a => a.filter((v, k) => !f(v, k)));
       }
     },
     filter: {
@@ -302,6 +302,12 @@
         return this.call("slice", ...v);
       }
     },
+    sort: {
+      configurable: true,
+      get () {
+        return this.call("sort");
+      }
+    },
     sum: {
       configurable: true,
       get () {
@@ -311,8 +317,36 @@
     average: {
       configurable: true,
       get () {
-        return this.fold((p, c) => p + c, 0).map(n => n / this.$.length);
+        return this.fold((p, c) => p + c, 0).endo(n => n / this.$.length);
       }
     },
+    max: {
+      configurable: true,
+      get () {
+        return this.fold((p, c) => p < c ? c : p);
+      }
+    },
+    min: {
+      configurable: true,
+      get () {
+        return this.fold((p, c) => p > c ? c : p);
+      }
+    },
+    mid: {
+      configurable: true,
+      get () {
+        return this.lift(this.slice()._, t.sort.flat(
+          a => (
+            a.length === 0
+            ? null
+            : (
+              a.length % 2 === 0
+              ? (a[a.length / 2 - 1] + a[a.length / 2]) / 2
+              : a[a.length / 2 - 0.5]
+            )
+          )
+        ));
+      }
+    }
   });
 })();
