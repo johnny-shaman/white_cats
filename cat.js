@@ -87,19 +87,19 @@
     map: {
       configurable: true,
       value (f) {
-        return this.fold((p, k, v) => p.put({[k]: f(k, v)}), this);
+        return this.fold((p, k, v) => p.give({[k]: f(k, v)}), this);
       }
     },
     filterT: {
       configurable: true,
       value (f) {
-        return this.fold((p, k, v) => f(k, v) && p.put({[k]: f(k, v)}), _({}));
+        return this.fold((p, k, v) => f(k, v) && p.give({[k]: f(k, v)}), _({}));
       }
     },
     filterF: {
       configurable: true,
       value (f) {
-        return this.fold((p, k, v) => !f(k, v) && p.put({[k]: f(k, v)}), _({}));
+        return this.fold((p, k, v) => !f(k, v) && p.give({[k]: f(k, v)}), _({}));
       }
     },
     filter: {
@@ -162,7 +162,7 @@
           t._, u => u.get(get).swap.endo(
             o => _(call).sets._.reduce((p, [k, a]) => p.set({[k]: o[k].apply(o, a)}), _({}))
           ),
-          u => u.put(u.$)
+          u => u.give(u.$)
         ));
       }
     },
@@ -176,6 +176,12 @@
             return r[k] != null ? r[k] : (...v) => this.doSt(t, () => t[k](...v)).swap;
           }
         });
+      }
+    },
+    re: {
+      configurable: true,
+      get () {
+        return this.swap
       }
     }
   });
@@ -224,28 +230,60 @@
         return this.call("filter", f);
       }
     },
+    group: {
+      configurable: true,
+      value (...k) {
+        return this.fold(
+          (p, c) => p[k].push(c[k]), k.reduce((o, w) => p.give({[w]: []}), _({}))._
+        );
+      } 
+    },
+    match: {
+      configurable: true,
+      value (o) {
+        return o instanceof Object
+        ? this.filterT((p, c) => _(c).sets.fold((q, k, v) => q && o[k] === v, true)._)
+        : this.filterT((p, c) => o === c);
+      }
+    },
+    more: {
+      configurable: true,
+      value (o) {
+        return o.constructor === Number
+        ? this.filterT((p, c) => o <= c)
+        : this.filterT((p, c) => _(c).sets.fold((q, k, v) => q && o[k] <= v, true)._);
+      }
+    },
+    less: {
+      configurable: true,
+      value (o) {
+        return o.constructor === Number
+        ? this.filterT((p, c) => o >= c)
+        : this.filterT((p, c) => _(c).sets.fold((q, k, v) => q && o[k] >= v, true)._);
+      }
+    },
     pushL: {
       configurable: true,
       value (...v) {
-        return this.call("unshift", ...v).swap;
+        return this.call("unshift", ...v).re;
       }
     },
     pushR: {
       configurable: true,
       value (...v) {
-        return this.call("push", ...v).swap;
+        return this.call("push", ...v).re;
       }
     },
     popL: {
       configurable: true,
       get () {
-        return this.call("shift").swap;
+        return this.call("shift");
       }
     },
     popR: {
       configurable: true,
       get () {
-        return this.call("pop").swap;
+        return this.call("pop");
       }
     },
     fMap: {
