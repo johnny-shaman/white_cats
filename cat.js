@@ -21,20 +21,20 @@
           return c;
         }
       }
-    })
+    });
   };
 
   Object.defineProperties(_.prototype, {
     lift: {
       configurable: true,
-      value (s, ...f) {
-        return _(this, s).endo(...f)
+      value (...f) {
+        return _(_.pipe(f)(this));
       }
     },
     doSt: {
       configurable: true,
-      value (s, ...f) {
-        return _(this.flat(...f), s);
+      value (...f, s) {
+        return _(s, this.flat(...f));
       }
     },
     endo: {
@@ -43,16 +43,16 @@
         return _(this.flat(...f), this.$);
       }
     },
+    redo: {
+      configurable: true,
+      value (...f) {
+        return _(this.$, this.flat(...f));
+      }
+    },
     flat: {
       configurable: true,
       value (...f) {
-        return this._ == null ? this : f.reduce((a, g) => g(a), this._);
-      }
-    },
-    swap: {
-      configurable: true,
-      get () {
-        return _(this.$, this._);
+        return this._ == null ? this : _.pipe(...f)(this._);
       }
     },
     json: {
@@ -72,7 +72,15 @@
         (p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}),
         {}
       ),
-    id: v => v
+    id: v => v,
+    compose: (...a) => (
+      a.length === 0 && a.push(_.id),
+      a.reduce((f, g) => (...v) => f(g(...v)))
+    ),
+    pipe: (...a) => (
+      a.length === 0 && a.push(_.id),
+      a.reduceRight((f, g) => (...v) => f(g(...v)))
+    ),
   });
 
   Object.defineProperties(_.Types.Object, {
@@ -120,7 +128,7 @@
         return this.doSt(this._, Object.values);
       }
     },
-    sets: {
+    pair: {
       configurable: true,
       get () {
         return this.doSt(this._, Object.entries);
@@ -159,8 +167,8 @@
       configurable: true,
       value ({get, call}) {
         return this.lift(this._, t => t.lift(
-          t._, u => u.get(get).swap.endo(
-            o => _(call).sets._.reduce((p, [k, a]) => p.set({[k]: o[k].apply(o, a)}), _({}))
+          t._, u => u.get(get).re.endo(
+            o => _(call).pair._.reduce((p, [k, a]) => p.set({[k]: o[k].apply(o, a)}), _({}))
           ),
           u => u.give(u.$)
         ));
@@ -173,15 +181,9 @@
           to: this,
           _:  this._,
           get (t, k, r) {
-            return r[k] != null ? r[k] : (...v) => this.doSt(t, () => t[k](...v)).swap;
+            return r[k] != null ? r[k] : (...v) => this.doSt(t, () => t[k](...v)).re;
           }
         });
-      }
-    },
-    re: {
-      configurable: true,
-      get () {
-        return this.swap
       }
     }
   });
@@ -237,30 +239,6 @@
           (p, c) => p[k].push(c[k]), k.reduce((o, w) => p.give({[w]: []}), _({}))._
         );
       } 
-    },
-    match: {
-      configurable: true,
-      value (o) {
-        return o instanceof Object
-        ? this.filterT((p, c) => _(c).sets.fold((q, k, v) => q && o[k] === v, true)._)
-        : this.filterT((p, c) => o === c);
-      }
-    },
-    more: {
-      configurable: true,
-      value (o) {
-        return o.constructor === Number
-        ? this.filterT((p, c) => o <= c)
-        : this.filterT((p, c) => _(c).sets.fold((q, k, v) => q && o[k] <= v, true)._);
-      }
-    },
-    less: {
-      configurable: true,
-      value (o) {
-        return o.constructor === Number
-        ? this.filterT((p, c) => o >= c)
-        : this.filterT((p, c) => _(c).sets.fold((q, k, v) => q && o[k] >= v, true)._);
-      }
     },
     pushL: {
       configurable: true,
