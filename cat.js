@@ -1,16 +1,8 @@
 (() => {
   "use strict";
 
-  let _ = function (v, c) {
-    return Object.create(
-      v == null
-      ? _.prototype
-      : _.Types[
-        v.constructor.name
-      ] || _.Types[
-        v.constructor.constructor.name
-      ] || _.Types.Object,
-      {
+  let _ = UF = function (v, c) {
+    return Object.create(_.prototype, {
       _: {
         get () {
           return v;
@@ -25,28 +17,39 @@
   };
 
   Object.defineProperties(_.prototype, {
+    F: {
+      configurable: true,
+      value (...f) {
+        return _(this, this.flat(...f));
+      }
+    },
+    R: {
+      configurable: true,
+      value (...f) {
+        return _(this.flat(...f), this._);
+      }
+    },
+    U: {
+      configurable: true,
+      value (...f = _) {
+        return _.pipe(...f)(this);
+      }
+    },
+    C: {
+      configurable: true,
+      value (...f = _.id) {
+        return this.flat(...f)._;
+      }
+    },
     lift: {
       configurable: true,
-      value (...f) {
-        return _(_.pipe(f)(this));
+      get () {
+        return this.U();
       }
     },
-    doSt: {
-      configurable: true,
-      value (...f, s) {
-        return _(s, this.flat(...f));
-      }
-    },
-    endo: {
-      configurable: true,
-      value (...f) {
-        return _(this.flat(...f), this.$);
-      }
-    },
-    redo: {
-      configurable: true,
-      value (...f) {
-        return _(this.$, this.flat(...f));
+    take: {
+      get () {
+        return this.C();
       }
     },
     flat: {
@@ -87,15 +90,13 @@
     fold: {
       configurable: true,
       value (f, v) {
-        return this.doSt(
-          this._, Object.entries, a => a.reduce((p, [k, w]) => f(p, k, w), v)
-        );
+        return this.R(Object.entries, a => a.reduce((p, [k, w]) => f(p, k, w), v));
       }
     },
     map: {
       configurable: true,
-      value (f) {
-        return this.fold((p, k, v) => p.give({[k]: f(k, v)}), this);
+      value (...f) {
+        return this.L(Object.entries, a => a.reduce(p, [k, w]));
       }
     },
     filterT: {
@@ -154,7 +155,7 @@
     give: {
       configurable: true,
       value (...o) {
-        return this.endo(p => Object.assign(p, ...o));
+        return this.L();
       }
     },
     call: {
