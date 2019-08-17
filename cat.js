@@ -1,61 +1,50 @@
 (() => {
   "use strict";
 
-  let _ = UF = function (v, c) {
-    return Object.create(_.prototype, {
-      _: {
-        get () {
-          return v;
-        }
-      },
-      $: {
-        get () {
-          return c;
+  let _ = function (x) {
+    return Object.create(x != null && (_.Types[x.constructor] || _.Types[x.constructor.constructor]) || _.prototype, {
+      id: {
+        configurable: true,
+        value () {
+          return x;
         }
       }
     });
   };
 
   Object.defineProperties(_.prototype, {
-    F: {
-      configurable: true,
-      value (...f) {
-        return _(this, this.flat(...f));
-      }
-    },
-    R: {
-      configurable: true,
-      value (...f) {
-        return _(this.flat(...f), this._);
-      }
-    },
-    U: {
-      configurable: true,
-      value (...f = _) {
-        return _.pipe(...f)(this);
-      }
-    },
-    C: {
-      configurable: true,
-      value (...f = _.id) {
-        return this.flat(...f)._;
-      }
-    },
-    lift: {
-      configurable: true,
+    _: {
       get () {
-        return this.U();
+        return this.id()._;
       }
     },
-    take: {
+    $: {
       get () {
-        return this.C();
+        return this.id().$;
+      }
+    },
+    "*": {
+      configurable: true,
+      value (f, g) {
+        return _({_: () => f(this.id), $: () => g(this.id)});
+      }
+    },
+    "+": {
+      configurable: true,
+      value (f) {
+        return _(f(this));
+      }
+    },
+    "<>": {
+      configurable: true,
+      value () {
+        return _({_: () => this.$, $: () => this._});
       }
     },
     flat: {
       configurable: true,
       value (...f) {
-        return this._ == null ? this : _.pipe(...f)(this._);
+        return _.pipe(this.id, ...f);
       }
     },
     json: {
@@ -83,20 +72,20 @@
     pipe: (...a) => (
       a.length === 0 && a.push(_.id),
       a.reduceRight((f, g) => (...v) => f(g(...v)))
-    ),
+    )
   });
 
   Object.defineProperties(_.Types.Object, {
     fold: {
       configurable: true,
       value (f, v) {
-        return this.R(Object.entries, a => a.reduce((p, [k, w]) => f(p, k, w), v));
+        return this.flat(Object.entries, a => a.reduce((p, [k, w]) => f(p, k, w), v), _);
       }
     },
     map: {
       configurable: true,
       value (...f) {
-        return this.L(Object.entries, a => a.reduce(p, [k, w]));
+        return this.flat(Object.entries, a => a.reduce(p, [k, w]), _)();
       }
     },
     filterT: {
@@ -120,7 +109,7 @@
     keys: {
       configurable: true,
       get () {
-        return this.doSt(this._, Object.keys);
+        return this["*"](Object.keys);
       }
     },
     vals: {
