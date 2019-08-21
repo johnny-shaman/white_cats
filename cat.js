@@ -1,12 +1,18 @@
 (() => {
   "use strict";
 
-  let _ = function (x) {
+  let _ = function (x, y) {
     return Object.create(x != null && (_.Types[x.constructor] || _.Types[x.constructor.constructor]) || _.prototype, {
-      id: {
+      flat_: {
         configurable: true,
-        value () {
-          return x;
+        value (...f) {
+          return x == null ? x : _.pipe(...f)(x);
+        }
+      },
+      flat$: {
+        configurable: true,
+        value (...f) {
+          return y == null ? y : _.pipe(...f)(y);
         }
       }
     });
@@ -14,37 +20,33 @@
 
   Object.defineProperties(_.prototype, {
     _: {
+      configurable: true,
       get () {
-        return this.id()._;
+        return this.flat_(_.id);
       }
     },
     $: {
+      configurable: true,
       get () {
-        return this.id().$;
+        return this.flat$(_.id);
       }
     },
-    "*": {
-      configurable: true,
-      value (f, g) {
-        return _({_: () => f(this.id), $: () => g(this.id)});
-      }
-    },
-    "+": {
-      configurable: true,
-      value (f) {
-        return _(f(this));
-      }
-    },
-    "<>": {
-      configurable: true,
-      value () {
-        return _({_: () => this.$, $: () => this._});
-      }
-    },
-    flat: {
+    R: {//Kan extention's Ran
       configurable: true,
       value (...f) {
-        return _.pipe(this.id, ...f);
+        return _(this.flat_(...f), this.flat_(_.id));
+      }
+    },
+    L: {//Kan extention's Lan
+      configurable: true,
+      value (...f) {
+        return _(this.flat_(_.id), this.flat_(...f));
+      }
+    },
+    swap: {
+      configurable: true,
+      get () {
+        return _(this.flat$(_.id), this.flat_(_.id));
       }
     },
     json: {
@@ -56,14 +58,11 @@
   });
 
   Object.assign(_, {
-    Types: [Object, String, Number, (function* () {}).constructor, Date, Promise]
-      .map(
-        v => v.name
-      )
-      .reduce(
-        (p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}),
-        {}
-      ),
+    Types: (
+      [Object, String, Number, (function* () {}).constructor, Date, Promise]
+      .map(v => v.name)
+      .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
+    ),
     id: v => v,
     compose: (...a) => (
       a.length === 0 && a.push(_.id),
@@ -76,58 +75,62 @@
   });
 
   Object.defineProperties(_.Types.Object, {
-    fold: {
+    re: {
       configurable: true,
-      value (f, v) {
-        return this.flat(Object.entries, a => a.reduce((p, [k, w]) => f(p, k, w), v), _);
-      }
-    },
-    map: {
-      configurable: true,
-      value (...f) {
-        return this.flat(Object.entries, a => a.reduce(p, [k, w]), _)();
+      get () {
+        return this.swap;
       }
     },
     filterT: {
       configurable: true,
       value (f) {
-        return this.fold((p, k, v) => f(k, v) && p.give({[k]: f(k, v)}), _({}));
+        return this.R(
+          Object.entries,
+          a => a.reduce((p, [k, v]) => f(k, v) && Object.assign(p, {[k]: v}), {})
+        );
       }
     },
     filterF: {
       configurable: true,
       value (f) {
-        return this.fold((p, k, v) => !f(k, v) && p.give({[k]: f(k, v)}), _({}));
+        return this.R(
+          Object.entries,
+          a => a.reduce((p, [k, v]) => !f(k, v) && Object.assign(p, {[k]: v}), {})
+        );
       }
     },
     filter: {
       configurable: true,
       get () {
-        return this. filterT;
+        return this.filterT;
       }
     },
-    keys: {
+    map: {
       configurable: true,
-      get () {
-        return this["*"](Object.keys);
+      value (...f) {
+        return _(_.pipe(...f)).flat_(
+          g => this.R(
+            Object.entries,
+            a => a.reduce((p, [k, v]) => p.take({[k]: g(k, v)}), this)
+          )
+        );
       }
     },
-    vals: {
+    give: {
       configurable: true,
-      get () {
-        return this.doSt(this._, Object.values);
+      value (...f) {
+        return _(_.pipe(...f)).flat_(
+          g => this.L(
+            Object.entries,
+            a => a.reduce((p, [k, v]) => g(k, v), this)
+          )
+        );
       }
     },
-    pair: {
+    take: {
       configurable: true,
-      get () {
-        return this.doSt(this._, Object.entries);
-      }
-    },
-    define: {
-      configurable: true,
-      value (o) {
-        return this.endo(p => Object.defineProperties(p, o));
+      value (...o) {
+        return this.R(p => Object.assign(p, ...o));
       }
     },
     pick: {
@@ -141,16 +144,34 @@
         return this.filterF(k.includes);
       }
     },
-    give: {
+    keys: {
       configurable: true,
-      value (...o) {
-        return this.L();
+      get () {
+        return this.flat_(Object.keys);
       }
     },
-    call: {
+    vals: {
       configurable: true,
-      value (k, ...v) {
-        return this.doSt(this._, o => o[k](...v));
+      get () {
+        return this.flat_(Object.values);
+      }
+    },
+    sets: {
+      configurable: true,
+      get () {
+        return this.flat_(Object.entries);
+      }
+    },
+    define: {
+      configurable: true,
+      value (o) {
+        return this.R(p => Object.defineProperties(p, o));
+      }
+    },
+    zoom: {
+      configurable: true,
+      value (...k) {
+        return this.R(o => k.reduce((p, w) => p[w] == null ? null : p[w], o))
       }
     },
     collect: {
