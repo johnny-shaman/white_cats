@@ -133,10 +133,31 @@
         return this.R(p => Object.assign(p, ...o));
       }
     },
+    define: {
+      configurable: true,
+      value (o) {
+        return this.R(p => Object.defineProperties(p, o));
+      }
+    },
+    zoom: {
+      configurable: true,
+      value (...k) {
+        return this.R(o => k.reduce((p, w) => p[w] == null ? null : p[w], o))
+      }
+    },
+    call: {
+      configurable: true,
+      value (...k) {
+        return (...v) => _(this.zoom(...k)._.call(this._, ...v), this._)
+      }
+    },
     pick: {
       configurable: true,
       value (...k) {
-        return this.filterT(k.includes);
+        return _(this).R(t => k.reduce(
+          (p, c) => c.constructor === Array ? t.pick(...c) : p.take({[c]: t.zoom(c)}),
+          _({})
+        ))
       }
     },
     drop: {
@@ -160,29 +181,6 @@
       configurable: true,
       get () {
         return this.flat_(Object.entries);
-      }
-    },
-    define: {
-      configurable: true,
-      value (o) {
-        return this.R(p => Object.defineProperties(p, o));
-      }
-    },
-    zoom: {
-      configurable: true,
-      value (...k) {
-        return this.R(o => k.reduce((p, w) => p[w] == null ? null : p[w], o))
-      }
-    },
-    collect: {
-      configurable: true,
-      value ({get, call}) {
-        return this.lift(this._, t => t.lift(
-          t._, u => u.get(get).re.endo(
-            o => _(call).pair._.reduce((p, [k, a]) => p.set({[k]: o[k].apply(o, a)}), _({}))
-          ),
-          u => u.give(u.$)
-        ));
       }
     },
     been: {
