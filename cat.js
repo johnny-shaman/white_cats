@@ -5,13 +5,13 @@
     return Object.create(x != null && (_.Types[x.constructor] || _.Types[x.constructor.constructor]) || _.prototype, {
       flat_: {
         configurable: true,
-        value (...f) {
+        value (...f = _.id) {
           return x == null ? x : _.pipe(...f)(x);
         }
       },
       flat$: {
         configurable: true,
-        value (...f) {
+        value (...f = _.id) {
           return y == null ? y : _.pipe(...f)(y);
         }
       }
@@ -22,22 +22,22 @@
     _: {
       configurable: true,
       get () {
-        return this.flat_(_.id);
+        return this.flat_();
       }
     },
     $: {
       configurable: true,
       get () {
-        return this.flat$(_.id);
+        return this.flat$();
       }
     },
-    R: {//Kan extention's Ran
+    R: {
       configurable: true,
       value (...f) {
         return _(this.flat_(...f), this.flat_(_.id));
       }
     },
-    L: {//Kan extention's Lan
+    L: {
       configurable: true,
       value (...f) {
         return _(this.flat_(_.id), this.flat_(...f));
@@ -71,7 +71,8 @@
     pipe: (...a) => (
       a.length === 0 && a.push(_.id),
       a.reduceRight((f, g) => (...v) => f(g(...v)))
-    )
+    ),
+    lift: (f, o) => (...p) => f(o, ...p)
   });
 
   Object.defineProperties(_.Types.Object, {
@@ -139,30 +140,60 @@
         return this.R(p => Object.defineProperties(p, o));
       }
     },
-    zoom: {
+    get: {
       configurable: true,
       value (...k) {
-        return this.R(o => k.reduce((p, w) => p[w] == null ? null : p[w], o))
+        return this.R(o => k.reduce((p, c) => p == null ? null : p[c], o[k.shift()]));
+      }
+    },
+    set: {
+      configurable: true,
+      value (v, ...k) {
+        return this.take(
+          _({[k.pop()]: v}).R(b => k.reduceRight((p, c) => ({[c]: p}), b))._
+        );
       }
     },
     call: {
       configurable: true,
       value (...k) {
-        return (...v) => _(this.zoom(...k)._.call(this._, ...v), this._)
+        return (...v) => _(this.get(...k)._.call(this._, ...v), this._);
       }
     },
     pick: {
       configurable: true,
       value (...k) {
         return _(this).R(t => k.reduce(
-          (p, c) => c.constructor === Array ? t.pick(...c) : p.take({[c]: t.zoom(c)}),
+          (p, c) => (
+            c.constructor === Array
+            ? p.take({[c]: t.get(c.shift()).pick(...c)._})
+            : p.take({[c]: t._[c]})
+          ),
           _({})
-        ))
+        ))._
       }
     },
     drop: {
+      configurable: true,
       value (...k) {
-        return this.filterF(k.includes);
+        return this.R(
+          Object.keys,
+          a => a.reduce(
+            (p, c) => k.reduce(
+              (q, d) => (
+                d.constructor === Array
+                ? q.take(_(d.shift()).R(w => ({[w]: p.get(w).drop(...d)._}))._)
+                : (
+                  a.includes(d)
+                  ? q
+                  : q.take({[c]: p._[c]})
+                )
+              ),
+              _({})
+            ),
+            this
+          )._
+        );
       }
     },
     keys: {
