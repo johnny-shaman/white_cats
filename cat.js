@@ -2,17 +2,17 @@
   "use strict";
 
   let _ = function (x, y) {
-    return Object.create(x != null && (_.Types[x.constructor] || _.Types[x.constructor.constructor]) || _.prototype, {
-      flat_: {
+    return Object.create(x != null && (_.Types[x.constructor.name] || _.Types[x.constructor.constructor.name]) || _.prototype, {
+      ["@"]: {
         configurable: true,
-        value (...f = _.id) {
-          return x == null ? x : _.pipe(...f)(x);
+        get () {
+          return x;
         }
       },
-      flat$: {
+      ["#"]: {
         configurable: true,
-        value (...f = _.id) {
-          return y == null ? y : _.pipe(...f)(y);
+        get () {
+          return y;
         }
       }
     });
@@ -22,25 +22,49 @@
     _: {
       configurable: true,
       get () {
-        return this.flat_();
+        return this["@"];
       }
     },
     $: {
       configurable: true,
       get () {
-        return this.flat$();
+        return this["#"];
+      }
+    },
+    flat_: {
+      configurable: true,
+      value (...f) {
+        return this._ == null ? this._ : _.pipe(...f)(this._);
+      }
+    },
+    flat$: {
+      configurable: true,
+      value (...f) {
+        return this.$ == null ? this.$ : _.pipe(...f)(this.$);
       }
     },
     R: {
       configurable: true,
       value (...f) {
-        return _(this.flat_(...f), this.flat_(_.id));
+        return _(this.flat_(...f), this._);
       }
     },
     L: {
       configurable: true,
       value (...f) {
-        return _(this.flat_(_.id), this.flat_(...f));
+        return _(this._, this.flat_(...f));
+      }
+    },
+    lift: {
+      configurable: true,
+      value (...f) {
+        return _.pipe(...f)(this);
+      }
+    },
+    flat: {
+      configurable: true,
+      value (...f) {
+        return _.pipe(...f)(this._, this.$);
       }
     },
     swap: {
@@ -52,7 +76,7 @@
     json: {
       configurable: true,
       get () {
-        return this.endo(JSON.stringify);
+        return this.R(JSON.stringify);
       }
     }
   });
@@ -163,14 +187,24 @@
     pick: {
       configurable: true,
       value (...k) {
-        return _(this).R(t => k.reduce(
-          (p, c) => (
-            c.constructor === Array
-            ? p.take({[c]: t.get(c.shift()).pick(...c)._})
-            : p.take({[c]: t._[c]})
-          ),
-          _({})
-        ))._
+        return this.R(
+          Object.keys,
+          a => a.reduce(
+            (p, c) => k.reduce(
+              (q, d) => (
+                d.constructor === Array
+                ? q.take(_(d.shift()).R(w => ({[w]: p.get(w).pick(...d)._}))._)
+                : (
+                  a.includes(d)
+                  ? q.take({[c]: p._[c]})
+                  : q
+                )
+              ),
+              _({})
+            ),
+            this
+          )._
+        );
       }
     },
     drop: {
@@ -212,6 +246,12 @@
       configurable: true,
       get () {
         return this.flat_(Object.entries);
+      }
+    },
+    collect: {
+      configurable: true,
+      value ({pick, call}) {
+        return this.pick(pick)
       }
     },
     been: {
