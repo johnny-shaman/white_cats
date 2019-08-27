@@ -70,7 +70,7 @@
     swap: {
       configurable: true,
       get () {
-        return _(this.flat$(_.id), this.flat_(_.id));
+        return _(this.$, this._);
       }
     },
     json: {
@@ -184,13 +184,20 @@
         return (...v) => this.R(o => this.get(...k)._.call(o, ...v));
       }
     },
+    gain: {
+      configurable: true,
+      value (...k) {
+        return (...v) => this.L(o => this.get(...k)._.call(o, ...v));
+      }
+    },
     pick: {
       configurable: true,
       value (...k) {
         return _({}, this.$_).take(
-          ...k
+          ...this.allKey
+          .filter(v => v instanceof Array ? true : k.includes(v))
           .map(
-            w => w instanceof Array ? {[w.shift()]: this.pick(w)._} : {[w]: this.get(w)._}
+            w => w instanceof Array ? {[w.shift()]: this.pick(...w)._} : {[w]: this.get(w)._}
           )
         );
       }
@@ -202,7 +209,7 @@
           ...this.allKey
           .filter(v => v instanceof Array ? true : !k.includes(v))
           .map(
-            w => w instanceof Array ? {[w.shift()]: this.drop(w)._} : {[w]: this.get(w)._}
+            w => w instanceof Array ? {[w.shift()]: this.drop(...w)._} : {[w]: this.get(w)._}
           )
         );
       }
