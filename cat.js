@@ -31,6 +31,18 @@
         return this["#"];
       }
     },
+    $_: {
+      configurable: true,
+      get () {
+        return this["#"] == null ? this["@"] : this["#"];
+      }
+    },
+    _$: {
+      configurable: true,
+      get () {
+        return this["@"] == null ? this["#"] : this["@"];
+      }
+    },
     flat_: {
       configurable: true,
       value (...f) {
@@ -46,25 +58,13 @@
     R: {
       configurable: true,
       value (...f) {
-        return _(this.flat_(...f), this._);
+        return _(this.flat_(...f), this.$_);
       }
     },
     L: {
       configurable: true,
       value (...f) {
-        return _(this._, this.flat_(...f));
-      }
-    },
-    lift: {
-      configurable: true,
-      value (...f) {
-        return _.pipe(...f)(this);
-      }
-    },
-    flat: {
-      configurable: true,
-      value (...f) {
-        return _.pipe(...f)(this._, this.$);
+        return _(this._$, this.flat_(...f));
       }
     },
     swap: {
@@ -173,60 +173,37 @@
     set: {
       configurable: true,
       value (v, ...k) {
-        return this.take(
-          _({[k.pop()]: v}).R(b => k.reduceRight((p, c) => ({[c]: p}), b))._
+        return this.flatTake(
+          _({[k.pop()]: v}).R(b => k.reduceRight((p, c) => ({[c]: p}), b))
         );
       }
     },
     call: {
       configurable: true,
       value (...k) {
-        return (...v) => _(this.get(...k)._.call(this._, ...v), this._);
+        return (...v) => this.R(o => this.get(...k)._.call(o, ...v));
       }
     },
     pick: {
       configurable: true,
       value (...k) {
-        return this.R(
-          Object.keys,
-          a => a.reduce(
-            (p, c) => k.reduce(
-              (q, d) => (
-                d.constructor === Array
-                ? q.take(_(d.shift()).R(w => ({[w]: p.get(w).pick(...d)._}))._)
-                : (
-                  a.includes(d)
-                  ? q.take({[c]: p._[c]})
-                  : q
-                )
-              ),
-              _({})
-            ),
-            this
-          )._
+        return _({}, this.$_).take(
+          ...k
+          .map(
+            w => w instanceof Array ? {[w.shift()]: this.pick(w)._} : {[w]: this.get(w)._}
+          )
         );
       }
     },
     drop: {
       configurable: true,
       value (...k) {
-        return this.R(
-          Object.keys,
-          a => a.reduce(
-            (p, c) => k.reduce(
-              (q, d) => (
-                d.constructor === Array
-                ? q.take(_(d.shift()).R(w => ({[w]: p.get(w).drop(...d)._}))._)
-                : (
-                  a.includes(d)
-                  ? q
-                  : q.take({[c]: p._[c]})
-                )
-              ),
-              _({})
-            ),
-            this
-          )._
+        return _({}, this.$_).take(
+          ...this.allKey
+          .filter(v => v instanceof Array ? true : !k.includes(v))
+          .map(
+            w => w instanceof Array ? {[w.shift()]: this.drop(w)._} : {[w]: this.get(w)._}
+          )
         );
       }
     },
@@ -236,22 +213,26 @@
         return this.flat_(Object.keys);
       }
     },
+    allKey: {
+      configurable: true,
+      get () {
+        return this.keys.map(
+          k => this.get(k).flat_(
+            o => o instanceof Object ? this.get(k).allKey.unshift(k) : k
+          )
+        );
+      }
+    },
     vals: {
       configurable: true,
       get () {
         return this.flat_(Object.values);
       }
     },
-    sets: {
+    pairs: {
       configurable: true,
       get () {
         return this.flat_(Object.entries);
-      }
-    },
-    collect: {
-      configurable: true,
-      value ({pick, call}) {
-        return this.pick(pick)
       }
     },
     been: {
