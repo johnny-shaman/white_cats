@@ -279,6 +279,12 @@
         return this.R(a => a.filter(f));
       }
     },
+    chunk: {
+      configurable: true,
+      value (n) {
+        return this.R(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(a.slice(n).chunk(n)))
+      }
+    },
     group: {
       configurable: true,
       value (...k) {
