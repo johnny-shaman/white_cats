@@ -3,13 +3,13 @@
 
   let _ = function (x, y) {
     return Object.create(x != null && (_.Types[x.constructor.name] || _.Types[x.constructor.constructor.name]) || _.prototype, {
-      ["@"]: {
+      ["#"]: {
         configurable: true,
         get () {
           return x;
         }
       },
-      ["#"]: {
+      ["@"]: {
         configurable: true,
         get () {
           return y;
@@ -22,25 +22,25 @@
     _: {
       configurable: true,
       get () {
-        return this["@"];
+        return this["#"];
       }
     },
     $: {
       configurable: true,
       get () {
-        return this["#"];
+        return this["@"];
       }
     },
     $_: {
       configurable: true,
       get () {
-        return this["#"] == null ? this["@"] : this["#"];
+        return this["@"] == null ? this["#"] : this["@"];
       }
     },
     _$: {
       configurable: true,
       get () {
-        return this["@"] == null ? this["#"] : this["@"];
+        return this["#"] == null ? this["@"] : this["#"];
       }
     },
     flat_: {
@@ -106,28 +106,13 @@
         return this.swap;
       }
     },
-    filterT: {
+    filter: {
       configurable: true,
       value (f) {
         return this.R(
           Object.entries,
           a => a.reduce((p, [k, v]) => f(k, v) && Object.assign(p, {[k]: v}), {})
         );
-      }
-    },
-    filterF: {
-      configurable: true,
-      value (f) {
-        return this.R(
-          Object.entries,
-          a => a.reduce((p, [k, v]) => !f(k, v) && Object.assign(p, {[k]: v}), {})
-        );
-      }
-    },
-    filter: {
-      configurable: true,
-      get () {
-        return this.filterT;
       }
     },
     map: {
@@ -141,7 +126,7 @@
         );
       }
     },
-    give: {
+    each: {
       configurable: true,
       value (...f) {
         return _(_.pipe(...f)).flat_(
@@ -150,6 +135,12 @@
             a => a.reduce((p, [k, v]) => g(k, v), this)
           )
         );
+      }
+    },
+    give: {
+      configurable: true,
+      value (...o) {
+        return this.L(p => Object.assign(...o, p));
       }
     },
     take: {
@@ -162,6 +153,18 @@
       configurable: true,
       value (o) {
         return this.R(p => Object.defineProperties(p, o));
+      }
+    },
+    append: {
+      configurable: true,
+      value (o) {
+        return this.R(p => Object.create(p, o))
+      }
+    },
+    depend: {
+      configurable: true,
+      value (o) {
+        return this.R(p => Object.create(o, p))
       }
     },
     get: {
@@ -184,7 +187,7 @@
         return (...v) => this.R(o => this.get(...k)._.call(o, ...v));
       }
     },
-    gain: {
+    send: {
       configurable: true,
       value (...k) {
         return (...v) => this.L(o => this.get(...k)._.call(o, ...v));
@@ -241,18 +244,6 @@
       get () {
         return this.flat_(Object.entries);
       }
-    },
-    been: {
-      configurable: true,
-      get () {
-        return new Proxy(this._, {
-          to: this,
-          _:  this._,
-          get (t, k, r) {
-            return r[k] != null ? r[k] : (...v) => this.doSt(t, () => t[k](...v)).re;
-          }
-        });
-      }
     }
   });
 
@@ -261,7 +252,7 @@
     map: {
       configurable: true,
       value (...f) {
-        return this.endo(a => f.reduce((a, g) => a.map(g), a));
+        return this.R(a => a.map(_.pipe(...f)));
       }
     },
     fold: {
@@ -282,22 +273,10 @@
         return this.call("reduceRight", f, ...v);
       }
     },
-    filterT: {
-      configurable: true,
-      value (f) {
-        return this.doSt(this._, a => a.filter(f));
-      }
-    },
-    filterF: {
-      configurable: true,
-      value (f) {
-        return this.doSt(this._, a => a.filter((v, k) => !f(v, k)));
-      }
-    },
     filter: {
       configurable: true,
       value (f) {
-        return this.call("filter", f);
+        return this.R(a => a.filter(f));
       }
     },
     group: {
@@ -311,13 +290,13 @@
     pushL: {
       configurable: true,
       value (...v) {
-        return this.call("unshift", ...v).re;
+        return this.send("unshift", ...v);
       }
     },
     pushR: {
       configurable: true,
       value (...v) {
-        return this.call("push", ...v).re;
+        return this.send("push", ...v);
       }
     },
     popL: {
@@ -335,19 +314,19 @@
     fMap: {
       configurable: true,
       value (...f) {
-        return this.endo(a => f.reduce((b, g) => b.flatMap(g), a));
+        return this.R(a => a.flatMap(_.pipe(...f)));
       }
     },
     back: {
       configurable: true,
       get () {
-        return this.endo(a => a.reverce());
+        return this.R(a => a.reverce());
       }
     },
     adaptL: {
       configurable: true,
       value (...v) {
-        return this.endo(
+        return this.R(
           a => Array(a.length).fill(undefined).map((_, k) => a[k] == null ? v.shift() : a[k])
         )
       }
@@ -355,7 +334,7 @@
     adaptR: {
       configurable: true,
       value (...w) {
-        return this.endo(
+        return this.R(
           a => a.reverse(),
           a => Array(a.length).fill(undefined).map((_, k) => a[k] == null ? v.shift() : a[k]),
           a => a.reverse()
