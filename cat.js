@@ -40,13 +40,7 @@
     flat$: {
       configurable: true,
       value (...f) {
-        return this.$ == null ? this.$ : _.pipe(...f)(this.$);
-      }
-    },
-    flat: {
-      configurable: true,
-      value (...f) {
-        return 
+        return this.$ == null ? this.$ : _.pipe(...f)(this.$_);
       }
     },
     R: {
@@ -58,7 +52,7 @@
     L: {
       configurable: true,
       value (...f) {
-        return _(this._, this.flat_(...f));
+        return _(this._, this.flat$(...f));
       }
     },
     swap: {
