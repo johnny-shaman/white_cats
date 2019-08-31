@@ -3,13 +3,13 @@
 
   let _ = function (x, y) {
     return Object.create(x != null && (_.Types[x.constructor.name] || _.Types[x.constructor.constructor.name]) || _.prototype, {
-      ["#"]: {
+      _: {
         configurable: true,
         get () {
           return x;
         }
       },
-      ["@"]: {
+      $: {
         configurable: true,
         get () {
           return y;
@@ -19,28 +19,16 @@
   };
 
   Object.defineProperties(_.prototype, {
-    _: {
-      configurable: true,
-      get () {
-        return this["#"];
-      }
-    },
-    $: {
-      configurable: true,
-      get () {
-        return this["@"];
-      }
-    },
     $_: {
       configurable: true,
       get () {
-        return this["@"] == null ? this["#"] : this["@"];
+        return this.$ == null ? this._ : this.$;
       }
     },
     _$: {
       configurable: true,
       get () {
-        return this["#"] == null ? this["@"] : this["#"];
+        return this._ == null ? this.$ : this._;
       }
     },
     flat_: {
@@ -55,6 +43,12 @@
         return this.$ == null ? this.$ : _.pipe(...f)(this.$);
       }
     },
+    flat: {
+      configurable: true,
+      value (...f) {
+        return 
+      }
+    },
     R: {
       configurable: true,
       value (...f) {
@@ -64,7 +58,7 @@
     L: {
       configurable: true,
       value (...f) {
-        return _(this._$, this.flat_(...f));
+        return _(this._, this.flat_(...f));
       }
     },
     swap: {
@@ -95,8 +89,7 @@
     pipe: (...a) => (
       a.length === 0 && a.push(_.id),
       a.reduceRight((f, g) => (...v) => f(g(...v)))
-    ),
-    lift: (f, o) => (...p) => f(o, ...p)
+    )
   });
 
   Object.defineProperties(_.Types.Object, {
@@ -176,8 +169,8 @@
     set: {
       configurable: true,
       value (v, ...k) {
-        return this.flatTake(
-          _({[k.pop()]: v}).R(b => k.reduceRight((p, c) => ({[c]: p}), b))
+        return this.take(
+          _({[k.pop()]: v}).flat_(b => k.reduceRight((p, c) => ({[c]: p}), b))
         );
       }
     },
@@ -201,7 +194,7 @@
           .filter(v => v instanceof Array ? true : k.includes(v))
           .map(
             w => w instanceof Array ? {[w.shift()]: this.pick(...w)._} : {[w]: this.get(w)._}
-          )
+          )._
         );
       }
     },
@@ -213,14 +206,14 @@
           .filter(v => v instanceof Array ? true : !k.includes(v))
           .map(
             w => w instanceof Array ? {[w.shift()]: this.drop(...w)._} : {[w]: this.get(w)._}
-          )
+          )._
         );
       }
     },
     keys: {
       configurable: true,
       get () {
-        return this.flat_(Object.keys);
+        return this.R(Object.keys);
       }
     },
     allKey: {
@@ -236,13 +229,13 @@
     vals: {
       configurable: true,
       get () {
-        return this.flat_(Object.values);
+        return this.R(Object.values);
       }
     },
-    pairs: {
+    entries: {
       configurable: true,
       get () {
-        return this.flat_(Object.entries);
+        return this.R(Object.entries);
       }
     }
   });
@@ -281,11 +274,35 @@
     },
     chunk: {
       configurable: true,
+      get () {
+        return this.lift;
+      }
+    },
+    lift: {
+      configurable: true,
       value (n) {
         return this.R(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(a.slice(n).chunk(n)))
       }
     },
-    group: {
+    uniq: {
+      configurable: true,
+      get () {
+        return this.R(a => [...new Set(a)]);
+      }
+    },
+    union: {
+      configurable: true,
+      value (...b) {
+        return this.R(a => [...new Set(a.concat(...b))]);
+      }
+    },
+    exist: {
+      configurable: true,
+      value (v) {
+        return this.R(a => a.includes(v));
+      }
+    },
+    grp: {
       configurable: true,
       value (...k) {
         return this.fold(
@@ -320,13 +337,19 @@
     fMap: {
       configurable: true,
       value (...f) {
-        return this.R(a => a.flatMap(_.pipe(...f)));
+        return this.call("flatMap")(_.pipe(...f));
+      }
+    },
+    flat: {
+      configurable: true,
+      get () {
+        return this.call("flat");
       }
     },
     back: {
       configurable: true,
       get () {
-        return this.R(a => a.reverce());
+        return this.call("reverse");
       }
     },
     adaptL: {
@@ -355,20 +378,20 @@
     },
     concat: {
       configurable: true,
-      value (...v) {
-        return this.call("concat", ...v);
+      get () {
+        return this.call("concat");
       }
     },
     replace: {
       configurable: true,
-      value (...v) {
-        return this.call("splice", ...v);
+      get () {
+        return this.call("splice");
       }
     },
     slice: {
       configurable: true,
-      value (...v) {
-        return this.call("slice", ...v);
+      get () {
+        return this.call("slice");
       }
     },
     sort: {
@@ -404,7 +427,7 @@
     mid: {
       configurable: true,
       get () {
-        return this.lift(this.slice()._, t.sort.flat(
+        return this.sort.R(
           a => (
             a.length === 0
             ? null
@@ -414,7 +437,7 @@
               : a[a.length / 2 - 0.5]
             )
           )
-        ));
+        );
       }
     }
   });
