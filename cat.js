@@ -242,7 +242,7 @@
       value (...v) {
         return this.R(
           Object.values,
-          a => v.fold((p, c) => p && a._.includes(c), true) ? this._ : null
+          a => v.fold((p, c) => p && a.includes(c), true) ? this._ : null
         )
       }
     }
