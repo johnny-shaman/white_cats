@@ -239,10 +239,10 @@
     },
     existVals: {
       configurable: true,
-      value (...k) {
+      value (...v) {
         return this.R(
           Object.values,
-          a => k.fold((p, c) => p && a._.includes(c), true) ? this._ : null
+          a => v.fold((p, c) => p && a._.includes(c), true) ? this._ : null
         )
       }
     }
