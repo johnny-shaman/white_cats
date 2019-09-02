@@ -40,7 +40,7 @@
     flat$: {
       configurable: true,
       value (...f) {
-        return this.$ == null ? this.$ : _.pipe(...f)(this.$_);
+        return this.$ == null ? _.pipe(...f)(this._) : _.pipe(...f)(this.$);
       }
     },
     R: {
@@ -105,22 +105,18 @@
     map: {
       configurable: true,
       value (...f) {
-        return _(_.pipe(...f)).flat_(
-          g => this.R(
-            Object.entries,
-            a => a.reduce((p, [k, v]) => p.take({[k]: g(k, v)}), this)
-          )
+        return this.R(
+          Object.entries,
+          a => a.reduce((p, [k, v]) => p.take({[k]: _.pipe(...f)(k, v)}), this)
         );
       }
     },
     each: {
       configurable: true,
       value (...f) {
-        return _(_.pipe(...f)).flat_(
-          g => this.L(
-            Object.entries,
-            a => a.reduce((p, [k, v]) => g(k, v), this)
-          )
+        return this.L(
+          Object.entries,
+          a => a.reduce((p, [k, v]) => _.pipe(...f)(k, v), this)
         );
       }
     },
@@ -215,7 +211,7 @@
       get () {
         return this.keys.map(
           k => this.get(k).flat_(
-            o => o instanceof Object ? this.get(k).allKey.unshift(k) : k
+            o => o instanceof Object ? this.get(k).allKey.pushL(k) : k
           )
         );
       }
@@ -230,6 +226,24 @@
       configurable: true,
       get () {
         return this.R(Object.entries);
+      }
+    },
+    existKeys: {
+      configurable: true,
+      value (...k) {
+        return this.R(
+          Object.keys,
+          a => k.fold((p, c) => p && a.includes(c), true) ? this._ : null
+        )
+      }
+    },
+    existVals: {
+      configurable: true,
+      value (...k) {
+        return this.R(
+          Object.values,
+          a => k.fold((p, c) => p && a._.includes(c), true) ? this._ : null
+        )
       }
     }
   });
@@ -275,7 +289,7 @@
     lift: {
       configurable: true,
       value (n) {
-        return this.R(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(a.slice(n).chunk(n)))
+        return this.R(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(a.slice(n).chunk(n)));
       }
     },
     uniq: {
@@ -293,16 +307,17 @@
     exist: {
       configurable: true,
       value (v) {
-        return this.R(a => a.includes(v));
+        return this.R(a => a.includes(v) ? a : null);
       }
     },
-    grp: {
+    group: {
       configurable: true,
       value (...k) {
-        return this.fold(
-          (p, c) => p[k].push(c[k]), k.reduce((o, w) => p.give({[w]: []}), _({}))._
-        );
-      } 
+        this.fold(
+          (p, c) => p.map((d, a) => a.push(c[d]))._,
+          k.reduce((o, d) => o.take({[d]: []}), _({}))
+        )
+      }
     },
     pushL: {
       configurable: true,
@@ -336,8 +351,8 @@
     },
     flat: {
       configurable: true,
-      get () {
-        return this.call("flat");
+      value (v) {
+        return this.call("flat")(v);
       }
     },
     back: {
