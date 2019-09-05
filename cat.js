@@ -31,13 +31,13 @@
         return this._ == null ? this.$ : this._;
       }
     },
-    flat_: {
+    flatR: {
       configurable: true,
       value (...f) {
         return this._ == null ? this._ : _.pipe(...f)(this._);
       }
     },
-    flat$: {
+    flatL: {
       configurable: true,
       value (...f) {
         return this.$ == null ? _.pipe(...f)(this._) : _.pipe(...f)(this.$);
@@ -46,13 +46,37 @@
     R: {
       configurable: true,
       value (...f) {
-        return _(this.flat_(...f), this.$_);
+        return _(this.flatR(...f), this.$_);
       }
     },
     L: {
       configurable: true,
       value (...f) {
-        return _(this._, this.flat$(...f));
+        return _(this._, this.flatL(...f));
+      }
+    },
+    use: {
+      configurable: true,
+      get () {
+        return this.L;
+      }
+    },
+    fit: {
+      configurable: true,
+      get () {
+        return this.R;
+      }
+    },
+    liftR: {
+      configurable: true,
+      value (...f) {
+        return this.R(() => _.pipe(...f)(this).flatR(_.id))
+      }
+    },
+    liftL: {
+      configurable: true,
+      value (...f) {
+        return this.L(() => _.pipe(...f)(this).flatL(_.id))
       }
     },
     swap: {
@@ -120,13 +144,7 @@
         );
       }
     },
-    give: {
-      configurable: true,
-      value (...o) {
-        return this.L(p => Object.assign(...o, p));
-      }
-    },
-    take: {
+    put: {
       configurable: true,
       value (...o) {
         return this.R(p => Object.assign(p, ...o));
@@ -158,9 +176,9 @@
     },
     set: {
       configurable: true,
-      value (v, ...k) {
-        return this.take(
-          _({[k.pop()]: v}).flat_(b => k.reduceRight((p, c) => ({[c]: p}), b))
+      value (...k) {
+        return (v) => this.take(
+          _({[k.pop()]: v}).flatR(b => k.reduceRight((p, c) => ({[c]: p}), b))
         );
       }
     },
@@ -170,7 +188,7 @@
         return (...v) => this.R(o => this.get(...k)._.call(o, ...v));
       }
     },
-    send: {
+    cast: {
       configurable: true,
       value (...k) {
         return (...v) => this.L(o => this.get(...k)._.call(o, ...v));
@@ -183,7 +201,11 @@
           ...this.allKey
           .filter(v => v instanceof Array ? true : k.includes(v))
           .map(
-            w => w instanceof Array ? {[w.shift()]: this.pick(...w)._} : {[w]: this.get(w)._}
+            w => (
+              w instanceof Array
+              ? {[w.shift()]: this.pick(...w)._}
+              : _({}).define({[w]: {get : () => this.get(w)._}})._
+            )
           )._
         );
       }
@@ -195,7 +217,11 @@
           ...this.allKey
           .filter(v => v instanceof Array ? true : !k.includes(v))
           .map(
-            w => w instanceof Array ? {[w.shift()]: this.drop(...w)._} : {[w]: this.get(w)._}
+            w => (
+              w instanceof Array
+              ? {[w.shift()]: this.drop(...w)._}
+              : _({}).define({[w]: {get : () => this.get(w)._}})._
+            )
           )._
         );
       }
@@ -210,7 +236,7 @@
       configurable: true,
       get () {
         return this.keys.map(
-          k => this.get(k).flat_(
+          k => this.get(k).flatR(
             o => o instanceof Object ? this.get(k).allKey.pushL(k) : k
           )
         );
@@ -228,22 +254,10 @@
         return this.R(Object.entries);
       }
     },
-    existKeys: {
+    fullen: {
       configurable: true,
-      value (...k) {
-        return this.R(
-          Object.keys,
-          a => k.fold((p, c) => p && a.includes(c), true) ? this._ : null
-        )
-      }
-    },
-    existVals: {
-      configurable: true,
-      value (...v) {
-        return this.R(
-          Object.values,
-          a => v.fold((p, c) => p && a.includes(c), true) ? this._ : null
-        )
+      get () {
+        return this.vals.fold((p, c) => c != null && p, true)._
       }
     }
   });
@@ -253,7 +267,7 @@
     map: {
       configurable: true,
       value (...f) {
-        return this.R(a => a.map(_.pipe(...f)));
+        return this.call("map")(_.pipe(...f));
       }
     },
     fold: {
@@ -265,19 +279,19 @@
     foldL: {
       configurable: true,
       value (f, ...v) {
-        return this.call("reduce", f, ...v);
+        return this.call("reduce")(f, ...v);
       }
     },
     foldR: {
       configurable: true,
       value (f, ...v) {
-        return this.call("reduceRight", f, ...v);
+        return this.call("reduceRight")(f, ...v);
       }
     },
     filter: {
       configurable: true,
       value (f) {
-        return this.R(a => a.filter(f));
+        return this.call("filter")(f);
       }
     },
     chunk: {
@@ -307,40 +321,55 @@
     exist: {
       configurable: true,
       value (v) {
-        return this.R(a => a.includes(v) ? a : null);
+        return this._.includes(v);
       }
     },
-    group: {
+    fullen: {
+      configurable: true,
+      get () {
+        return this.fold((p, c) => c != null && p, true)._
+      }
+    },
+    pick: {
       configurable: true,
       value (...k) {
-        this.fold(
+        return this.fold(
           (p, c) => p.map((d, a) => a.push(c[d]))._,
-          k.reduce((o, d) => o.take({[d]: []}), _({}))
+          k.reduce((o, d) => o.put({[d]: []}), _({}))
+        )
+      }
+    },
+    drop: {
+      configurable: true,
+      value (...k) {
+        return this.fold(
+          (p, c) => p.map((d, a) => a.push(c[d]))._,
+          k.reduce((o, d) => o.put({[d]: []}), _({}))
         )
       }
     },
     pushL: {
       configurable: true,
       value (...v) {
-        return this.send("unshift", ...v);
+        return this.cast("unshift")(...v);
       }
     },
     pushR: {
       configurable: true,
       value (...v) {
-        return this.send("push", ...v);
+        return this.cast("push")(...v);
       }
     },
     popL: {
       configurable: true,
       get () {
-        return this.call("shift");
+        return this.call("shift")();
       }
     },
     popR: {
       configurable: true,
       get () {
-        return this.call("pop");
+        return this.call("pop")();
       }
     },
     fMap: {
