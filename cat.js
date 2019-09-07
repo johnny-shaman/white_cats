@@ -56,11 +56,7 @@
       }
     },
     use: {
-      configurable: true,    pipeL: (...a) => (
-        a.length === 0 && a.push(_.id),
-        a.reduceRight((f, g) => (...v) => (f(g(...v)), v[0]))
-      ),
-  
+      configurable: true,
       get () {
         return this.L;
       }
