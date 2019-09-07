@@ -34,13 +34,13 @@
     flatR: {
       configurable: true,
       value (...f) {
-        return this._ == null ? this._ : _.pipe(...f)(this._);
+        return this._ == null ? this._ : _.pipe_(...f)(this._);
       }
     },
     flatL: {
       configurable: true,
       value (...f) {
-        return this.$ == null ? _.pipe(...f)(this._) : _.pipe(...f)(this.$);
+        return this.$ == null ? _.pipe$(...f)(this._) : _.pipe$(...f)(this.$);
       }
     },
     R: {
@@ -56,7 +56,11 @@
       }
     },
     use: {
-      configurable: true,
+      configurable: true,    pipeL: (...a) => (
+        a.length === 0 && a.push(_.id),
+        a.reduceRight((f, g) => (...v) => (f(g(...v)), v[0]))
+      ),
+  
       get () {
         return this.L;
       }
@@ -65,18 +69,6 @@
       configurable: true,
       get () {
         return this.R;
-      }
-    },
-    liftR: {
-      configurable: true,
-      value (...f) {
-        return this.R(() => _.pipe(...f)(this).flatR(_.id))
-      }
-    },
-    liftL: {
-      configurable: true,
-      value (...f) {
-        return this.L(() => _.pipe(...f)(this).flatL(_.id))
       }
     },
     swap: {
@@ -100,14 +92,14 @@
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
     id: v => v,
-    compose: (...a) => (
+    pipe$: (...a) => (
       a.length === 0 && a.push(_.id),
-      a.reduce((f, g) => (...v) => f(g(...v)))
+      a.reduceRight((f, g) => (...v) => (f((g(...v), v[0]))))
     ),
-    pipe: (...a) => (
+    pipe_: (...a) => (
       a.length === 0 && a.push(_.id),
       a.reduceRight((f, g) => (...v) => f(g(...v)))
-    )
+    ),
   });
 
   Object.defineProperties(_.Types.Object, {
@@ -131,7 +123,7 @@
       value (...f) {
         return this.R(
           Object.entries,
-          a => a.reduce((p, [k, v]) => p.take({[k]: _.pipe(...f)(k, v)}), this)
+          a => a.reduce((p, [k, v]) => p.take({[k]: _.pipe_(...f)(k, v)}), this)
         );
       }
     },
@@ -140,7 +132,7 @@
       value (...f) {
         return this.L(
           Object.entries,
-          a => a.reduce((p, [k, v]) => _.pipe(...f)(k, v), this)
+          a => a.reduce((p, [k, v]) => _.pipe_(...f)(k, v), this)
         );
       }
     },
@@ -267,7 +259,7 @@
     map: {
       configurable: true,
       value (...f) {
-        return this.call("map")(_.pipe(...f));
+        return this.call("map")(_.pipe_(...f));
       }
     },
     fold: {
@@ -375,7 +367,7 @@
     fMap: {
       configurable: true,
       value (...f) {
-        return this.call("flatMap")(_.pipe(...f));
+        return this.call("flatMap")(_.pipe_(...f));
       }
     },
     flat: {
