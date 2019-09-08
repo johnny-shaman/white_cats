@@ -96,6 +96,7 @@
       a.length === 0 && a.push(_.id),
       a.reduceRight((f, g) => (...v) => f(g(...v)))
     ),
+    apply: v => (...f) => _.pipe(...f)(v)
   });
 
   Object.defineProperties(_.Types.Object, {
@@ -119,7 +120,7 @@
       value (...f) {
         return this.R(
           Object.entries,
-          a => a.reduce((p, [k, v]) => p.take({[k]: _.pipe_(...f)(k, v)}), this)
+          a => a.reduce((p, [k, v]) => p.put({[k]: _.pipe_(...f)(k, v)}), this)
         );
       }
     },
@@ -165,7 +166,7 @@
     set: {
       configurable: true,
       value (...k) {
-        return (v) => this.take(
+        return (v) => this.put(
           _({[k.pop()]: v}).flatR(b => k.reduceRight((p, c) => ({[c]: p}), b))
         );
       }
@@ -185,14 +186,14 @@
     pick: {
       configurable: true,
       value (...k) {
-        return _({}, this.$_).take(
+        return _({}, this.$_).put(
           ...this.allKey
           .filter(v => v instanceof Array ? true : k.includes(v))
           .map(
             w => (
               w instanceof Array
               ? {[w.shift()]: this.pick(...w)._}
-              : _({}).define({[w]: {get : () => this.get(w)._}})._
+              : _({}).define({[w]: {get : () => this._[w]}})._
             )
           )._
         );
@@ -201,14 +202,14 @@
     drop: {
       configurable: true,
       value (...k) {
-        return _({}, this.$_).take(
+        return _({}, this.$_).put(
           ...this.allKey
           .filter(v => v instanceof Array ? true : !k.includes(v))
           .map(
             w => (
               w instanceof Array
               ? {[w.shift()]: this.drop(...w)._}
-              : _({}).define({[w]: {get : () => this.get(w)._}})._
+              : _({}).define({[w]: {get : () => this._[w]}})._
             )
           )._
         );
@@ -225,7 +226,7 @@
       get () {
         return this.keys.map(
           k => this.get(k).flatR(
-            o => o instanceof Object ? this.get(k).allKey.pushL(k) : k
+            o => o instanceof Object ? this.get(k).allKey.pushL(k)._ : k
           )
         );
       }
