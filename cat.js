@@ -89,13 +89,13 @@
     ),
     id: v => v,
     pipe$: (...a) => (
-      a.length === 0 && a.push(_.id),
-      a.reduceRight((f, g) => (...v) => (f((g(...v), v[0]))))
+      a.reduceRight((f, g) => (...v) => (f((g(...v), v[0]))), _.id)
     ),
     pipe_: (...a) => (
-      a.length === 0 && a.push(_.id),
-      a.reduceRight((f, g) => (...v) => f(g(...v)))
+      a.reduceRight((f, g) => (...v) => f(g(...v)), _.id)
     ),
+    _: (...a) => _.pipe_(...a),
+    $: (...a) => _.pipe$(...a),
     apply: v => (...f) => _.pipe(...f)(v)
   });
 
