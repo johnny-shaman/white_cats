@@ -1,4 +1,4 @@
-(() => {
+((apex) => {
   "use strict";
 
   let _ = function (x, y) {
@@ -55,18 +55,6 @@
         return _(this._, this.flatL(...f));
       }
     },
-    use: {
-      configurable: true,
-      get () {
-        return this.L;
-      }
-    },
-    fit: {
-      configurable: true,
-      get () {
-        return this.R;
-      }
-    },
     swap: {
       configurable: true,
       get () {
@@ -88,15 +76,17 @@
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
     id: v => v,
-    pipe$: (...a) => (
-      a.reduceRight((f, g) => (...v) => (f((g(...v), v[0]))), _.id)
-    ),
-    pipe_: (...a) => (
-      a.reduceRight((f, g) => (...v) => f(g(...v)), _.id)
-    ),
-    _: (...a) => _.pipe_(...a),
-    $: (...a) => _.pipe$(...a),
-    apply: v => (...f) => _.pipe(...f)(v)
+    pipe_: (...a) => a.reduceRight((f, g) => (...v) => (v.unshift(g(...v)), f(...v)), _.id),
+    pipe$: (...a) => a.reduceRight((f, g) => (...v) => (v.push(g(...v)), f(...v)), _.id),
+    Skelton: (...a) => a.map(v => (
+      v instanceof Array
+      ? _.Skelton(Object.assign(v, {key: v.shift()}))
+      : v
+    )),
+    upon: Object.create,
+    assign: Object.assign,
+    define: Object.defineProperty,
+    defines: Object.defineProperties
   });
 
   Object.defineProperties(_.Types.Object, {
@@ -110,8 +100,22 @@
       configurable: true,
       value (f) {
         return this.R(
-          Object.entries,
-          a => a.reduce((p, [k, v]) => f(k, v) && Object.assign(p, {[k]: v}), {})
+          o => Object
+          .entries(o)
+          .reduce(
+            (p, [k, v]) => f(k, v) && Object.defineProperty(
+              p,
+              k,
+              {
+                enumerable: true,
+                configurable: true,
+                get () {
+                  return o[k];
+                }
+              }
+            ),
+            {}
+          )
         );
       }
     },
@@ -148,19 +152,19 @@
     append: {
       configurable: true,
       value (o) {
-        return this.R(p => Object.create(p, o))
+        return this.R(p => Object.create(p, o));
       }
     },
     depend: {
       configurable: true,
       value (o) {
-        return this.R(p => Object.create(o, p))
+        return this.R(p => Object.create(o, p));
       }
     },
     get: {
       configurable: true,
       value (...k) {
-        return this.R(o => k.reduce((p, c) => p == null ? null : p[c], o[k.shift()]));
+        return this.R(o => k.reduce((p, c) => p == null ? null : p[c], o));
       }
     },
     set: {
@@ -174,45 +178,77 @@
     call: {
       configurable: true,
       value (...k) {
-        return (...v) => this.R(o => this.get(...k)._.call(o, ...v));
+        return (...v) => this.R(o => k.reduce(
+          (p, c) => (
+            p[c] == null
+            ? null
+            : (
+              typeof p[c] === "function"
+              ? p[c].call(p, ...v)
+              : p[c]
+            )
+          ),
+          o
+        ));
       }
     },
     cast: {
       configurable: true,
       value (...k) {
-        return (...v) => this.L(o => this.get(...k)._.call(o, ...v));
+        return (...v) => this.L(o => k.reduce(
+          (p, c) => (
+            p[c] == null
+            ? null
+            : (
+              typeof p[c] === "function"
+              ? p[c].call(p, ...v)
+              : p[c]
+            )
+          ),
+          o
+        ));
       }
     },
     pick: {
       configurable: true,
       value (...k) {
-        return _({}, this.$_).put(
-          ...this.allKey
-          .filter(v => v instanceof Array ? true : k.includes(v))
-          .map(
-            w => (
-              w instanceof Array
-              ? {[w.shift()]: this.pick(...w)._}
-              : _({}).define({[w]: {get : () => this._[w]}})._
-            )
-          )._
-        );
+        return this.R(o => this
+          .skelton
+          .pick(...k)
+          .fold(
+          (p, c) => (
+            c instanceof Array
+            ? this.get(c.key).pick(c)._
+            : Object.defineProperty(p, c, {
+              configurable: true,
+              enumerable: true,
+              get () {
+                return o[c];
+              }
+            })
+          )
+        ));
       }
     },
     drop: {
       configurable: true,
       value (...k) {
-        return _({}, this.$_).put(
-          ...this.allKey
-          .filter(v => v instanceof Array ? true : !k.includes(v))
-          .map(
-            w => (
-              w instanceof Array
-              ? {[w.shift()]: this.drop(...w)._}
-              : _({}).define({[w]: {get : () => this._[w]}})._
-            )
-          )._
-        );
+        return this.R(o => this
+          .skelton
+          .drop(...k)
+          .fold(
+          (p, c) => (
+            c instanceof Array
+            ? this.get(c.key).drop(c)._
+            : Object.defineProperty(p, c, {
+              configurable: true,
+              enumerable: true,
+              get () {
+                return o[c];
+              }
+            })
+          )
+        ));
       }
     },
     keys: {
@@ -221,14 +257,17 @@
         return this.R(Object.keys);
       }
     },
-    allKey: {
+    skelton: {
       configurable: true,
       get () {
-        return this.keys.map(
-          k => this.get(k).flatR(
-            o => o instanceof Object ? this.get(k).allKey.pushL(k)._ : k
-          )
-        );
+        return this.R(o => Object.keys(o).reduce((p, k) => (
+          p.push(
+            o[k] instanceof Object
+            ? _(o[k]).skelton.assign({key: k})._
+            : k
+          ),
+          p
+        ), []));
       }
     },
     vals: {
@@ -283,13 +322,37 @@
         return this.call("filter")(f);
       }
     },
-    chunk: {
+    pick: {
       configurable: true,
-      get () {
-        return this.lift;
+      value (...a) {
+        return this.filter(
+          v => (
+            v instanceof Array
+            ? this
+              .filter(v => v instanceof Array)
+              .map(_, (v, k) => v.pick(a.filter(v => v instanceof Array)[k]))
+              ._
+            : a.includes(v)
+          )
+        );
       }
     },
-    lift: {
+    drop: {
+      configurable: true,
+      value (...a) {
+        return this.filter(
+          v => (
+            v instanceof Array
+            ? this
+              .filter(v => v instanceof Array)
+              .map(_, (v, k) => v.drop(a.filter(v => v instanceof Array)[k]))
+              ._
+            : !a.includes(v)
+          )
+        );
+      }
+    },
+    chunk: {
       configurable: true,
       value (n) {
         return this.R(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(a.slice(n).chunk(n)));
@@ -319,7 +382,7 @@
         return this.fold((p, c) => c != null && p, true)._
       }
     },
-    pick: {
+    pickKey: {
       configurable: true,
       value (...k) {
         return this.fold(
@@ -328,7 +391,7 @@
         )
       }
     },
-    drop: {
+    dropKey: {
       configurable: true,
       value (...k) {
         return this.fold(
@@ -427,6 +490,12 @@
         return this.call("sort");
       }
     },
+    spread: {
+      configurable: true,
+      value (...f) {
+        return this.R(a => f(...a));
+      }
+    },
     sum: {
       configurable: true,
       get () {
@@ -442,13 +511,13 @@
     max: {
       configurable: true,
       get () {
-        return this.fold((p, c) => p < c ? c : p);
+        return this.spread(Math.max);
       }
     },
     min: {
       configurable: true,
       get () {
-        return this.fold((p, c) => p > c ? c : p);
+        return this.spread(Math.min);
       }
     },
     mid: {
@@ -468,4 +537,5 @@
       }
     }
   });
-})();
+  "process" in apex ? (module.exports = _) : (apex._ = _);
+})((this || 0).self || global);
