@@ -219,9 +219,17 @@
           (p, c) => (
             c instanceof Array
             ? this.get(c.key).pick(c)._
-            : Object.defineProperty(p, c, {
+            : _.define(p, c, {
               configurable: true,
               enumerable: true,
+              set (v) {
+                _.define(this, c, {
+                  configurable: true,
+                  writable: true,
+                  value: v
+                });
+                return true;
+              },
               get () {
                 return o[c];
               }
@@ -240,9 +248,17 @@
           (p, c) => (
             c instanceof Array
             ? this.get(c.key).drop(c)._
-            : Object.defineProperty(p, c, {
+            : _.define(p, c, {
               configurable: true,
               enumerable: true,
+              set (v) {
+                _.define(this, c, {
+                  configurable: true,
+                  writable: true,
+                  value: v
+                });
+                return true;
+              },
               get () {
                 return o[c];
               }
