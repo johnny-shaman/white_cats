@@ -18,7 +18,53 @@
     });
   };
 
-  Object.defineProperties(_.prototype, {
+  Object.assign(_, {
+    Types: (
+      [Object, String, Number, Boolean, (function* () {}).constructor, Date, Promise]
+      .map(v => v.name)
+      .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
+    ),
+    id: v => v,
+    pipe: (...fs) => fs.reduceRight((f, g) => (...v) => (v.unshift(g(...v)), f(...v)), _.id),
+    loop: (...fs) => fs.reduceRight((f, g) => (...v) => (v.push(g(...v)), f(...v)), _.id),
+    Skelton: (...a) => a.map(
+      v => _
+        .if(v instanceof Array)
+        .then(_.Skelton(_.assign(v, {key: v.shift()})))
+        .else(v)
+      .$
+    ),
+    promote: (promoter, key, promotee) => _.define(
+      promoter,
+      key,
+      {
+        configurable: true,
+        enumerable: true,
+        set (v) {
+          _.define(this, k, {
+            configurable: true,
+            writable: true,
+            value: v
+          });
+          return true;
+        },
+        get () {
+          return promotee[k];
+        }
+      }
+    ),
+    if: _,
+    case: _,
+    upto: Object.create,
+    assign: Object.assign,
+    define: Object.defineProperty,
+    defines: Object.defineProperties,
+    entries: Object.entries,
+    keys: Object.keys,
+    vals: Object.values
+  });
+
+  _.defines(_.prototype, {
     $_: {
       configurable: true,
       get () {
@@ -31,16 +77,22 @@
         return this._ == null ? this.$ : this._;
       }
     },
+    join_: {
+      configurable: true,
+      get () {
+        return this.$;
+      }
+    },
     flatR: {
       configurable: true,
       value (...f) {
-        return this._ == null ? this._ : _.pipe_(...f)(this._);
+        return this._ == null ? this._ : _.pipe(...f)(this._);
       }
     },
     flatL: {
       configurable: true,
       value (...f) {
-        return this.$ == null ? _.pipe$(...f)(this._) : _.pipe$(...f)(this.$);
+        return this.$ == null ? _.loop(...f)(this._) : _.loop(...f)(this.$);
       }
     },
     R: {
@@ -53,6 +105,12 @@
       configurable: true,
       value (...f) {
         return _(this._, this.flatL(...f));
+      }
+    },
+    as: {
+      configurable: true,
+      value (v) {
+        return {then: w => _(this._, v === this._ ? w : null)};
       }
     },
     swap: {
@@ -69,27 +127,7 @@
     }
   });
 
-  Object.assign(_, {
-    Types: (
-      [Object, String, Number, (function* () {}).constructor, Date, Promise]
-      .map(v => v.name)
-      .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
-    ),
-    id: v => v,
-    pipe_: (...a) => a.reduceRight((f, g) => (...v) => (v.unshift(g(...v)), f(...v)), _.id),
-    pipe$: (...a) => a.reduceRight((f, g) => (...v) => (v.push(g(...v)), f(...v)), _.id),
-    Skelton: (...a) => a.map(v => (
-      v instanceof Array
-      ? _.Skelton(Object.assign(v, {key: v.shift()}))
-      : v
-    )),
-    upon: Object.create,
-    assign: Object.assign,
-    define: Object.defineProperty,
-    defines: Object.defineProperties
-  });
-
-  Object.defineProperties(_.Types.Object, {
+  _.defines(_.Types.Object, {
     re: {
       configurable: true,
       get () {
@@ -102,20 +140,7 @@
         return this.R(
           o => Object
           .entries(o)
-          .reduce(
-            (p, [k, v]) => f(k, v) && Object.defineProperty(
-              p,
-              k,
-              {
-                enumerable: true,
-                configurable: true,
-                get () {
-                  return o[k];
-                }
-              }
-            ),
-            {}
-          )
+          .reduce((p, [k, v]) => f(k, v) && _.promote(p, k, o), {})
         );
       }
     },
@@ -123,8 +148,8 @@
       configurable: true,
       value (...f) {
         return this.R(
-          Object.entries,
-          a => a.reduce((p, [k, v]) => p.put({[k]: _.pipe_(...f)(k, v)}), this)
+          _.entries,
+          a => a.reduce((p, [k, v]) => p.put({[k]: _.pipe(...f)(k, v)}), this)
         );
       }
     },
@@ -132,39 +157,46 @@
       configurable: true,
       value (...f) {
         return this.L(
-          Object.entries,
-          a => a.reduce((p, [k, v]) => _.pipe_(...f)(k, v), this)
+          _.entries,
+          a => a.reduce((p, [k, v]) => _.pipe(...f)(k, v), this)
         );
       }
     },
     put: {
       configurable: true,
       value (...o) {
-        return this.R(p => Object.assign(p, ...o));
+        return this.R(p => _.assign(p, ...o));
       }
     },
     define: {
       configurable: true,
       value (o) {
-        return this.R(p => Object.defineProperties(p, o));
+        return this.R(p => _.defines(p, o));
       }
     },
     append: {
       configurable: true,
       value (o) {
-        return this.R(p => Object.create(p, o));
+        return this.R(p => _.upto(p, o));
       }
     },
     depend: {
       configurable: true,
       value (o) {
-        return this.R(p => Object.create(o, p));
+        return this.R(p => _.upto(o, p));
       }
     },
     get: {
       configurable: true,
       value (...k) {
-        return this.R(o => k.reduce((p, c) => p == null ? null : p[c], o));
+        return this.R(o => k.reduce(
+          (p, c) => _
+            .if ( p == null )
+            .then ( null )
+            .else ( p[c] )
+          .join_,
+          o
+        ));
       }
     },
     set: {
@@ -179,15 +211,15 @@
       configurable: true,
       value (...k) {
         return (...v) => this.R(o => k.reduce(
-          (p, c) => (
-            p[c] == null
-            ? null
-            : (
-              typeof p[c] === "function"
-              ? p[c].call(p, ...v)
-              : p[c]
-            )
-          ),
+          (p, c) => _
+            .it ( p[c] )
+            .as ( null ) .in ( null )
+            .else (_
+              .if ( typeof p[c] === "function" )
+              .then ( p[c].call(p, ...v) )
+              .else ( p[c] )
+            .join_)
+          .join_,
           o
         ));
       }
@@ -214,28 +246,16 @@
       value (...k) {
         return this.R(o => this
           .skelton
-          .pick(...k)
+          .pick(_.Skelton(...k))
           .fold(
-          (p, c) => (
-            c instanceof Array
-            ? this.get(c.key).pick(c)._
-            : _.define(p, c, {
-              configurable: true,
-              enumerable: true,
-              set (v) {
-                _.define(this, c, {
-                  configurable: true,
-                  writable: true,
-                  value: v
-                });
-                return true;
-              },
-              get () {
-                return o[c];
-              }
-            })
+            (p, c) => (
+              c instanceof Array
+              ? this.get(c.key).pick(c)._
+              : _.promote(p, c, o)
+            ),
+            {}
           )
-        ));
+        );
       }
     },
     drop: {
@@ -243,40 +263,28 @@
       value (...k) {
         return this.R(o => this
           .skelton
-          .drop(...k)
+          .drop(_.Skelton(...k))
           .fold(
-          (p, c) => (
-            c instanceof Array
-            ? this.get(c.key).drop(c)._
-            : _.define(p, c, {
-              configurable: true,
-              enumerable: true,
-              set (v) {
-                _.define(this, c, {
-                  configurable: true,
-                  writable: true,
-                  value: v
-                });
-                return true;
-              },
-              get () {
-                return o[c];
-              }
-            })
+            (p, c) => (
+              c instanceof Array
+              ? this.get(c.key).drop(c)._
+              : _.promote(p, c, o)
+            ),
+            {}
           )
-        ));
+        );
       }
     },
     keys: {
       configurable: true,
       get () {
-        return this.R(Object.keys);
+        return this.R(_.keys);
       }
     },
     skelton: {
       configurable: true,
       get () {
-        return this.R(o => Object.keys(o).reduce((p, k) => (
+        return this.R(o => _.keys(o).reduce((p, k) => (
           p.push(
             o[k] instanceof Object
             ? _(o[k]).skelton.assign({key: k})._
@@ -289,13 +297,13 @@
     vals: {
       configurable: true,
       get () {
-        return this.R(Object.values);
+        return this.R(_.vals);
       }
     },
     entries: {
       configurable: true,
       get () {
-        return this.R(Object.entries);
+        return this.R(_.entries);
       }
     },
     fullen: {
@@ -306,12 +314,12 @@
     }
   });
 
-  Object.assign(_.Types, {Array: Object.create(_.Types.Object)});
-  Object.defineProperties(_.Types.Array, {
+  _.assign(_.Types, {Array: _.upto(_.Types.Object)});
+  _.defines(_.Types.Array, {
     map: {
       configurable: true,
       value (...f) {
-        return this.call("map")(_.pipe_(...f));
+        return this.call("map")(_.pipe(...f));
       }
     },
     fold: {
@@ -443,7 +451,7 @@
     fMap: {
       configurable: true,
       value (...f) {
-        return this.call("flatMap")(_.pipe_(...f));
+        return this.call("flatMap")(_.pipe(...f));
       }
     },
     flat: {
@@ -550,6 +558,20 @@
             )
           )
         );
+      }
+    }
+  });
+  _.defines(_.Types.Boolean, {
+    then: {
+      configurable: true,
+      value (v) {
+        return _(this._, this._ && v);
+      }
+    },
+    else: {
+      configurable: true,
+      value (v) {
+        return _(this._, this._ || v);
       }
     }
   });
