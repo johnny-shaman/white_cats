@@ -2,7 +2,7 @@
   "use strict";
 
   let _ = function (x, y) {
-    return Object.create(x != null && (_.Types[x.constructor.name] || _.Types[x.constructor.constructor.name]) || _.prototype, {
+    return _.upto(x != null && (_["#"][x.constructor.name] || _["#"][x.constructor.constructor.name]) || _.prototype, {
       _: {
         configurable: true,
         get () {
@@ -19,7 +19,7 @@
   };
 
   Object.assign(_, {
-    Types: (
+    "#": (
       [Object, String, Number, Boolean, (function* () {}).constructor, Date, Promise]
       .map(v => v.name)
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -27,14 +27,7 @@
     id: v => v,
     pipe: (...fs) => fs.reduceRight((f, g) => (...v) => (v.unshift(g(...v)), f(...v)), _.id),
     loop: (...fs) => fs.reduceRight((f, g) => (...v) => (v.push(g(...v)), f(...v)), _.id),
-    Skelton: (...a) => a.map(
-      v => _
-        .if(v instanceof Array)
-        .then(_.Skelton(_.assign(v, {key: v.shift()})))
-        .else(v)
-      .$
-    ),
-    promote: (promoter, key, promotee) => _.define(
+    promote: (key, promoter, promotee) => _.define(
       promoter,
       key,
       {
@@ -53,15 +46,112 @@
         }
       }
     ),
-    if: _,
-    case: _,
+
+    if: function (b, v = null) {
+      return _.upto(_.if.prototype, {
+        "#": {
+          configurable: true,
+          get () {
+            return b;
+          }
+        },
+        _: {
+          configurable: true,
+          get () {
+            return v;
+          }
+        }
+      })
+    },
+
+    when: function (o, v = null, p) {
+      return _.upto(_.when.prototype, {
+        "#": {
+          configurable: true,
+          get () {
+            return o;
+          }
+        },
+        _: {
+          configurable: true,
+          get () {
+            return v;
+          }
+        },
+        "@": {
+          configurable: true,
+          get () {
+            return p;
+          }
+        }
+      })
+    },
+
     upto: Object.create,
-    assign: Object.assign,
+    put: Object.assign,
     define: Object.defineProperty,
     defines: Object.defineProperties,
     entries: Object.entries,
     keys: Object.keys,
-    vals: Object.values
+    vals: Object.values,
+    equal: Object.is,
+    owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
+    descripting: Object.getOwnPropertyDescriptors,
+    is: o => o == null ? "" : o instanceof Array ? "array" : typeof o,
+    by: o => o == null ? undefined : o.constructor,
+  });
+
+  _.defines(_.if.prototype, {
+    then: {
+      value (v) {
+        return this["#"] ? _.if(this["#"], v) : _.if(this["#"], this._);
+      }
+    },
+    else: {
+      value (v) {
+        return this["#"] ? _.if(this["#"], this._) : _.if(this["#"], v);
+      }
+    } 
+  });
+
+  _.defines(_.when.prototype, {
+    as: {
+      configurable: true,
+      value (v) {
+        return ({
+          then: w => (
+            _.equal(v, w)
+            ? _.when(this["#"], w, _.equal(v, w))
+            : _.when(this["#"], this._, _.equal(v, w))
+          ),
+          else: w => (
+            _.equal(v, w)
+            ? _.when(this["#"], this._, _.equal(v, w))
+            : _.when(this["#"], w, _.equal(v, w))
+          )
+        });
+      }
+    },
+    then: {
+      configurable: true,
+      value (v) {
+        return (
+          this["@"]
+          ? _.when(this["#"], v, this["@"])
+          : _.when(this["#"], this._, this["@"])
+        )
+      }
+    },
+    else: {
+      configurable: true,
+      value (v) {
+        return (
+          this["@"]
+          ? _.when(this["#"], this._, this["@"])
+          : _.when(this["#"], v, this["@"])
+        )
+      }
+    }
   });
 
   _.defines(_.prototype, {
@@ -75,12 +165,6 @@
       configurable: true,
       get () {
         return this._ == null ? this.$ : this._;
-      }
-    },
-    join_: {
-      configurable: true,
-      get () {
-        return this.$;
       }
     },
     flatR: {
@@ -107,12 +191,6 @@
         return _(this._, this.flatL(...f));
       }
     },
-    as: {
-      configurable: true,
-      value (v) {
-        return {then: w => _(this._, v === this._ ? w : null)};
-      }
-    },
     swap: {
       configurable: true,
       get () {
@@ -127,7 +205,7 @@
     }
   });
 
-  _.defines(_.Types.Object, {
+  _.defines(_["#"].Object, {
     re: {
       configurable: true,
       get () {
@@ -140,7 +218,7 @@
         return this.R(
           o => Object
           .entries(o)
-          .reduce((p, [k, v]) => f(k, v) && _.promote(p, k, o), {})
+          .reduce((p, [k, v]) => f(k, v) && _.promote(k, p, o), {})
         );
       }
     },
@@ -190,12 +268,7 @@
       configurable: true,
       value (...k) {
         return this.R(o => k.reduce(
-          (p, c) => _
-            .if ( p == null )
-            .then ( null )
-            .else ( p[c] )
-          .join_,
-          o
+          (p, c) => _.if ( p == null ) .then ( null ) .else ( p[c] ) ._, o
         ));
       }
     },
@@ -210,35 +283,21 @@
     call: {
       configurable: true,
       value (...k) {
-        return (...v) => this.R(o => k.reduce(
-          (p, c) => _
-            .it ( p[c] )
-            .as ( null ) .in ( null )
-            .else (_
-              .if ( typeof p[c] === "function" )
-              .then ( p[c].call(p, ...v) )
-              .else ( p[c] )
-            .join_)
-          .join_,
-          o
-        ));
+        return (...v) => this.R(o => k.reduce((p, c) => _
+          .when (typeof p[c] )
+          .as ( "undefined" ) .else ( p[c] )
+          .as ( "function" ) .then ( p[c].call(p, ...v) ) 
+        ._, o));
       }
     },
     cast: {
       configurable: true,
       value (...k) {
-        return (...v) => this.L(o => k.reduce(
-          (p, c) => (
-            p[c] == null
-            ? null
-            : (
-              typeof p[c] === "function"
-              ? p[c].call(p, ...v)
-              : p[c]
-            )
-          ),
-          o
-        ));
+        return (...v) => this.L(o => k.reduce((p, c) => _
+          .when (typeof p[c] )
+          .as ( "undefined" ) .else ( p[c] )
+          .as ( "function" ) .then ( p[c].call(p, ...v) ) 
+        ._, o));
       }
     },
     pick: {
@@ -246,12 +305,12 @@
       value (...k) {
         return this.R(o => this
           .skelton
-          .pick(_.Skelton(...k))
+          .pick(..._(k).skelton._)
           .fold(
             (p, c) => (
               c instanceof Array
               ? this.get(c.key).pick(c)._
-              : _.promote(p, c, o)
+              : _.promote(c, p, o)
             ),
             {}
           )
@@ -263,12 +322,12 @@
       value (...k) {
         return this.R(o => this
           .skelton
-          .drop(_.Skelton(...k))
+          .drop(..._(k).skelton._)
           .fold(
             (p, c) => (
               c instanceof Array
               ? this.get(c.key).drop(c)._
-              : _.promote(p, c, o)
+              : _.promote(c, p, o)
             ),
             {}
           )
@@ -314,8 +373,8 @@
     }
   });
 
-  _.assign(_.Types, {Array: _.upto(_.Types.Object)});
-  _.defines(_.Types.Array, {
+  _.assign(_["#"], {Array: _.upto(_["#"].Object)});
+  _.defines(_["#"].Array, {
     map: {
       configurable: true,
       value (...f) {
@@ -344,6 +403,18 @@
       configurable: true,
       value (f) {
         return this.call("filter")(f);
+      }
+    },
+    skelton: {
+      configurable: true,
+      get () {
+        return this.map(
+          v => _
+            .if ( v instanceof Array )
+            .then ( _(v).skelton(_.assign(v, {key: v.shift()}))._ )
+            .else ( v )
+          ._
+        )
       }
     },
     pick: {
@@ -403,7 +474,7 @@
     fullen: {
       configurable: true,
       get () {
-        return this.fold((p, c) => c != null && p, true)._
+        return this.fold((p, c) => c != null && p, true)
       }
     },
     pickKey: {
@@ -558,20 +629,6 @@
             )
           )
         );
-      }
-    }
-  });
-  _.defines(_.Types.Boolean, {
-    then: {
-      configurable: true,
-      value (v) {
-        return _(this._, this._ && v);
-      }
-    },
-    else: {
-      configurable: true,
-      value (v) {
-        return _(this._, this._ || v);
       }
     }
   });
