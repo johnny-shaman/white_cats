@@ -37,8 +37,25 @@
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
     id: v => v,
-    pipe: (...fs) => fs.reduceRight((f, g) => (...v) => (v.unshift(g(...v)), f(...v)), _.id),
-    loop: (...fs) => fs.reduceRight((f, g) => (...v) => (v.push(g(...v)), f(...v)), _.id),
+    pipe: (...fs) => fs.reduceRight((f, g) => (...v) => {
+      try {
+        return v[0] == null ? null : (v.unshift(g(...v)), f(...v));
+      } catch (e) {
+        console.error(e);
+        v.unshift(null)
+        v.push(e)
+        return v;
+      }
+    }, _.id),
+    loop: (...fs) => fs.reduceRight((f, g) => (...v) => {
+      try {
+        return v[0] == null ? null : (v.push(g(...v)), f(...v));
+      } catch (e) {
+        console.error(e);
+        v.push(e);
+        return v;
+      }
+    }, _.id),
     promote: (key, promoter, promotee) => _.define(
       promoter,
       key,
@@ -90,7 +107,7 @@
             return v;
           }
         },
-        from: {
+        of: {
           configurable: true,
           get () {
             return t;
@@ -116,7 +133,11 @@
     owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
     descripting: Object.getOwnPropertyDescriptors,
     is: o => o == null ? "" : o instanceof Array ? "array" : typeof o,
-    by: o => o == null ? undefined : o.constructor
+    by: o => o == null ? undefined : o.constructor,
+    _: (n, e, s) => [...(function* () {
+      yield n;
+      _.when ( _.is(e) ) .as ( "number" ) .then ( e ) .else (  );
+    })()]
   });
 
   _.defines(_.if.prototype, {
@@ -205,48 +226,55 @@
         return this["#"];
       }
     },
+    "##": {
+      configurable: true,
+      value (...fs) {
+        fs.reduceRight(
+          (f, g) => (...v) => {
+            try {
+              v.unshift(this["#"][this["#"].push(g(...v)) - 1]);
+              return f(...v);
+            } catch (e) {
+              console.error(this["#"][this["#"].push(e) - 1]);
+              v.unshift(null);
+              v.push(e);
+              return v;
+            }
+          }
+        );
+      }
+    },
+    "@@": {
+      configurable: true,
+      value (...fs) {
+        fs.reduceRight(
+          (f, g) => (...v) => {
+            try {
+              v.push(this["#"][this["#"].push(g(...v)) - 1]);
+              return f(...v);
+            } catch (e) {
+              console.error(this["#"][this["#"].push(e) - 1]);
+              v.push(e);
+              return v;
+            }
+          }
+        );
+      }
+    },
     flatR: {
       configurable: true,
       value (...fs) {
-        return this._ == null ? this._ : fs.reduceRight(
-          (f, g) => (...v) => {
-            try {
-              v.unshift(this["#"][this["#"].push(g(...v))]);
-              return f(...v);
-            } catch (e) {
-              console.error(e);
-              return null
-            }
-          }
-        )(this._, this.$);
+        return this._ == null
+        ? this["##"](...fs)(this.$, this._)
+        : this["@@"](...fs)(this._, this.$);
       }
     },
     flatL: {
       configurable: true,
       value (...f) {
         return this.$ == null
-        ? fs.reduceRight(
-          (f, g) => (...v) => {
-            try {
-              v.push(this["#"][this["#"].push(g(...v)) - 1]);
-              return f(...v);
-            } catch (e) {
-              console.error(e);
-              return null
-            }
-          }
-        )(this._, this.$)
-        : fs.reduceRight(
-          (f, g) => (...v) => {
-            try {
-              v.push(this["#"][this["#"].push(g(...v)) - 1]);
-              return f(...v);
-            } catch (e) {
-              console.error(e);
-              return null
-            }
-          }
-        )(this.$, this._);
+        ? this["__@__"](...fs)(this.$, this._)
+        : this["__@__"](...fs)(this._, this.$);
       }
     },
     R: {
@@ -369,7 +397,7 @@
           .when ( _.is(p) )
           .as ( "" ) .then (p) .else ( p[c] )
           .that
-          .as ( "function" ) .then ( p[c].call(p, ...v) )
+          .as ( "function" ) .then ( p[c].call(p, ...v) ) .else ( p[c] )
         ._, o));
       }
     },
@@ -380,7 +408,7 @@
           .when ( _.is(p) )
           .as ( "" ) .then (p) .else ( p[c] )
           .that
-          .as ( "function" ) .then ( p[c].call(p, ...v) )
+          .as ( "function" ) .then ( p[c].call(p, ...v) ) .else ( p[c] )
         ._, o));
       }
     },
@@ -475,7 +503,7 @@
         return this.L(c => _.put(c.prototype, o));
       }
     },
-    strictImplements: {
+    configures: {
       configurable: true,
       value (o) {
         return this.L(c => _.defines(c.prototype, o));
