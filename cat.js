@@ -110,7 +110,7 @@
         of: {
           configurable: true,
           get () {
-            return t;
+            return _.when(t);
           }
         },
         "@": {
@@ -136,7 +136,10 @@
     by: o => o == null ? undefined : o.constructor,
     _: (n, e, s) => [...(function* () {
       yield n;
-      _.when ( _.is(e) ) .as ( "number" ) .then ( e ) .else (  );
+      _.when ( _.is(e) )
+      .as ( "number" ) .then ( e ) .else ( 0 )
+
+      ._
     })()]
   });
 
@@ -196,7 +199,7 @@
     that: {
       configurable: true,
       get () {
-        return _.when(this._)
+        return _.when(this._, null, null, this["#"]);
       }
     }
   });
@@ -266,15 +269,15 @@
       value (...fs) {
         return this._ == null
         ? this["##"](...fs)(this.$, this._)
-        : this["@@"](...fs)(this._, this.$);
+        : this["##"](...fs)(this._, this.$);
       }
     },
     flatL: {
       configurable: true,
       value (...f) {
         return this.$ == null
-        ? this["__@__"](...fs)(this.$, this._)
-        : this["__@__"](...fs)(this._, this.$);
+        ? this["@@"](...fs)(this.$, this._)
+        : this["@@"](...fs)(this._, this.$);
       }
     },
     R: {
