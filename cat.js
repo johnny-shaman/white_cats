@@ -1,8 +1,8 @@
 ((apex) => {
-  "use strict";
+  'use strict';
 
-  let _ = function (x, y, orgin, c = []) {
-    return _.upto(x != null && (_["#"][x.constructor.name] || _["#"][x.constructor.constructor.name]) || _.prototype, {
+  let _ = function (x, y, origin, c = []) {
+    return _.upto(x == null ? _.prototype : _['#'][_.type(x)], {
       _: {
         configurable: true,
         get () {
@@ -15,13 +15,13 @@
           return y;
         }
       },
-      "@": {
+      '@': {
         configurable: true,
         get () {
-          return origin
+          return origin == null ? y : origin
         }
       },
-      "#": {
+      '#': {
         configurable: true,
         get () {
           return c;
@@ -31,7 +31,7 @@
   };
 
   Object.assign(_, {
-    "#": (
+    '#': (
       [Object, String, Number, Boolean, (function* () {}).constructor, Date, Promise]
       .map(v => v.name)
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -75,53 +75,6 @@
         }
       }
     ),
-
-    if: function (b, v) {
-      return _.upto(_.if.prototype, {
-        "#": {
-          configurable: true,
-          get () {
-            return b;
-          }
-        },
-        _: {
-          configurable: true,
-          get () {
-            return v;
-          }
-        }
-      })
-    },
-
-    when: function (o, p, v, t) {
-      return _.upto(_.when.prototype, {
-        "#": {
-          configurable: true,
-          get () {
-            return o;
-          }
-        },
-        _: {
-          configurable: true,
-          get () {
-            return v;
-          }
-        },
-        of: {
-          configurable: true,
-          get () {
-            return _.when(t);
-          }
-        },
-        "@": {
-          configurable: true,
-          get () {
-            return p;
-          }
-        }
-      });
-    },
-
     upto: Object.create,
     put: Object.assign,
     define: Object.defineProperty,
@@ -132,75 +85,36 @@
     equal: Object.is,
     owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
     descripting: Object.getOwnPropertyDescriptors,
-    is: o => o == null ? "" : o instanceof Array ? "array" : typeof o,
+    type: o => {
+      switch (o) {
+        case null:
+        case undefined: return '';
+        default: switch (typeof o) {
+          case 'object': switch (true) {
+            case o instanceof Array : return 'Array';
+            case o instanceof Promise : return 'Promise';
+            case o instanceof (function* () {}).constructor: return 'GeneratorFunction';
+            default: return 'Object'
+          }
+          default: return (typeof o).charAt(0).toUpperCase() + (typeof o).slice(1);
+        }
+      }
+    },
     by: o => o == null ? undefined : o.constructor,
-    _: (n, e, s) => [...(function* () {
-      yield n;
-      _.when ( _.is(e) )
-      .as ( "number" ) .then ( e ) .else ( 0 )
-
-      ._
-    })()]
-  });
-
-  _.defines(_.if.prototype, {
-    then: {
-      configurable: true,
-      value (v) {
-        return this["#"] ? _.if(this["#"], v) : _.if(this["#"], this._);
+    _: function* (a, b = 0, s = 1) {
+      while (a !== b) {
+        switch (true) {
+          case a < b : {
+            yield a += s;
+            break;
+          }
+          case a > b : {
+            yield a -= s;
+            break;
+          }
+        }
       }
-    },
-    else: {
-      configurable: true,
-      value (v) {
-        return this["#"] ? _.if(this["#"], this._) : _.if(this["#"], v);
-      }
-    }
-  });
-
-  _.defines(_.when.prototype, {
-    as: {
-      configurable: true,
-      value (v) {
-        return ({
-          then: w => (
-            _.equal(this["#"], v)
-            ? _.when(this["#"], _.equal(this["#"], v), w, this)
-            : _.when(this["#"], _.equal(this["#"], v), this._, this)
-          ),
-          else: w => (
-            _.equal(this["#"], v)
-            ? _.when(this["#"], _.equal(this["#"], v), this._, this)
-            : _.when(this["#"], _.equal(this["#"], v), w, this)
-          )
-        });
-      }
-    },
-    then: {
-      configurable: true,
-      value (v) {
-        return (
-          this["@"]
-          ? _.when(this["#"], this["@"], v, this)
-          : _.when(this["#"], this["@"], this._, this)
-        )
-      }
-    },
-    else: {
-      configurable: true,
-      value (v) {
-        return (
-          this["@"]
-          ? _.when(this["#"], this["@"], this._, this)
-          : _.when(this["#"], this["@"], v, this)
-        )
-      }
-    },
-    that: {
-      configurable: true,
-      get () {
-        return _.when(this._, null, null, this["#"]);
-      }
+      return a;
     }
   });
 
@@ -220,25 +134,25 @@
     origin_: {
       configurable: true,
       get () {
-        return this["@"] == null ? this._ : this["@"];
+        return this['@'] == null ? this._ : this['@'];
       }
     },
     yield_: {
       configurable: true,
       get () {
-        return this["#"];
+        return this['#'];
       }
     },
-    "##": {
+    '##': {
       configurable: true,
       value (...fs) {
         fs.reduceRight(
           (f, g) => (...v) => {
             try {
-              v.unshift(this["#"][this["#"].push(g(...v)) - 1]);
+              v.unshift(this['#'][this['#'].push(g(...v)) - 1]);
               return f(...v);
             } catch (e) {
-              console.error(this["#"][this["#"].push(e) - 1]);
+              console.error(this['#'][this['#'].push(e) - 1]);
               v.unshift(null);
               v.push(e);
               return v;
@@ -247,16 +161,16 @@
         );
       }
     },
-    "@@": {
+    '@@': {
       configurable: true,
       value (...fs) {
         fs.reduceRight(
           (f, g) => (...v) => {
             try {
-              v.push(this["#"][this["#"].push(g(...v)) - 1]);
+              v.push(this['#'][this['#'].push(g(...v)) - 1]);
               return f(...v);
             } catch (e) {
-              console.error(this["#"][this["#"].push(e) - 1]);
+              console.error(this['#'][this['#'].push(e) - 1]);
               v.push(e);
               return v;
             }
@@ -268,46 +182,80 @@
       configurable: true,
       value (...fs) {
         return this._ == null
-        ? this["##"](...fs)(this.$, this._)
-        : this["##"](...fs)(this._, this.$);
+        ? this['##'](...fs)(this.$, this._)
+        : this['##'](...fs)(this._, this.$);
       }
     },
     flatL: {
       configurable: true,
       value (...f) {
         return this.$ == null
-        ? this["@@"](...fs)(this.$, this._)
-        : this["@@"](...fs)(this._, this.$);
+        ? this['@@'](...fs)(this.$, this._)
+        : this['@@'](...fs)(this._, this.$);
       }
     },
     R: {
       configurable: true,
       value (...f) {
-        return _(this.flatR(...f), this.$_, this["@"], this["#"]);
+        return _(this.flatR(...f), this.$_, this['@'], this['#']);
       }
     },
     L: {
       configurable: true,
       value (...f) {
-        return _(this.flatL(...f), this.$_, this["@"], this["#"]);
+        return _(this.flatL(...f), this.$_, this['@'], this['#']);
       }
     },
     origin: {
       configurable: true,
       get () {
-        return _(this["@"], this.$, this["@"], this["#"]);
+        return _(this['@'], this.$, this['@'], this['#']);
       }
     },
-    done: {
+    yield: {
       configurable: true,
       get () {
-        return _(this["#"], this.$, this["@"], this["#"]);
+        return _(this['#'], this.$, this['@'], this['#']);
       }
     },
     swap: {
       configurable: true,
       get () {
         return _(this.$, this._);
+      }
+    },
+    call: {
+      configurable: true,
+      value (...k) {
+        return (...v) => this.R(o => k.reduce((p, c) => {
+          switch (_.is(p)) {
+            case '': return p;
+            case 'Function' : return p[c].call(p, ...v);
+            default: return p[c]
+          }
+        }, o));
+      }
+    },
+    cast: {
+      configurable: true,
+      value (...k) {
+        return (...v) => this.L(o => k.reduce((p, c) => {
+          switch (_.is(p)) {
+            case '': return p;
+            case 'Function' : return p[c].call(p, ...v);
+            default: return p[c]
+          }
+        }, o));
+      }
+    },
+    been: {
+      configurable: true,
+      get () {
+        return new Proxy(this, {
+          get (t, k) {
+            return k === 'to' ? t : t.cast(k).been
+          }
+        });
       }
     },
     json: {
@@ -318,20 +266,19 @@
     }
   });
 
-  _.defines(_["#"].Object, {
+  _.defines(_['#'].Object, {
     re: {
       configurable: true,
       get () {
-        return this.swap;
+        return this.origin;
       }
     },
     filter: {
       configurable: true,
       value (f) {
         return this.R(
-          o => Object
-          .entries(o)
-          .reduce((p, [k, v]) => f(k, v) && _.promote(k, p, o), {})
+          _.entries,
+          a => a.reduce((p, [k, v]) => f(k, v) && _.promote(k, p, o), {})
         );
       }
     },
@@ -340,7 +287,16 @@
       value (...f) {
         return this.R(
           _.entries,
-          a => a.reduce((p, [k, v]) => p.put({[k]: _.pipe(...f)(k, v)}), this)
+          a => a.reduce((p, [k, v]) => p.put({[k]: _.pipe(...f)(k, v)}), this.depend())._
+        );
+      }
+    },
+    endo: {
+      configurable: true,
+      value (...f) {
+        return this.R(
+          _.entries,
+          a => a.reduce((p, [k, v]) => p.put({[k]: _.pipe(...f)(k, v)}), this)._
         );
       }
     },
@@ -380,9 +336,7 @@
     get: {
       configurable: true,
       value (...k) {
-        return this.R(o => k.reduce(
-          (p, c) => _.if ( p == null ) .then ( null ) .else ( p[c] ) ._, o
-        ));
+        return this.R(o => k.reduce((p, c) => p == null ? null : p[c] , o));
       }
     },
     set: {
@@ -393,39 +347,17 @@
         );
       }
     },
-    call: {
-      configurable: true,
-      value (...k) {
-        return (...v) => this.R(o => k.reduce((p, c) => _
-          .when ( _.is(p) )
-          .as ( "" ) .then (p) .else ( p[c] )
-          .that
-          .as ( "function" ) .then ( p[c].call(p, ...v) ) .else ( p[c] )
-        ._, o));
-      }
-    },
-    cast: {
-      configurable: true,
-      value (...k) {
-        return (...v) => this.L(o => k.reduce((p, c) => _
-          .when ( _.is(p) )
-          .as ( "" ) .then (p) .else ( p[c] )
-          .that
-          .as ( "function" ) .then ( p[c].call(p, ...v) ) .else ( p[c] )
-        ._, o));
-      }
-    },
     pick: {
       configurable: true,
       value (...k) {
         return this.R(o => this
           .skelton
-          .pick(..._(k).skelton._)
-          .fold((p, c) => _
-            .if ( c instanceof Array )
-            .then ( this.get(c.key).pick(c)._ )
-            .else ( _.promote(c, p, o) )
-          ._, {})
+          .pick(..._(k)['@skelton']._)
+          .fold((p, c) => (
+            c instanceof Array
+            ? this.get(c.key).pick(c)._
+            : _.promote(c, p, o)
+          ), {})
         );
       }
     },
@@ -434,15 +366,12 @@
       value (...k) {
         return this.R(o => this
           .skelton
-          .drop(..._(k).skelton._)
-          .fold(
-            (p, c) => (
-              c instanceof Array
-              ? this.get(c.key).drop(c)._
-              : _.promote(c, p, o)
-            ),
-            {}
-          )
+          .drop(..._(k)['@skelton']._)
+          .fold((p, c) => (
+            c instanceof Array
+            ? this.get(c.key).drop(c)._
+            : _.promote(c, p, o)
+          ), {})
         );
       }
     },
@@ -458,7 +387,7 @@
         return this.R(o => _.keys(o).reduce((p, k) => (
           p.push(
             o[k] instanceof Object
-            ? _(o[k]).skelton.assign({key: k})._
+            ? _(o[k]).skelton.put({key: k})._
             : k
           ),
           p
@@ -485,8 +414,8 @@
     }
   });
 
-  _.put(_["#"], {Function: _.upto(_["#"].Object)});
-  _.defines(_["#"].Function, {
+  _.put(_['#'], {Function: _.upto(_['#'].Object)});
+  _.defines(_['#'].Function, {
     deligates: {
       configurable: true,
       value (s) {
@@ -511,15 +440,21 @@
       value (o) {
         return this.L(c => _.defines(c.prototype, o));
       }
-    }
+    },
+    part: {
+      configurable: true,
+      value (a) {
+
+      }
+    },
   });
 
-  _.put(_["#"], {Array: _.upto(_["#"].Object)});
-  _.defines(_["#"].Array, {
+  _.put(_['#'], {Array: _.upto(_['#'].Object)});
+  _.defines(_['#'].Array, {
     map: {
       configurable: true,
       value (...f) {
-        return this.call("map")(_.pipe(...f));
+        return this.call('map')(_.pipe(...f));
       }
     },
     fold: {
@@ -531,31 +466,35 @@
     foldL: {
       configurable: true,
       value (f, ...v) {
-        return this.call("reduce")(f, ...v);
+        return this.call('reduce')(f, ...v);
       }
     },
     foldR: {
       configurable: true,
       value (f, ...v) {
-        return this.call("reduceRight")(f, ...v);
+        return this.call('reduceRight')(f, ...v);
       }
     },
     filter: {
       configurable: true,
       value (f) {
-        return this.call("filter")(f);
+        return this.call('filter')(f);
       }
     },
-    skelton: {
+    '@skelton': {
       configurable: true,
       get () {
-        return this.map(
-          v => _
-            .if ( v instanceof Array )
-            .then ( _(v).skelton(_.put(v, {key: v.shift()}))._ )
-            .else ( v )
-          ._
-        )
+        return this.map(v => (
+          v instanceof Array
+          ? _(v).put({key: v.shift()})['@skelton']._
+          : v
+        ))
+      }
+    },
+    liken: {
+      configurable: true,
+      value (a) {
+        return this.drop(...a);
       }
     },
     pick: {
@@ -563,10 +502,10 @@
       value (...a) {
         return this.filter(
           v => (
-            v instanceof Array
+            v instanceof Object
             ? this
-              .filter(v => v instanceof Array)
-              .map(_, (v, k) => v.pick(a.filter(v => v instanceof Array)[k]))
+              .filter(v => v instanceof Object)
+              .map((v, k) => _(v).pick(a.filter(v => v instanceof Array)[k]))
               ._
             : a.includes(v)
           )
@@ -578,10 +517,10 @@
       value (...a) {
         return this.filter(
           v => (
-            v instanceof Array
+            v instanceof Object
             ? this
-              .filter(v => v instanceof Array)
-              .map(_, (v, k) => v.drop(a.filter(v => v instanceof Array)[k]))
+              .filter(v => v instanceof Object)
+              .map((v, k) => _(v).drop(a.filter(v => v instanceof Array)[k]))
               ._
             : !a.includes(v)
           )
@@ -639,43 +578,43 @@
     pushL: {
       configurable: true,
       value (...v) {
-        return this.cast("unshift")(...v);
+        return this.cast('unshift')(...v);
       }
     },
     pushR: {
       configurable: true,
       value (...v) {
-        return this.cast("push")(...v);
+        return this.cast('push')(...v);
       }
     },
     popL: {
       configurable: true,
       get () {
-        return this.call("shift")();
+        return this.call('shift')();
       }
     },
     popR: {
       configurable: true,
       get () {
-        return this.call("pop")();
+        return this.call('pop')();
       }
     },
     fMap: {
       configurable: true,
       value (...f) {
-        return this.call("flatMap")(_.pipe(...f));
+        return this.call('flatMap')(_.pipe(...f));
       }
     },
     flat: {
       configurable: true,
       value (v) {
-        return this.call("flat")(v);
+        return this.call('flat')(v);
       }
     },
     back: {
       configurable: true,
       get () {
-        return this.call("reverse");
+        return this.call('reverse');
       }
     },
     adaptL: {
@@ -705,25 +644,25 @@
     concat: {
       configurable: true,
       get () {
-        return this.call("concat");
+        return this.call('concat');
       }
     },
     replace: {
       configurable: true,
       get () {
-        return this.call("splice");
+        return this.call('splice');
       }
     },
     slice: {
       configurable: true,
       get () {
-        return this.call("slice");
+        return this.call('slice');
       }
     },
     sort: {
       configurable: true,
       get () {
-        return this.call("sort");
+        return this.call('sort');
       }
     },
     spread: {
@@ -773,26 +712,44 @@
       }
     }
   });
-  _.defines(_["#"].Number, {
-    l: {
+  _.defines(_['#'].Number, {
+    order: {
       configurable: true,
       get () {
-        this.R(n => [...Array(n).keys()]);
+        return this.R(v => [..._._(0, v)]);
       }
     },
     fact: {
       configurable: true,
       get () {
-        this.R(n => [...Array(n).keys()].reduce((p, c) => p * c));
+        this.order.fold((p, c) => p * c);
+      }
+    },
+    semiFact: {
+      configurable: true,
+      get () {
+        this.order.filter(v => this._ % 2 === 1 ? v % 2 === 1 : v % 2 === 0).fold((p, c) => p * c)
       }
     },
     abs: {
+      configurable: true,
       get () {
         return this.R(Math.abs);
       }
     },
-    arccos: {}
+    max: {
+      configurable: true,
+      value (...v) {
+        return this.R()
+      }
+    },
+    min: {
+      configurable: true,
+      value (...v) {
+        return this.R()
+      }
+    },
   });
 
-  "process" in apex ? (module.exports = _) : (apex._ = _);
+  'process' in apex ? (module.exports = _) : (apex._ = _);
 })((this || 0).self || global);
