@@ -1,7 +1,7 @@
 ((apex) => {
   'use strict';
 
-  let _ = function (x, y, origin, c = []) {
+  let _ = function (x, y) {
     return _.upto(x == null ? _.prototype : _['#'][_.type(x)], {
       _: {
         configurable: true,
@@ -14,46 +14,34 @@
         get () {
           return y;
         }
-      },
-      '@': {
-        configurable: true,
-        get () {
-          return origin == null ? y : origin
-        }
-      },
-      '#': {
-        configurable: true,
-        get () {
-          return c;
-        }
       }
     });
   };
 
   Object.assign(_, {
     '#': (
-      [Object, String, Number, Boolean, (function* () {}).constructor, Date, Promise]
+      [Object, String, Number, Boolean, (function* () {}).constructor, Date, Promise, RegExp]
       .map(v => v.name)
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
     id: v => v,
-    pipe: (...fs) => fs.reduceRight((f, g) => (...v) => {
+    lift: (...fs) => fs.reduceRight((f, g) => (...v) => {
       try {
         return v[0] == null ? null : (v.unshift(g(...v)), f(...v));
       } catch (e) {
         console.error(e);
-        v.unshift(null)
-        v.push(e)
-        return v;
+        v.unshift(null);
+        v.push(e);
+        return null;
       }
     }, _.id),
-    loop: (...fs) => fs.reduceRight((f, g) => (...v) => {
+    flat: (...fs) => fs.reduceRight((f, g) => (...v) => {
       try {
         return v[0] == null ? null : (v.push(g(...v)), f(...v));
       } catch (e) {
         console.error(e);
         v.push(e);
-        return v;
+        return null;
       }
     }, _.id),
     promote: (key, promoter, promotee) => _.define(
@@ -85,16 +73,23 @@
     equal: Object.is,
     owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
     descripting: Object.getOwnPropertyDescriptors,
+    refine: a => [...a].map(v => v == null ? undefined : v),
+    adapt: (...b) => a => _.refine(a).map(v => v == null ? b.shift() : v),
+    fullen: a => !_.refine(a).includes(undefined),
+    less: a => a.filter(v => v != null),
+    exist: a => a.includes,
     type: o => {
       switch (o) {
         case null:
         case undefined: return '';
         default: switch (typeof o) {
-          case 'object': switch (true) {
-            case o instanceof Array : return 'Array';
-            case o instanceof Promise : return 'Promise';
-            case o instanceof (function* () {}).constructor: return 'GeneratorFunction';
-            default: return 'Object'
+          case 'object': switch (o.constructor) {
+            case Array : return 'Array';
+            case Promise : return 'Promise';
+            case (function* () {})().constructor : return 'GeneratorFunction';
+            case RegExp : return 'RegExp';
+            case Date : return 'Date';
+            default: return 'Object';
           }
           default: return (typeof o).charAt(0).toUpperCase() + (typeof o).slice(1);
         }
@@ -102,19 +97,22 @@
     },
     by: o => o == null ? undefined : o.constructor,
     _: function* (a, b = 0, s = 1) {
-      while (a !== b) {
+      let f = true;
+      while (f) {
         switch (true) {
           case a < b : {
-            yield a += s;
+            yield a;
+            f = (a += s) < b;
             break;
           }
           case a > b : {
-            yield a -= s;
+            yield b;
+            f = a > (b += s);
             break;
           }
         }
       }
-      return a;
+      yield a > b ? b : a;
     }
   });
 
@@ -131,91 +129,46 @@
         return this._ == null ? this.$ : this._;
       }
     },
-    origin_: {
+    lift_: {
       configurable: true,
-      get () {
-        return this['@'] == null ? this._ : this['@'];
+      value (...f) {
+        return _.lift(...f)(this._$);
       }
     },
-    yield_: {
+    lift$: {
       configurable: true,
-      get () {
-        return this['#'];
+      value (...f) {
+        return _.lift(...f)(this.$_);
       }
     },
-    '##': {
+    flat_: {
       configurable: true,
-      value (...fs) {
-        fs.reduceRight(
-          (f, g) => (...v) => {
-            try {
-              v.unshift(this['#'][this['#'].push(g(...v)) - 1]);
-              return f(...v);
-            } catch (e) {
-              console.error(this['#'][this['#'].push(e) - 1]);
-              v.unshift(null);
-              v.push(e);
-              return v;
-            }
-          }
-        );
+      value (...f) {
+        return _.flat(...f)(this._$);
       }
     },
-    '@@': {
+    flat$: {
       configurable: true,
-      value (...fs) {
-        fs.reduceRight(
-          (f, g) => (...v) => {
-            try {
-              v.push(this['#'][this['#'].push(g(...v)) - 1]);
-              return f(...v);
-            } catch (e) {
-              console.error(this['#'][this['#'].push(e) - 1]);
-              v.push(e);
-              return v;
-            }
-          }
-        );
+      value (...f) {
+        return _.flat(...f)(this.$_);
+      }
+    },
+    liftR: {
+      configurable: true,
+      value (...f) {
+        return _(_.lift(...f)(this._$), this.$_);
       }
     },
     flatR: {
       configurable: true,
-      value (...fs) {
-        return this._ == null
-        ? this['##'](...fs)(this.$, this._)
-        : this['##'](...fs)(this._, this.$);
+      value (...f) {
+        return _(_.flat(...f)(this._$), this.$_);
       }
     },
     flatL: {
       configurable: true,
       value (...f) {
-        return this.$ == null
-        ? this['@@'](...fs)(this.$, this._)
-        : this['@@'](...fs)(this._, this.$);
-      }
-    },
-    R: {
-      configurable: true,
-      value (...f) {
-        return _(this.flatR(...f), this.$_, this['@'], this['#']);
-      }
-    },
-    L: {
-      configurable: true,
-      value (...f) {
-        return _(this.flatL(...f), this.$_, this['@'], this['#']);
-      }
-    },
-    origin: {
-      configurable: true,
-      get () {
-        return _(this['@'], this.$, this['@'], this['#']);
-      }
-    },
-    yield: {
-      configurable: true,
-      get () {
-        return _(this['#'], this.$, this['@'], this['#']);
+        return _(this._$, _.flat(...f)(this.$_));
       }
     },
     swap: {
@@ -224,192 +177,186 @@
         return _(this.$, this._);
       }
     },
+    get: {
+      configurable: true,
+      value (s) {
+        return this.liftR(o => s.split('.').reduce((p, c) => p == null ? null : p[c] , o));
+      }
+    },
+    set: {
+      configurable: true,
+      value (s) {
+        return (v) => this.put(
+          _(s.split(".")).lift_(a => a.reduceRight((p, c) => ({[c]: p}), {[a.pop()]: v}))
+        );
+      }
+    },
+    mod: {
+      configurable: true,
+      value (s) {
+        return (...f) => this.put(
+          this
+          .get(s)
+          .lift_(...f, v => _(s.split(".")).endo(a => a.reduceRight((p, c) => ({[c]: p}), {[a.pop()]: v})))
+        );
+      }
+    },
+    callTo: {
+      configurable: true,
+      value (s) {
+        return (...v) => this.liftR(o => s.split('.').reduce((p, c) => {
+          switch (_.type(p[c])) {
+            case '': return p;
+            case 'Function' : return p[c].call(p, ...v);
+            default: return p[c];
+          }
+        }, o));
+      }
+    },
+    castOf: {
+      configurable: true,
+      value (s) {
+        return (...v) => this.flatR(o => s.split('.').reduce((p, c) => {
+          switch (_.type(p[c])) {
+            case '': return p;
+            case 'Function' : return p[c].call(p, ...v);
+            default: return p[c];
+          }
+        }, o));
+      }
+    },
     call: {
-      configurable: true,
-      value (...k) {
-        return (...v) => this.R(o => k.reduce((p, c) => {
-          switch (_.is(p)) {
-            case '': return p;
-            case 'Function' : return p[c].call(p, ...v);
-            default: return p[c]
-          }
-        }, o));
-      }
-    },
-    cast: {
-      configurable: true,
-      value (...k) {
-        return (...v) => this.L(o => k.reduce((p, c) => {
-          switch (_.is(p)) {
-            case '': return p;
-            case 'Function' : return p[c].call(p, ...v);
-            default: return p[c]
-          }
-        }, o));
-      }
-    },
-    been: {
       configurable: true,
       get () {
         return new Proxy(this, {
           get (t, k) {
-            return k === 'to' ? t : t.cast(k).been
+            switch (k) {
+              case "_": return t._;
+              case "to": return t;
+              default: return (...v) => {
+                switch (t.get(k).type_) {
+                  case "Function": return t.result(k)(...v).call;
+                  default: return t.mod(k)(...v).call;
+                }
+              }
+            }
           }
         });
       }
     },
-    json: {
+    cast: {
       configurable: true,
       get () {
-        return this.R(JSON.stringify);
+        return new Proxy(this, {
+          get (t, k) {
+            switch (k) {
+              case "_": return t._;
+              case "of": return t;
+              default: return (...v) => {
+                switch (t.get(k).type_) {
+                  case "Function": return t.review(k)(...v).cast;
+                  default: return t.mod(k)(...v).cast;
+                }
+              }
+            }
+          }
+        });
+      }
+    },
+    toJSON: {
+      configurable: true,
+      get () {
+        return this.liftR(JSON.stringify);
+      }
+    },
+    type_: {
+      configurable: true,
+      get () {
+        return this.flat_(_.type);
       }
     }
   });
 
   _.defines(_['#'].Object, {
-    re: {
-      configurable: true,
-      get () {
-        return this.origin;
-      }
-    },
     filter: {
       configurable: true,
       value (f) {
-        return this.R(
-          _.entries,
-          a => a.reduce((p, [k, v]) => f(k, v) && _.promote(k, p, o), {})
-        );
-      }
-    },
-    map: {
-      configurable: true,
-      value (...f) {
-        return this.R(
-          _.entries,
-          a => a.reduce((p, [k, v]) => p.put({[k]: _.pipe(...f)(k, v)}), this.depend())._
-        );
-      }
-    },
-    endo: {
-      configurable: true,
-      value (...f) {
-        return this.R(
-          _.entries,
-          a => a.reduce((p, [k, v]) => p.put({[k]: _.pipe(...f)(k, v)}), this)._
+        return this.liftR(
+          o => _.entries(o).reduce((p, [k, v]) => f({k, v}) ? _.put(p, {[k]: v}) : _.put(p, {[k]: undefined}), _.upto(o, {}))
         );
       }
     },
     each: {
       configurable: true,
       value (...f) {
-        return this.L(
+        return this.flatR(
           _.entries,
-          a => a.reduce((p, [k, v]) => _.pipe(...f)(k, v), this)
+          a => a.reduce((p, [k, v]) => _.lift(...f)({k, v}))
         );
       }
     },
     put: {
       configurable: true,
       value (...o) {
-        return this.R(p => _.put(p, ...o));
+        return this.liftR(p => _.put(p, ...o));
       }
     },
     define: {
       configurable: true,
       value (o) {
-        return this.R(p => _.defines(p, o));
+        return this.liftR(p => _.defines(p, o));
       }
     },
     depend: {
       configurable: true,
-      value (o) {
-        return this.R(p => _.upto(p, o));
+      value (o = {}) {
+        return this.liftR(p => _.upto(p, o));
       }
     },
     append: {
       configurable: true,
-      value (o) {
-        return this.R(p => _.upto(o, p));
-      }
-    },
-    get: {
-      configurable: true,
-      value (...k) {
-        return this.R(o => k.reduce((p, c) => p == null ? null : p[c] , o));
-      }
-    },
-    set: {
-      configurable: true,
-      value (...k) {
-        return (v) => this.put(
-          _({[k.pop()]: v}).flatR(b => k.reduceRight((p, c) => ({[c]: p}), b))
-        );
+      value (o = {}) {
+        return this.liftR(p => _.upto(o, p));
       }
     },
     pick: {
       configurable: true,
-      value (...k) {
-        return this.R(o => this
-          .skelton
-          .pick(..._(k)['@skelton']._)
-          .fold((p, c) => (
-            c instanceof Array
-            ? this.get(c.key).pick(c)._
-            : _.promote(c, p, o)
-          ), {})
+      value (s) {
+        return this.filter(
+          ({k}) => s.trim().split(/\s*,\s*/).includes(k)
         );
       }
     },
     drop: {
       configurable: true,
-      value (...k) {
-        return this.R(o => this
-          .skelton
-          .drop(..._(k)['@skelton']._)
-          .fold((p, c) => (
-            c instanceof Array
-            ? this.get(c.key).drop(c)._
-            : _.promote(c, p, o)
-          ), {})
+      value (s) {
+        return this.filter(
+          ({k}) => !s.trim().split(/\s*,\s*/).includes(k)
         );
       }
     },
     keys: {
       configurable: true,
       get () {
-        return this.R(_.keys);
-      }
-    },
-    skelton: {
-      configurable: true,
-      get () {
-        return this.R(o => _.keys(o).reduce((p, k) => (
-          p.push(
-            o[k] instanceof Object
-            ? _(o[k]).skelton.put({key: k})._
-            : k
-          ),
-          p
-        ), []));
+        return this.liftR(_.keys);
       }
     },
     vals: {
       configurable: true,
       get () {
-        return this.R(_.vals);
+        return this.liftR(_.vals);
       }
     },
     entries: {
       configurable: true,
       get () {
-        return this.R(_.entries);
+        return this.liftR(_.entries);
       }
     },
-    fullen: {
+    fullen_: {
       configurable: true,
       get () {
-        return this.vals.fold((p, c) => c != null && p, true)._
+        return this.flat_(_.vals, _.fullen);
       }
     }
   });
@@ -419,7 +366,7 @@
     deligates: {
       configurable: true,
       value (s) {
-        return this.L(c => _.put(c, {prototype: _.upto(s.prototype, {
+        return this.flatR(c => _.put(c, {prototype: _.upto(s.prototype, {
           constructor: {
             configurable: true,
             writable: true,
@@ -432,29 +379,71 @@
     implements: {
       configurable: true,
       value (o) {
-        return this.L(c => _.put(c.prototype, o));
+        return this.flatR(c => _.put(c.prototype, o));
       }
     },
     configures: {
       configurable: true,
       value (o) {
-        return this.L(c => _.defines(c.prototype, o));
+        return this.flatR(c => _.defines(c.prototype, o));
       }
     },
-    part: {
+    apply: {
       configurable: true,
       value (a) {
-
+        return this.liftR(a.map.bind(a));
       }
     },
+    collect_: {
+      configurable: true,
+      value (...a) {
+        return this.lift_(f => f(...a));
+      }
+    },
+    to: {
+      configurable: true,
+      value (v) {
+        return (...w) => _.fullen(v) ? this.lazy(...v) : this.to(_.adapt(...w)(v));
+      }
+    },
+    lazy: {
+      configurable: true,
+      value (...v) {
+        return () => this.collect_(f => f(...v));
+      }
+    },
+    of: {
+      configurable: true,
+      value (...v) {
+        return this.liftR(v.map.bind(v));
+      }
+    }
   });
 
   _.put(_['#'], {Array: _.upto(_['#'].Object)});
   _.defines(_['#'].Array, {
+    each: {
+      configurable: true,
+      value (...f) {
+        return this.review('forEach')(_.lift(...f));
+      }
+    },
     map: {
       configurable: true,
       value (...f) {
-        return this.call('map')(_.pipe(...f));
+        return this.result('map')(_.lift(...f));
+      }
+    },
+    endo: {
+      configurable: true,
+      value (...f) {
+        return this.liftR(...f);
+      }
+    },
+    aMap: {
+      configurable: true,
+      value (...v) {
+        return this.fMap(f => v.map(g => _.type(f) === 'Function' ? f(g) : g(f)));
       }
     },
     fold: {
@@ -466,19 +455,19 @@
     foldL: {
       configurable: true,
       value (f, ...v) {
-        return this.call('reduce')(f, ...v);
+        return this.result('reduce')(f, ...v);
       }
     },
     foldR: {
       configurable: true,
       value (f, ...v) {
-        return this.call('reduceRight')(f, ...v);
+        return this.result('reduceRight')(f, ...v);
       }
     },
     filter: {
       configurable: true,
       value (f) {
-        return this.call('filter')(f);
+        return this.result('filter')(f);
       }
     },
     '@skelton': {
@@ -530,31 +519,25 @@
     chunk: {
       configurable: true,
       value (n) {
-        return this.R(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(a.slice(n).chunk(n)));
+        return this.liftR(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(a.slice(n).chunk(n)));
       }
     },
     uniq: {
       configurable: true,
       get () {
-        return this.R(a => [...new Set(a)]);
+        return this.liftR(a => [...new Set(a)]);
       }
     },
     union: {
       configurable: true,
       value (...b) {
-        return this.R(a => [...new Set(a.concat(...b))]);
+        return this.liftR(a => [...new Set(a.concat(...b))]);
       }
     },
-    exist: {
+    exist_: {
       configurable: true,
       value (v) {
         return this._.includes(v);
-      }
-    },
-    fullen: {
-      configurable: true,
-      get () {
-        return this.fold((p, c) => c != null && p, true)
       }
     },
     pickKey: {
@@ -578,59 +561,57 @@
     pushL: {
       configurable: true,
       value (...v) {
-        return this.cast('unshift')(...v);
+        return this.review('unshift')(...v);
       }
     },
     pushR: {
       configurable: true,
       value (...v) {
-        return this.cast('push')(...v);
+        return this.review('push')(...v);
       }
     },
     popL: {
       configurable: true,
       get () {
-        return this.call('shift')();
+        return this.result('shift')();
       }
     },
     popR: {
       configurable: true,
       get () {
-        return this.call('pop')();
+        return this.result('pop')();
       }
     },
     fMap: {
       configurable: true,
       value (...f) {
-        return this.call('flatMap')(_.pipe(...f));
+        return this.result('flatMap')(_.lift(...f));
       }
     },
     flat: {
       configurable: true,
       value (v) {
-        return this.call('flat')(v);
+        return this.result('flat')(v);
       }
     },
     back: {
       configurable: true,
       get () {
-        return this.call('reverse');
+        return this.result('reverse')();
       }
     },
     adaptL: {
       configurable: true,
       value (...v) {
-        return this.R(
-          a => Array(a.length).fill(undefined).map((_, k) => a[k] == null ? v.shift() : a[k])
-        )
+        return this.liftR(_.adapt(...v))
       }
     },
     adaptR: {
       configurable: true,
       value (...w) {
-        return this.R(
+        return this.liftR(
           a => a.reverse(),
-          a => Array(a.length).fill(undefined).map((_, k) => a[k] == null ? v.shift() : a[k]),
+          _.adapt(...v),
           a => a.reverse()
         );
       }
@@ -643,32 +624,32 @@
     },
     concat: {
       configurable: true,
-      get () {
-        return this.call('concat');
+      value (...v) {
+        return this.result('concat')(...v);
       }
     },
     replace: {
       configurable: true,
-      get () {
-        return this.call('splice');
+      valuue (...v) {
+        return this.result('splice')(...v);
       }
     },
     slice: {
       configurable: true,
-      get () {
-        return this.call('slice');
+      value (...v) {
+        return this.result('slice')(...v);
       }
     },
     sort: {
       configurable: true,
-      get () {
-        return this.call('sort');
+      value (...v) {
+        return this.result('sort')(...v);
       }
     },
     spread: {
       configurable: true,
       value (...f) {
-        return this.R(a => f(...a));
+        return this.liftR(a => f(...a));
       }
     },
     sum: {
@@ -710,13 +691,37 @@
           )
         );
       }
+    },
+    refine: {
+      configurable: true,
+      get () {
+        return this.liftR(_.refine);
+      }
+    },
+    less: {
+      configurable: true,
+      get () {
+        return this.vals
+      }
+    },
+    fullen_: {
+      configurable: true,
+      get () {
+        return this.flat_(_.fullen);
+      }
+    },
+    swapRC: {
+      configurable: true,
+      get () {
+        return this.liftR(a => _([...a[0].keys]).map((_, c) => a.map(r => r[c])));
+      }
     }
   });
   _.defines(_['#'].Number, {
     order: {
       configurable: true,
       get () {
-        return this.R(v => [..._._(0, v)]);
+        return this.liftR(v => [..._._(0, v)]);
       }
     },
     fact: {
@@ -728,28 +733,32 @@
     semiFact: {
       configurable: true,
       get () {
-        this.order.filter(v => this._ % 2 === 1 ? v % 2 === 1 : v % 2 === 0).fold((p, c) => p * c)
+        this.order.filter(v => this._ % 2 === 1 ? v % 2 === 1 : v % 2 === 0).fold((p, c) => p * c);
       }
     },
     abs: {
       configurable: true,
       get () {
-        return this.R(Math.abs);
+        return this.liftR(Math.abs);
       }
-    },
-    max: {
+    }
+  });
+
+  _.defines(_['#'].String, {
+    ofJSON: {
       configurable: true,
-      value (...v) {
-        return this.R()
+      get () {
+        return this.liftR(JSON.parse);
       }
     },
-    min: {
+    date: {
       configurable: true,
-      value (...v) {
-        return this.R()
+      get () {
+        return this.liftR(s => new Date(Date.parse(s)));
       }
-    },
+    }
   });
 
   'process' in apex ? (module.exports = _) : (apex._ = _);
+
 })((this || 0).self || global);
