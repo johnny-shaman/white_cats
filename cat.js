@@ -220,7 +220,7 @@
         );
       }
     },
-    Call: {
+    call: {
       configurable: true,
       get () {
         return new Proxy(this, {
@@ -231,12 +231,12 @@
               (...v) => typeof t._[k] === 'function'
               ? t.callTo(k)(...v)
               : t.mod(k)(...v)
-            ).Call;
+            ).call;
           }
         });
       }
     },
-    Cast: {
+    cast: {
       configurable: true,
       get () {
         return new Proxy(this, {
@@ -247,7 +247,7 @@
               (...v) => typeof t._[k] === 'function'
               ? t.castOf(k)(...v)
               : t.mod(k)(...v)
-            ).Cast;
+            ).cast;
           }
         });
       }
@@ -267,7 +267,21 @@
         return this.pipe(
           _.entries,
           a => a.reduce(
-            (p, [k, v]) => f(v, k) ? _.put(p, {[k]: v}) : p,
+            (p, [k, v]) => f({k, v}) ? _.put(p, {[k]: v}) : p,
+            {}
+          )
+        );
+      }
+    },
+    filterDeep: {
+      configurable: true,
+      value (f) {
+        return this.pipe(
+          _.entries,
+          a => a.reduce(
+            (p, [k, v]) => _.isObject(v)
+            ? g => _(v).filterDeep(g)._
+            : f({k, v}) ? _.put(p, {[k]: v}) : p,
             {}
           )
         );
@@ -318,37 +332,37 @@
         return this.pipe(p => _.upto(p, o));
       }
     },
-    '@col': {
+    '@dp': {
       configurable: true,
       value (k, o = {}) {
         return this.pipe(
           t => ((
-              _.isObject(o[k.split('.')[0]]) && _.isObject(t[k.split('.')[0]])
-              ? _(t[k]).insert(k.split('.').splice(0, 1).join('.'), o[k])
+              _.isObject(o[k.split('.').shift()]) && _.isObject(t[k.split('.').shift()])
+              ? _(t[k])['@dp'](k.split('.').splice(0, 1).join('.'), o[k])
               : _.put(o, {[k]: t[k]})
             ), o
           )
         );
       }
     },
-    '@row': {
+    '@dd': {
       configurable: true,
-      value (...s) {
-
+      value (k, o) {
+        return this.pipe(
+          t => ((
+              _.isObject(o[k.split('.').shift()]) && _.isObject(t[k.split('.').shift()])
+              ? _(t[k])['@dd'](k.split('.').splice(0, 1).join('.'), o[k])
+              : _.put(o, {[k]: t[k]})
+            ), o
+          )
+        );
       }
     },
     pick: {
       configurable: true,
       value (s) {
         return this.pipe(
-          o => s
-          .split(/\s*,\s*/)
-          .reduce(
-            (p, k) => k.split('.').reduce(
-              (q, w) => this.pick(w)._,
-              {[k]: o[k]}
-            )
-          )
+          t => _(s)['*'].fold((o, k) => _(t)['@dp'](k, o), {})
         );
       }
     },
@@ -806,7 +820,9 @@
     '*': {
       get () {
         return this.pipe(
-          t => t.replace(/\s+/g, '')
+          t => t
+          .trim()
+          .replace(/\s+/g, '')
           .match(/(\w|\$|_)+(\.\w|\$|_)*\[((\w|\$|_)+(\.\w|\$|_)*,?)+\]|(\w|\$|_)+(\.\w|\$|_)*/g)
           .map(
             s => s
@@ -830,7 +846,6 @@
               : (a.shift() ,a)
             )
           )
-          .join(', ')
         );
       }
     }
