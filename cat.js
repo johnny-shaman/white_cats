@@ -142,34 +142,33 @@
     },
     get: {
       configurable: true,
-      value (s) {
+      value (...s) {
         return this.pipe(
           o => s
-          .split('.')
-          .reduce(
-            (p, c) => p == null ? null : p[c],
-            o
-          )
+          .flatMap(w => w.split('.'))
+          .reduce((p, c) => p == null ? null : p[c], o)
         );
       }
     },
     set: {
       configurable: true,
-      value (s) {
-        return (v) => this.put(
-          _(s.split('.'))
-          .pipe(a => a.reduceRight((p, c) => ({[c]: p}), {[a.pop()]: v}))
-          ._
-        );
+      value (...s) {
+        return (v) => this.loop(
+          o => _(s).pipe(
+            a => a.flatMap(s => s.split('.')),
+            a => ({a, l: a.pop()}),
+            ({a, l}) => a.reduce((p, c) => p[c] == null ? _.put(p, {[c]: null}) : p[c], o)[l] = v
+          )
+        )
       }
     },
     mod: {
       configurable: true,
-      value (s) {
-        return (...f) => this.put(
+      value (...s) {
+        return (...f) => this.set(...s)(
           this
-          .get(s)
-          .pipe(...f, v => _(s.split('.')).endo(a => a.reduceRight((p, c) => ({[c]: p}), {[a.pop()]: v})))
+          .get(...s)
+          .pipe(...f)
           ._
         );
       }
@@ -273,32 +272,11 @@
         );
       }
     },
-    filterDeep: {
-      configurable: true,
-      value (f) {
-        return this.pipe(
-          _.entries,
-          a => a.reduce(
-            (p, [k, v]) => _.isObject(v)
-            ? g => _(v).filterDeep(g)._
-            : f({k, v}) ? _.put(p, {[k]: v}) : p,
-            {}
-          )
-        );
-      }
-    },
     each: {
       configurable: true,
       value (...f) {
         return this.loop(
-          o => _.entries(o).forEach(([k, v]) => _.pipe(...f)({
-            get k () {
-              return k;
-            },
-            get v () {
-              return v
-            }
-          }))
+          o => _.entries(o).forEach(([k, v]) => _.pipe(...f)({k, v}))
         );
       }
     },
@@ -332,37 +310,11 @@
         return this.pipe(p => _.upto(p, o));
       }
     },
-    '@dp': {
-      configurable: true,
-      value (k, o = {}) {
-        return this.pipe(
-          t => ((
-              _.isObject(o[k.split('.').shift()]) && _.isObject(t[k.split('.').shift()])
-              ? _(t[k])['@dp'](k.split('.').splice(0, 1).join('.'), o[k])
-              : _.put(o, {[k]: t[k]})
-            ), o
-          )
-        );
-      }
-    },
-    '@dd': {
-      configurable: true,
-      value (k, o) {
-        return this.pipe(
-          t => ((
-              _.isObject(o[k.split('.').shift()]) && _.isObject(t[k.split('.').shift()])
-              ? _(t[k])['@dd'](k.split('.').splice(0, 1).join('.'), o[k])
-              : _.put(o, {[k]: t[k]})
-            ), o
-          )
-        );
-      }
-    },
     pick: {
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _(s)['*'].fold((o, k) => _(t)['@dp'](k, o), {})
+          t => _(s)['*'].fold((p, a) => a.reduceRight((p, c) => ({[c]: p}), {[a[a.length - 1]]: _(t).get()}))
         );
       }
     },
@@ -845,6 +797,9 @@
               ? a
               : (a.shift() ,a)
             )
+          )
+          .map(
+            s => s.split('.')
           )
         );
       }
