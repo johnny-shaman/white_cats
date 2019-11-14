@@ -106,7 +106,33 @@
       }
       yield a > b ? b : a;
     },
-    async: (l, ...r) => new Promise(_.pipe(...r), l)
+    async: (l, ...r) => new Promise(_.pipe(...r), l),
+    Q: t => t
+    .trim()
+    .replace(/\s+/g, '')
+    .match(/(\w|\$|_)+(\.\w|\$|_)*\[((\w|\$|_)+(\.\w|\$|_)*,?)+\]|(\w|\$|_)+(\.\w|\$|_)*/g)
+    .map(
+      s => s
+      .split(/\[|\]|,/g)
+      .filter(
+        s => s !== ''
+      )
+      .reduce(
+        (p, c) => ((
+          p.length
+          ? p.push(`${p[0]}.${c}`)
+          : p.push(c)
+        ), p),
+        []
+      )
+    )
+    .flatMap(
+      a => (
+        a.length === 1
+        ? a
+        : (a.shift() ,a)
+      )
+    )
   });
 
   _.defines(_.prototype, {
@@ -153,11 +179,11 @@
     set: {
       configurable: true,
       value (...s) {
-        return (v) => this.loop(
+        return v => this.loop(
           o => _(s).pipe(
             a => a.flatMap(s => s.split('.')),
             a => ({a, l: a.pop()}),
-            ({a, l}) => a.reduce((p, c) => p[c] == null ? _.put(p, {[c]: null}) : p[c], o)[l] = v
+            ({a, l}) => a.reduce((p, c) => p[c] == null ? _.put(p, {[c]: {}})[c] : p[c], o)[l] = v
           )
         )
       }
@@ -314,15 +340,15 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _(s)['*'].fold((p, a) => a.reduceRight((p, c) => ({[c]: p}), {[a[a.length - 1]]: _(t).get()}))
+          () => _.Q(s).reduce((p, w) => p.set(w)(this.get(w)._), _({}))._
         );
       }
     },
     drop: {
       configurable: true,
       value (s) {
-        return this.filter(
-          ({k}) => !s.trim().split(/\s*,\s*/).includes(k)
+        return this.pipe(
+          t => _.Q(s).reduce((p, w) => p.set(w)(undefined), _({...t}))._
         );
       }
     },
@@ -767,41 +793,6 @@
       configurable: true,
       get () {
         return this.pipe(s => new Date(Date.parse(s)));
-      }
-    },
-    '*': {
-      get () {
-        return this.pipe(
-          t => t
-          .trim()
-          .replace(/\s+/g, '')
-          .match(/(\w|\$|_)+(\.\w|\$|_)*\[((\w|\$|_)+(\.\w|\$|_)*,?)+\]|(\w|\$|_)+(\.\w|\$|_)*/g)
-          .map(
-            s => s
-            .split(/\[|\]|,/g)
-            .filter(
-              s => s !== ''
-            )
-            .reduce(
-              (p, c) => ((
-                p.length
-                ? p.push(`${p[0]}.${c}`)
-                : p.push(c)
-              ), p),
-              []
-            )
-          )
-          .flatMap(
-            a => (
-              a.length === 1
-              ? a
-              : (a.shift() ,a)
-            )
-          )
-          .map(
-            s => s.split('.')
-          )
-        );
       }
     }
   });
