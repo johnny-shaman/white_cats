@@ -1,13 +1,11 @@
 ((apex) => {
   'use strict';
 
-  let _ = function (x, y) {
+  let _ = function (x, y, c) {
     return _.upto(
       x == null
       ? _.prototype
-      : _['#'][
-        _['#'][x.constructor.name] == null ? 'Object' : x.constructor.name
-      ],
+      : _['#'][_['#'][x.constructor.name] == null ? 'Object' : x.constructor.name],
       {
         _: {
           configurable: true,
@@ -20,7 +18,13 @@
           get () {
             return y;
           }
-        }
+        },
+        '@': {
+          configurable: true,
+          get () {
+            return c;
+          }
+        },
       }
     );
   };
@@ -31,6 +35,7 @@
       .map(v => v.name)
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
+    version: '0.0.1',
     id: v => v,
     pipe: (...fs) => fs.reduceRight((f, g) => (...v) => {
       try {
@@ -51,25 +56,6 @@
         return null;
       }
     }, _.id),
-    promote: (key, promoter, promotee) => _.define(
-      promoter,
-      key,
-      {
-        configurable: true,
-        enumerable: true,
-        set (v) {
-          _.define(this, k, {
-            configurable: true,
-            writable: true,
-            value: v
-          });
-          return true;
-        },
-        get () {
-          return promotee[k];
-        }
-      }
-    ),
     upto: Object.create,
     put: Object.assign,
     define: Object.defineProperty,
@@ -80,9 +66,8 @@
     equal: Object.is,
     owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
     descripting: Object.getOwnPropertyDescriptors,
-    refine: a => [...a].map(v => v == null ? undefined : v),
-    adapt: (...b) => a => _.refine(a).map(v => v == null ? b.shift() : v),
-    fullen: a => !_.refine(a).includes(undefined),
+    adapt: a => (...b) => [...a].map(v => v == null ? b.shift() : v),
+    fullen: a => !([...a].includes(undefined) || [...a].includes(null)),
     less: a => a.filter(v => v != null),
     exist: a => a.includes,
     by: o => o == null ? undefined : o.constructor,
@@ -106,7 +91,6 @@
       }
       yield a > b ? b : a;
     },
-    async: (l, ...r) => new Promise(_.pipe(...r), l),
     Q: t => t
     .trim()
     .replace(/\s+/g, '')
@@ -151,19 +135,19 @@
     pipe: {
       configurable: true,
       value (...f) {
-        return _(_.pipe(...f)(this._$), this.$_);
+        return _(_.pipe(...f)(this._$), this.$_, this['@']);
       }
     },
     loop: {
       configurable: true,
       value (...f) {
-        return _(_.loop(...f)(this._$), this.$_);
+        return _(_.loop(...f)(this._$), this.$_, this['@']);
       }
     },
     re: {
       configurable: true,
       get () {
-        return _(this.$, this._);
+        return _(this.$, this._, this['@']);
       }
     },
     get: {
@@ -185,7 +169,7 @@
             a => ({a, l: a.pop()}),
             ({a, l}) => a.reduce((p, c) => p[c] == null ? _.put(p, {[c]: {}})[c] : p[c], o)[l] = v
           )
-        )
+        );
       }
     },
     mod: {
@@ -203,6 +187,18 @@
       configurable: true,
       value (...o) {
         return this.pipe(p => _.put(p, ...o));
+      }
+    },
+    done: {
+      configurable: true,
+      value () {
+        return this;
+      }
+    },
+    redo: {
+      configurable: true,
+      get () {
+        return _(this['@'], this.$).done
       }
     },
     callTo: {
@@ -281,6 +277,12 @@
       configurable: true,
       get () {
         return this.pipe(JSON.stringify);
+      }
+    },
+    to: {
+      configurable: true,
+      get () {
+        return this.done
       }
     }
   });
@@ -405,34 +407,27 @@
         return this.loop(c => _.defines(c.prototype, o));
       }
     },
-    apply: {
-      configurable: true,
-      value (a) {
-        return this.pipe(a.map.bind(a));
-      }
-    },
     collect: {
       configurable: true,
       value (...a) {
         return this.pipe(f => f(...a));
       }
     },
-    to: {
+    plot: {
       configurable: true,
       value (v) {
-        return (...w) => _.fullen(v) ? this.lazy(...v) : this.to(_.adapt(...w)(v));
-      }
-    },
-    lazy: {
-      configurable: true,
-      value (...v) {
-        return () => this.collect(f => f(...v));
+        return _(v, this.$_, this._);
       }
     },
     of: {
       configurable: true,
       value (...v) {
         return this.pipe(v.map.bind(v));
+      }
+    },
+    done: {
+      value (...v) {
+        return _(this._, this.$, this._).pipe(f => f(...v));
       }
     }
   });
@@ -732,7 +727,7 @@
     refine: {
       configurable: true,
       get () {
-        return this.pipe(_.refine);
+        return this.pipe(a => [...a]);
       }
     },
     less: {
@@ -751,6 +746,18 @@
       configurable: true,
       get () {
         return this.pipe(a => _([...a[0].keys]).map((_, c) => a.map(r => r[c])));
+      }
+    },
+    to: {
+      configurable: true,
+      value (...w) {
+        return this.pipe(
+          a => _.adapt(a)(...w),
+          a => _((_.fullen(a) && this['@']) ? this['@'](...a) : a,
+            this.$,
+            _.fullen(a) ? null : this['@']
+          )
+        )._
       }
     }
   });
