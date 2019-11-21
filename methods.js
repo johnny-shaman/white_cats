@@ -1,241 +1,44 @@
 ((apex) => {
   'use strict';
 
-  let _ = function (x, y, c) {
-    return _.upto(
-      x == null
-      ? _.prototype
-      : _['#'][_['#'][x.constructor.name] == null ? 'Object' : x.constructor.name],
-      {
-        _: {
-          configurable: true,
-          get () {
-            return x;
-          }
-        },
-        $: {
-          configurable: true,
-          get () {
-            return y;
-          }
-        },
-        '@': {
-          configurable: true,
-          get () {
-            return c;
-          }
-        },
-      }
-    );
-  };
+    _.id
+    _.pipe
+    _.loop
+    _.upto
+    _.put
+    _.define
+    _.defines
+    _.entries
+    _.keys
+    _.vals
+    _.equal
+    _.owns
+    _.descripting
+    _.adapt
+    _.fullen
+    _.less
+    _.exist
+    _.by
+    _.isObject
+    _.isArray
+    _._
+    _.Q
 
-  Object.assign(_, {
-    '#': (
-      [Object, String, Number, Boolean, (function* () {}).constructor, Promise]
-      .map(v => v.name)
-      .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
-    ),
-    version: '0.0.1',
-    id: v => v,
-    pipe: (...m) => m.reduceRight((f, g) => (...v) => {
-      try {
-        return v[0] == null ? null : (v.unshift(g(...v)), f(...v));
-      } catch (e) {
-        console.error(e);
-        v.unshift(null);
-        v.push(e);
-        return null;
-      }
-    }, _.id),
-    loop: (...m) => m.reduceRight((f, g) => (...v) => {
-      try {
-        return v[0] == null ? null : (v.push(g(...v)), f(...v));
-      } catch (e) {
-        console.error(e);
-        v.push(e);
-        return null;
-      }
-    }, _.id),
-    upto: Object.create,
-    put: Object.assign,
-    define: Object.defineProperty,
-    defines: Object.defineProperties,
-    entries: Object.entries,
-    keys: Object.keys,
-    vals: Object.values,
-    equal: Object.is,
-    owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
-    descripting: Object.getOwnPropertyDescriptors,
-    adapt: a => (...b) => [...a].map(v => v == null ? b.shift() : v),
-    fullen: a => !([...a].includes(undefined) || [...a].includes(null)),
-    less: a => a.filter(v => v != null),
-    exist: a => a.includes,
-    by: o => o == null ? undefined : o.constructor,
-    isObject: o => o instanceof Object,
-    isArray: o => o instanceof Array,
-    _: function* (a, b = 0, s = 1) {
-      let f = true;
-      while (f) {
-        switch (true) {
-          case a < b : {
-            yield a;
-            f = (a += s) < b;
-            break;
-          }
-          case a > b : {
-            yield b;
-            f = a > (b += s);
-            break;
-          }
-        }
-      }
-      yield a > b ? b : a;
-    },
-    Q: t => t
-    .trim()
-    .replace(/\s+/g, '')
-    .match(/(\w|\$|_)+(\.\w|\$|_)*\[((\w|\$|_)+(\.\w|\$|_)*,?)+\]|(\w|\$|_)+(\.\w|\$|_)*/g)
-    .map(
-      s => s
-      .split(/\[|\]|,/g)
-      .filter(
-        s => s !== ''
-      )
-      .reduce(
-        (p, c) => ((
-          p.length
-          ? p.push(`${p[0]}.${c}`)
-          : p.push(c)
-        ), p),
-        []
-      )
-    )
-    .flatMap(
-      a => (
-        a.length === 1
-        ? a
-        : (a.shift() ,a)
-      )
-    )
-  });
-
-  _.defines(_.prototype, {
-    $_: {
-      configurable: true,
-      get () {
-        return this.$ == null ? this._ : this.$;
-      }
-    },
-    _$: {
-      configurable: true,
-      get () {
-        return this._ == null ? this.$ : this._;
-      }
-    },
-    pipe: {
-      configurable: true,
-      value (...f) {
-        return _(_.pipe(...f)(this._$), this.$_, this['@']);
-      }
-    },
-    loop: {
-      configurable: true,
-      value (...f) {
-        return _(_.loop(...f)(this._$), this.$_, this['@']);
-      }
-    },
-    swap: {
-      configurable: true,
-      get () {
-        return _(this.$, this._, this['@']);
-      }
-    },
-    re: {
-      configurable: true,
-      get () {
-        return _(this.$, null, this['@']);
-      }
-    },
-    done: {
-      configurable: true,
-      value () {
-        return this;
-      }
-    },
-    redo: {
-      configurable: true,
-      get () {
-        return _(this['@'], this.$).done
-      }
-    },
-    call: {
-      configurable: true,
-      value (s) {
-        return (...v) => this
-        .pipe(
-          o => s
-          .split('.')
-          .reduce(
-            (p, c) => p[c] == null
-            ? p 
-            : (
-              typeof p[c] === 'function'
-              ? p[c].call(p, ...v)
-              : p[c]
-            )
-            , o
-          )
-        );
-      }
-    },
-    cast: {
-      configurable: true,
-      value (s) {
-        return (...v) => this
-        .loop(
-          o => s
-          .split('.')
-          .reduce(
-            (p, c) => p[c] == null
-            ? p 
-            : (
-              typeof p[c] === 'function'
-              ? p[c].call(p, ...v)
-              : p[c]
-            )
-            , o
-          )
-        );
-      }
-    },
-    been: {
-      configurable: true,
-      get () {
-        return new Proxy(this, {
-          get (t, k) {
-            return k === 'to'
-            ? t
-            : (
-              (...v) => typeof t._[k] === 'function'
-              ? t.cast(k)(...v)
-              : t.mod(k)(...v)
-            ).been;
-          }
-        });
-      }
-    },
-    toJSON: {
-      configurable: true,
-      get () {
-        return this.pipe(JSON.stringify);
-      }
-    },
-    to: {
-      configurable: true,
-      get () {
-        return this.done
-      }
-    }
+    $_
+    _$
+    pipe_
+    loop_
+    pipe
+    loop
+    swap
+    re
+    done
+    redo
+    call
+    cast
+    been
+    toJSON
+    to
   });
 
   _.defines(_['#'].Promise, {

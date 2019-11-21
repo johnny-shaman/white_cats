@@ -247,6 +247,12 @@
       get () {
         return this.done
       }
+    },
+    at: {
+      configurable: true,
+      get () {
+        return this.done
+      }
     }
   });
 
