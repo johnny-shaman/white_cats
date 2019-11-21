@@ -132,18 +132,6 @@
         return this._ == null ? this.$ : this._;
       }
     },
-    pipe_: {
-      configurable: true,
-      value (...f) {
-        return _.pipe(...f)(this._);
-      }
-    },
-    loop_: {
-      configurable: true,
-      value (...f) {
-        return _.loop(...f)(this._);
-      }
-    },
     pipe: {
       configurable: true,
       value (...f) {
