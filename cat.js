@@ -427,7 +427,7 @@
         return _(v, this.$_, this._);
       }
     },
-    of: {
+    each: {
       configurable: true,
       value (...v) {
         return this.pipe(v.map.bind(v));
@@ -761,25 +761,25 @@
     to: {
       configurable: true,
       value (...w) {
-        return this.pipe(
+        return this['@'] ? this.pipe(
           a => _.adapt(a)(...w),
           a => _((_.fullen(a) && this['@']) ? this['@'](...a) : a,
             this.$,
             _.fullen(a) ? null : this['@']
           )
-        )._
+        )._ : this;
       }
     },
-    at: {
+    of: {
       configurable: true,
       value (...w) {
-        return this.pipe(
+        return this['@'] ? this.pipe(
           a => _.adapt(a.reverse())(...w).reverse(),
           a => _((_.fullen(a) && this['@']) ? this['@'](...a) : a,
             this.$,
             _.fullen(a) ? null : this['@']
           )
-        )._
+        )._ : this;
       }
     }
   });
