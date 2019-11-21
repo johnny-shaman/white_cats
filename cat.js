@@ -31,13 +31,13 @@
 
   Object.assign(_, {
     '#': (
-      [Object, String, Number, Boolean, (function* () {}).constructor, Date, Promise]
+      [Object, String, Number, Boolean, (function* () {}).constructor, Promise]
       .map(v => v.name)
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
     version: '0.0.1',
     id: v => v,
-    pipe: (...fs) => fs.reduceRight((f, g) => (...v) => {
+    pipe: (...m) => m.reduceRight((f, g) => (...v) => {
       try {
         return v[0] == null ? null : (v.unshift(g(...v)), f(...v));
       } catch (e) {
@@ -47,7 +47,7 @@
         return null;
       }
     }, _.id),
-    loop: (...fs) => fs.reduceRight((f, g) => (...v) => {
+    loop: (...m) => m.reduceRight((f, g) => (...v) => {
       try {
         return v[0] == null ? null : (v.push(g(...v)), f(...v));
       } catch (e) {
@@ -144,10 +144,16 @@
         return _(_.loop(...f)(this._$), this.$_, this['@']);
       }
     },
-    re: {
+    swap: {
       configurable: true,
       get () {
         return _(this.$, this._, this['@']);
+      }
+    },
+    re: {
+      configurable: true,
+      get () {
+        return _(this.$, null, this['@']);
       }
     },
     get: {
@@ -283,6 +289,24 @@
       configurable: true,
       get () {
         return this.done
+      }
+    }
+  });
+
+  _.defines(_['#'].Promise, {
+    then: {
+      configurable: true,
+      value (...m) {
+        return this.loop(p => m.map(f => p.then(f)));
+      }
+    }
+  });
+
+  _.defines(_['#'][(function* () {}).constructor.name], {
+    take: {
+      configurable: true,
+      value (v) {
+        return this.pipe(i => [...Array(v)].map(() => i.next().value));
       }
     }
   });
