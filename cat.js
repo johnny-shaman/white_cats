@@ -245,13 +245,13 @@
     to: {
       configurable: true,
       get () {
-        return this.done
+        return this.done;
       }
     },
     at: {
       configurable: true,
       get () {
-        return this.done
+        return this.done;
       }
     }
   });

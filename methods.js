@@ -39,6 +39,7 @@
     been
     toJSON
     to
+    at
   });
 
   _.defines(_['#'].Promise, {
