@@ -156,45 +156,6 @@
         return _(this.$, null, this['@']);
       }
     },
-    get: {
-      configurable: true,
-      value (...s) {
-        return this.pipe(
-          o => s
-          .flatMap(w => w.split('.'))
-          .reduce((p, c) => p == null ? null : p[c], o)
-        );
-      }
-    },
-    set: {
-      configurable: true,
-      value (...s) {
-        return v => this.loop(
-          o => _(s).pipe(
-            a => a.flatMap(s => s.split('.')),
-            a => ({a, l: a.pop()}),
-            ({a, l}) => a.reduce((p, c) => p[c] == null ? _.put(p, {[c]: {}})[c] : p[c], o)[l] = v
-          )
-        );
-      }
-    },
-    mod: {
-      configurable: true,
-      value (...s) {
-        return (...f) => this.set(...s)(
-          this
-          .get(...s)
-          .pipe(...f)
-          ._
-        );
-      }
-    },
-    put: {
-      configurable: true,
-      value (...o) {
-        return this.pipe(p => _.put(p, ...o));
-      }
-    },
     done: {
       configurable: true,
       value () {
@@ -207,7 +168,7 @@
         return _(this['@'], this.$).done
       }
     },
-    callTo: {
+    call: {
       configurable: true,
       value (s) {
         return (...v) => this
@@ -227,7 +188,7 @@
         );
       }
     },
-    castOf: {
+    cast: {
       configurable: true,
       value (s) {
         return (...v) => this
@@ -247,34 +208,18 @@
         );
       }
     },
-    call: {
+    been: {
       configurable: true,
       get () {
         return new Proxy(this, {
           get (t, k) {
-            return k === 'To'
+            return k === 'to'
             ? t
             : (
               (...v) => typeof t._[k] === 'function'
-              ? t.callTo(k)(...v)
+              ? t.cast(k)(...v)
               : t.mod(k)(...v)
-            ).call;
-          }
-        });
-      }
-    },
-    cast: {
-      configurable: true,
-      get () {
-        return new Proxy(this, {
-          get (t, k) {
-            return k === 'Of'
-            ? t
-            : (
-              (...v) => typeof t._[k] === 'function'
-              ? t.castOf(k)(...v)
-              : t.mod(k)(...v)
-            ).cast;
+            ).been;
           }
         });
       }
@@ -342,6 +287,45 @@
             , {}
           )
         );
+      }
+    },
+    get: {
+      configurable: true,
+      value (...s) {
+        return this.pipe(
+          o => s
+          .flatMap(w => w.split('.'))
+          .reduce((p, c) => p == null ? null : p[c], o)
+        );
+      }
+    },
+    set: {
+      configurable: true,
+      value (...s) {
+        return v => this.loop(
+          o => _(s).pipe(
+            a => a.flatMap(s => s.split('.')),
+            a => ({a, l: a.pop()}),
+            ({a, l}) => a.reduce((p, c) => p[c] == null ? _.put(p, {[c]: {}})[c] : p[c], o)[l] = v
+          )
+        );
+      }
+    },
+    mod: {
+      configurable: true,
+      value (...s) {
+        return (...f) => this.set(...s)(
+          this
+          .get(...s)
+          .pipe(...f)
+          ._
+        );
+      }
+    },
+    put: {
+      configurable: true,
+      value (...o) {
+        return this.loop(p => _());
       }
     },
     define: {
@@ -437,7 +421,7 @@
         return this.pipe(f => f(...a));
       }
     },
-    plot: {
+    part: {
       configurable: true,
       value (v) {
         return _(v, this.$_, this._);
@@ -500,7 +484,7 @@
         return this.pipe(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(a.slice(n).chunk(n)));
       }
     },
-    uniq: {
+    unique: {
       configurable: true,
       get () {
         return this.pipe(a => [...new Set(a)]);
@@ -510,6 +494,12 @@
       configurable: true,
       value (...b) {
         return this.pipe(a => [...new Set(a.concat(...b))]);
+      }
+    },
+    put: {
+      configurable: true,
+      value (a) {
+        return this.map((v, k) => a[k] == null ? v : a[k]);
       }
     },
     exist_: {
@@ -539,43 +529,43 @@
     pushL: {
       configurable: true,
       value (...v) {
-        return this.castOf('unshift')(...v);
+        return this.cast('unshift')(...v);
       }
     },
     pushR: {
       configurable: true,
       value (...v) {
-        return this.castOf('push')(...v);
+        return this.cast('push')(...v);
       }
     },
     popL: {
       configurable: true,
       get () {
-        return this.callTo('shift')();
+        return this.call('shift')();
       }
     },
     popR: {
       configurable: true,
       get () {
-        return this.callTo('pop')();
+        return this.call('pop')();
       }
     },
     omitL: {
       configurable: true,
       get () {
-        return this.castOf('shift')();
+        return this.cast('shift')();
       }
     },
     omitR: {
       configurable: true,
       get () {
-        return this.castOf('pop')();
+        return this.cast('pop')();
       }
     },
     each: {
       configurable: true,
       value (...f) {
-        return this.castOf('forEach')(_.pipe(...f));
+        return this.cast('forEach')(_.pipe(...f));
       }
     },
     lift: {
@@ -593,19 +583,19 @@
     foldL: {
       configurable: true,
       value (f, ...v) {
-        return this.callTo('reduce')(f, ...v);
+        return this.call('reduce')(f, ...v);
       }
     },
     foldR: {
       configurable: true,
       value (f, ...v) {
-        return this.callTo('reduceRight')(f, ...v);
+        return this.call('reduceRight')(f, ...v);
       }
     },
     filter: {
       configurable: true,
       value (f) {
-        return this.callTo('filter')(f);
+        return this.call('filter')(f);
       }
     },
     aMap: {
@@ -617,41 +607,37 @@
     map: {
       configurable: true,
       value (...f) {
-        return this.callTo('map')(_.pipe(...f));
+        return this.call('map')(_.pipe(...f));
       }
     },
     fMap: {
       configurable: true,
       value (...f) {
-        return this.callTo('flatMap')(_.pipe(...f));
+        return this.call('flatMap')(_.pipe(...f));
       }
     },
     flat: {
       configurable: true,
       value (v) {
-        return this.callTo('flat')(v);
+        return this.call('flat')(v);
       }
     },
     back: {
       configurable: true,
       get () {
-        return this.callTo('reverse')();
+        return this.call('reverse')();
       }
     },
     adaptL: {
       configurable: true,
       value (...v) {
-        return this.pipe(_.adapt(...v))
+        return this.pipe(a => _.adapt(a)(...v));
       }
     },
     adaptR: {
       configurable: true,
-      value (...w) {
-        return this.pipe(
-          a => a.reverse(),
-          _.adapt(...v),
-          a => a.reverse()
-        );
+      value (...v) {
+        return this.pipe(a => _.adapt(a.reverse())(...v).reverse());
       }
     },
     adapt: {
@@ -663,43 +649,43 @@
     concat: {
       configurable: true,
       value (...v) {
-        return this.callTo('concat')(...v);
+        return this.call('concat')(...v);
       }
     },
     replace: {
       configurable: true,
       valuue (...v) {
-        return this.callTo('splice')(...v);
+        return this.call('splice')(...v);
       }
     },
     slice: {
       configurable: true,
       value (...v) {
-        return this.callTo('slice')(...v);
+        return this.call('slice')(...v);
       }
     },
     sort: {
       configurable: true,
       value (...v) {
-        return this.callTo('sort')(...v);
+        return this.call('sort')(...v);
       }
     },
     indexL_: {
       configurable: true,
       value (...v) {
-        return this.callTo('indexOf')(...v)._;
+        return this.call('indexOf')(...v)._;
       }
     },
     indexR_: {
       configurable: true,
       value (...v) {
-        return this.callTo('lastIndexOf')(...v)._;
+        return this.call('lastIndexOf')(...v)._;
       }
     },
     some_: {
       configurable: true,
       value (...v) {
-        return this.callTo('some')(...v)._;
+        return this.call('some')(...v)._;
       }
     },
     spread: {
@@ -735,7 +721,7 @@
     mid: {
       configurable: true,
       get () {
-        return this.sort.R(
+        return this.sort.pipe(
           a => (
             a.length === 0
             ? null
@@ -777,6 +763,18 @@
       value (...w) {
         return this.pipe(
           a => _.adapt(a)(...w),
+          a => _((_.fullen(a) && this['@']) ? this['@'](...a) : a,
+            this.$,
+            _.fullen(a) ? null : this['@']
+          )
+        )._
+      }
+    },
+    at: {
+      configurable: true,
+      value (...w) {
+        return this.pipe(
+          a => _.adapt(a.reverse())(...w).reverse(),
           a => _((_.fullen(a) && this['@']) ? this['@'](...a) : a,
             this.$,
             _.fullen(a) ? null : this['@']
