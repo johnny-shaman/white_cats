@@ -1,11 +1,15 @@
 ((apex) => {
   'use strict';
-
+  const Generator = (function*(){}).constructor;
   let _ = function (x, y, c) {
     return _.upto(
       x == null
       ? _.prototype
-      : _['#'][_['#'][x.constructor.name] == null ? 'Object' : x.constructor.name],
+      : _['#'][
+        x instanceof Generator
+        ? 'Generator'
+        : _['#'][x.constructor.name] == null ? 'Object' : x.constructor.name
+      ],
       {
         _: {
           configurable: true,
@@ -31,8 +35,7 @@
 
   Object.assign(_, {
     '#': (
-      [Object, String, Number, Boolean, (function* () {}).constructor, Promise]
-      .map(v => v.name)
+      ['Object', 'String', 'Number', 'Boolean', 'Generator', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
     version: '0.0.1',
@@ -132,16 +135,10 @@
         return this._ == null ? this.$ : this._;
       }
     },
-    pipe_: {
+    _pipe: {
       configurable: true,
       value (...f) {
-        return _.pipe(...f)(this._);
-      }
-    },
-    loop_: {
-      configurable: true,
-      value (...f) {
-        return _.loop(...f)(this._);
+        return _(_.pipe(...f)(this._), this.$_, this['@']).pipe(v => v instanceof _ ? v._ : v);
       }
     },
     pipe: {
@@ -265,7 +262,7 @@
     }
   });
 
-  _.defines(_['#'][(function* () {}).constructor.name], {
+  _.defines(_['#'].Generator, {
     take: {
       configurable: true,
       value (v) {
@@ -421,13 +418,13 @@
         })}));
       }
     },
-    implements: {
+    prepends: {
       configurable: true,
       value (o) {
         return this.loop(c => _.put(c.prototype, o));
       }
     },
-    configures: {
+    implements: {
       configurable: true,
       value (o) {
         return this.loop(c => _.defines(c.prototype, o));
@@ -439,7 +436,7 @@
         return this.pipe(f => f(...a));
       }
     },
-    part: {
+    take: {
       configurable: true,
       value (v) {
         return _(v, this.$_, this._);
