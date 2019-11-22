@@ -339,8 +339,12 @@
     },
     put: {
       configurable: true,
-      value (...o) {
-        return this.loop(p => _());
+      value (o) {
+        return this.loop(
+          p => _(o).entries.map(
+            ([k, v]) => _.isObject(v) && _.isObject(p[k]) ? _(p[k]).put(v) : _.put(o, {[k]: v})
+          )._
+        );
       }
     },
     define: {
