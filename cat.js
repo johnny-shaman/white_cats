@@ -70,7 +70,7 @@
     owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
     descripting: Object.getOwnPropertyDescriptors,
     adapt: a => (...b) => [...a].map(v => v == null ? b.shift() : v),
-    fullen: a => !([...a].includes(undefined) || [...a].includes(null)),
+    fullen: a => !(Object.values([...a]).includes(undefined) || Object.values([...a]).includes(null)),
     less: a => a.filter(v => v != null),
     exist: a => a.includes,
     by: o => o == null ? undefined : o.constructor,
@@ -310,7 +310,7 @@
         return this.pipe(
           o => s
           .flatMap(w => w.split('.'))
-          .reduce((p, c) => p == null ? null : p[c], o)
+          .reduce((p, c) => p == null ? undefined : p[c], o)
         );
       }
     },
@@ -402,7 +402,22 @@
     fullen_: {
       configurable: true,
       get () {
-        return this.pipe(_.vals, _.fullen)._;
+        return this.pipe(_.fullen)._;
+      }
+    },
+    toDate: {
+      configurable: true,
+      get () {
+        return this.pipe(
+          ({
+            year = 1970,
+            month = 1,
+            date = 1,
+            hour= 9,
+            minute = 0,
+            seconds = 0
+          }) => new Date(year, month - 1, date, hour, minute, seconds)
+        );
       }
     }
   });
@@ -844,5 +859,111 @@
       }
     }
   });
+
+  _.put(_['#'], {Date: _.upto(_['#'].Object)});
+  _.defines(_['#'].Date, {
+    year: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getFullYear());
+      }
+    },
+    month: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getMonth() + 1);        
+      }
+    },
+    date: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getDate());
+      }
+    },
+    day: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getDay());
+      }
+    },
+    hour: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getHours());
+      }
+    },
+    minute: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getMinutes());
+      }
+    },
+    seconds: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getSeconds());
+      }
+    },
+    addYear: {
+      configurable: true,
+      value (v) {
+        return this.pipe(o => o.setFullYear(o.getFullYear() + v));
+      }
+    },
+    addMonth: {
+      configurable: true,
+      value (v) {
+        return this.pipe(o => o.setMonth(o.getMonth() + v));        
+      }
+    },
+    addDate: {
+      configurable: true,
+      value (v) {
+        return this.pipe(o => o.setDate(o.getDate() + v));
+      }
+    },
+    addHour: {
+      configurable: true,
+      value (v) {
+        return this.pipe(o => o.getHours());
+      }
+    },
+    minute: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getMinutes());
+      }
+    },
+    seconds: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getSeconds());
+      }
+    },
+    raw: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getTime());
+      }
+    },
+    modify: {
+      
+    },
+    toObject: {
+      configurable: true,
+      get () {
+        return _(this)
+        .pipe(t => ({
+          year: t.year._,
+          month: t.month._,
+          date: t.date._,
+          day: t.day._,
+          hour: t.hour._,
+          minute: t.minute._,
+          seconds: t.seconds._
+        }));
+      }
+    }
+  })
   'process' in apex ? (module.exports = _) : (apex._ = _);
 })((this || 0).self || global);
