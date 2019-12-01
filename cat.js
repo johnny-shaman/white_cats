@@ -40,23 +40,22 @@
     ),
     version: '0.0.1',
     id: v => v,
-    pipe: (...m) => m.reduceRight((f, g) => (...v) => {
+    pipe: (...m) => m.reduceRight((f, g, k) => (...v) => {
       try {
-        return v[0] == null ? null : (v.unshift(g(...v)), f(...v));
+        return v[0] == null ? undefined : (v.unshift(g(...v)), f(...v));
       } catch (e) {
         console.error(e);
-        v.unshift(null);
         v.push(e);
-        return null;
+        return k === (m.length - 1) ? v[0] : v;
       }
     }, _.id),
-    loop: (...m) => m.reduceRight((f, g) => (...v) => {
+    loop: (...m) => m.reduceRight((f, g, k) => (...v) => {
       try {
-        return v[0] == null ? null : (v.push(g(...v)), f(...v));
+        return v[0] == null ? undefined : (v.push(g(...v)), f(...v));
       } catch (e) {
         console.error(e);
         v.push(e);
-        return null;
+        return k === (m.length - 1) ? v[0] : v;
       }
     }, _.id),
     upto: Object.create,
@@ -94,6 +93,7 @@
       }
       yield a > b ? b : a;
     },
+    async: f => new Promise(t => f(t)),
     Q: t => t
     .trim()
     .replace(/\s+/g, '')
@@ -789,7 +789,9 @@
     swap: {
       configurable: true,
       get () {
-        return this.pipe(a => _([...a[0].keys]).map((_, c) => a.map(r => r[c])));
+        return this.pipe(
+          a => _([...a[0].keys]).map((_, c) => a.map(r => r[c]))
+        );
       }
     },
     to: {
@@ -846,16 +848,21 @@
   });
 
   _.defines(_['#'].String, {
-    ofJSON: {
+    toObject: {
       configurable: true,
       get () {
         return this.pipe(JSON.parse);
       }
     },
-    date: {
+    toDate: {
       configurable: true,
       get () {
-        return this.pipe(s => new Date(Date.parse(s)));
+        return this.pipe(
+          s => new Date(s),
+          d => typeof d === 'string'
+          ? _(JSON.parse(d)).toObject.toDate._
+          : d
+        );
       }
     }
   });
@@ -904,40 +911,135 @@
         return this.pipe(o => o.getSeconds());
       }
     },
-    addYear: {
-      configurable: true,
-      value (v) {
-        return this.pipe(o => o.setFullYear(o.getFullYear() + v));
+    millis: {
+      get () {
+        return this.pipe(o => o.getMilliseconds());
       }
     },
-    addMonth: {
+    modYear: {
       configurable: true,
-      value (v) {
-        return this.pipe(o => o.setMonth(o.getMonth() + v));        
+      value (f) {
+        return this.pipe(o => o.setFullYear(f(o.getFullYear())));
       }
     },
-    addDate: {
+    modMonth: {
       configurable: true,
-      value (v) {
-        return this.pipe(o => o.setDate(o.getDate() + v));
+      value (f) {
+        return this.pipe(o => o.setMonth(f(o.getMonth() + 1) - 1));
       }
     },
-    addHour: {
+    modDate: {
       configurable: true,
-      value (v) {
-        return this.pipe(o => o.getHours());
+      value (f) {
+        return this.pipe(o => o.setDate(f(o.getDate())));
       }
     },
-    minute: {
+    modHour: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setHours(f(o.getHours())));
+      }
+    },
+    modMinute: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setMinutes(f(o.getMinutes())));
+      }
+    },
+    modSeconds: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setSeconds(f(o.getSeconds())));
+      }
+    },
+    modMillis: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setMilliseconds(f(o.getMilliseconds())));
+      }
+    },
+    UTCYear: {
       configurable: true,
       get () {
-        return this.pipe(o => o.getMinutes());
+        return this.pipe(o => o.getUTCFullYear());
       }
     },
-    seconds: {
+    UTCMonth: {
       configurable: true,
       get () {
-        return this.pipe(o => o.getSeconds());
+        return this.pipe(o => o.getUTCMonth() + 1);        
+      }
+    },
+    UTCDate: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getUTCDate());
+      }
+    },
+    UTCDay: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getUTCDay());
+      }
+    },
+    UTCHour: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getUTCHours());
+      }
+    },
+    UTCMinute: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getUTCMinutes());
+      }
+    },
+    UTCSeconds: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.getUTCSeconds());
+      }
+    },
+    modUTCYear: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setUTCFullYear(f(o.getUTCFullYear())));
+      }
+    },
+    modUTCMonth: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setUTCMonth(f(getUTCMonth() + 1) - 1));        
+      }
+    },
+    modUTCDate: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setUTCDate(f(o.getUTCDate())));
+      }
+    },
+    modUTCHour: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setUTCHours(f(o.getUTCHours())));
+      }
+    },
+    modUTCMinute: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setUTCMinutes(f(o.getUTCMinutes())));
+      }
+    },
+    modUTCSeconds: {
+      configurable: true,
+      value (f) {
+        return this.pipe(o => o.setUTCSeconds(f(o.getUTCSeconds())));
+      }
+    },
+    zone: {
+      configurable: true,
+      get () {
+        return this.pipe(o =>o.getTimezoneOffset())
       }
     },
     raw: {
@@ -946,24 +1048,46 @@
         return this.pipe(o => o.getTime());
       }
     },
-    modify: {
-      
+    ISO: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.toISOString());
+      }
+    },
+    UTC: {
+      configurable: true,
+      get () {
+        return this.pipe(o => o.toUTCString());
+      }
     },
     toObject: {
       configurable: true,
       get () {
-        return _(this)
-        .pipe(t => ({
-          year: t.year._,
-          month: t.month._,
-          date: t.date._,
-          day: t.day._,
-          hour: t.hour._,
-          minute: t.minute._,
-          seconds: t.seconds._
-        }));
+        return _(
+          this
+        )
+        .pipe(
+          ({
+            year, month, date, day, hour, minute, seconds, millis
+          }) => ({
+            year: year._,
+            month: month._,
+            date: date._,
+            day: day._,
+            hour: hour._,
+            minute: minute._,
+            seconds: seconds._,
+            millis: millis._
+          })
+        );
+      }
+    },
+    toJSON: {
+      configurable: true,
+      get () {
+        return this.toObject.toJSON;
       }
     }
-  })
+  });
   'process' in apex ? (module.exports = _) : (apex._ = _);
 })((this || 0).self || global);
