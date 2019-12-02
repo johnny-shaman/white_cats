@@ -1,7 +1,7 @@
 describe("White Cats", function () {
   'use strict';
 
-  const _ = reqire('../cat.js');
+  const _ = require('../cat.js');
 
   const O = (a, b, c) => Object.create(
     {
@@ -75,12 +75,10 @@ describe("White Cats", function () {
         o => o.mt( 2 ),
         o => o.ad( 3 )
       )( O(3, 5, 7) )
+      .c
+    ).toBe(
+      4387
     )
-    .toEqual( {
-      a: 19,
-      b: 227,
-      c: 4387
-    } )
   );
 
   it('_.upto',
@@ -110,7 +108,7 @@ describe("White Cats", function () {
   it('_.defines',
     () => {
       const target = {a: 5, b: 3};
-      expect( _.define(target, {c: {value: 1}, d: {value: 2}}) ).toBe( target );
+      expect( _.defines(target, {c: {value: 1}, d: {value: 2}}) ).toBe( target );
       expect( target.c ).toBe( 1 );
       expect( target.d ).toBe( 2 );
     }
@@ -118,11 +116,10 @@ describe("White Cats", function () {
 
   it('_.entries',
     () => expect(
-      _
-      .entries({a: 5, b: 6})
-      .flat()
+      _.entries({a: 5, b: 6})
+    ).toEqual(
+      [['a', 5], ['b', 6]]
     )
-    .toEqual( ['a', 5, 'b', 6] )
   );
 
   it('_.keys',
@@ -134,7 +131,7 @@ describe("White Cats", function () {
 
   it('_.vals',
     () => expect(
-      _.keys({a: 5, b: 6})
+      _.vals({a: 5, b: 6})
     )
     .toEqual( [5, 6] )
   );
@@ -192,99 +189,7 @@ describe("White Cats", function () {
     )
   );
 
-  it('_.fullen',
-    () => {
-        const nulledAry0 = [null,2,3];
-        const nulledAry1 = [1,null,3];
-        const nulledAry2 = [1,2,null];
-        const voidAry0 = [void 0,2,3];
-        const voidAry1 = [1,void 0,3];
-        const voidAry2 = [1,2,void 0];
-
-        const nulledObj0 = {a: null, b: 2, c: 3};
-        const nulledObj1 = {a: 1, b: null, c: 3};
-        const nulledObj2 = {a: 1, b: 2, c: null};
-        const voidObj0 = {a: void 0, b: 2, c: 3};
-        const voidObj1 = {a: 1, b: void 0, c: 3};
-        const voidObj2 = {a: 1, b: 2, c: void 0};
-
-        const fulfillObj = {a: 0, b: true, c: false};
-        const fulfillAry = [0, true, false];
-
-        expect(
-          _.fullen(nulledAry0)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(nulledAry1)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(nulledAry2)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(voidAry0)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(voidAry1)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(voidAry2)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(nulledObj0)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(nulledObj1)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(nulledObj2)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(voidObj0)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(voidObj1)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(voidObj2)
-        ).toBe(
-          false
-        );
-        expect(
-          _.fullen(fulfillAry)
-        ).toBe(
-          true
-        );
-        expect(
-          _.fullen(fulfillObj)
-        ).toBe(
-          true
-        );
-    }
-  );
-
-  it('',
+  it('_.less',
     () => expect(
       _.less([,null,void 0, 3, 4, 5])
     ).toEqual(
@@ -298,16 +203,192 @@ describe("White Cats", function () {
         _.exist([1, 2, 3])(1)
       ).toBe(
         true
+      );
+      expect(
+        _.exist([1, 2, 3])(4)
+      ).toBe(
+        false
+      );
+    }
+  );
+
+  it('_.by',
+    () => expect(
+      _.by([])
+    ).toBe(
+      [].constructor
+    )
+  );
+
+  it('_.isObject',
+    () => {
+      expect(
+        _.isObject({})
+      )
+      .toBe(
+        true
+      );
+      expect(
+        _.isObject(8)
+      )
+      .toBe(
+        false
+      );
+    }
+  );
+
+  it('_.isArray',
+    () => {
+      expect(
+        _.isArray([])
+      )
+      .toBe(
+        true
+      );
+      expect(
+        _.isArray({})
+      )
+      .toBe(
+        false
+      );
+    }
+  );
+
+  it('_._',
+    () => {
+      expect(
+        [..._._(1, 5)]
+      )
+      .toEqual(
+        [1, 2, 3, 4, 5]
+      );
+      expect(
+        [..._._(5, 1)]
+      )
+      .toEqual(
+        [5, 4, 3, 2, 1]
+      );
+      expect(
+        [..._._(5)]
+      )
+      .toEqual(
+        [0, 1, 2, 3, 4, 5]
+      );
+    }
+  );
+
+  it('_.async',
+    async () => expect(
+      await _.async(r => r(3))
+    )
+    .toBe(
+      3
+    )
+  );
+
+  it('_.asyncAll',
+    async () => expect(
+      await _.asyncAll(
+        r => r(3),
+        4,
+        _.async(r => r(5))
+      )
+    )
+    .toEqual(
+      [3, 4, 5]
+    )
+  );
+
+  it('_().$_',
+    () => {
+      expect(
+        _(3).$_
+      ).toBe(
+        3
+      );
+      expect(
+        _(3, 4).$_
+      ).toBe(
+        4
+      );
+    }
+  );
+
+  it('_()._$',
+    () => {
+      expect(
+        _(3)._$
+      ).toBe(
+        3
+      );
+      expect(
+        _(3, 4)._$
+      ).toBe(
+        3
+      );
+      expect(
+        _(null, 4)._$
+      ).toBe(
+        4
       )
     }
+  );
+
+  it('_()._pipe has Kleisli Triple and function piping',
+    () => {
+      expect(
+        _({a: 5})._pipe(o => _({a: o.a * 3}))._
+      ).toEqual(
+        (o => _({a: o.a * 3}))({a: 5})._
+      );
+      expect(
+        _({a: 5})._pipe(_)._
+      ).toEqual(
+        {a: 5}
+      );
+      expect(
+        _({a: 5})._pipe(o => _({a: o.a * 3}))._pipe(o => _({a: o.a + 5}))._
+      ).toEqual(
+        _({a: 5})._pipe(o => _({a: o.a * 3})._pipe(o => _({a: o.a + 5})))._
+      );
+      expect(
+        _({a: 5})._pipe(o => _({a: o.a * 3}), o => _({a: o.a + 5}))._
+      ).toEqual(
+        _({a: 5})._pipe(o => _({a: o.a * 3}))._pipe(o => _({a: o.a + 5}))._
+      );
+    }
+  );
+
+  it('_().pipe',
+    () => expect(
+      _({a: 5}).pipe(o => ({a: o.a * 3}), o => ({a: o.a + 5}))._
+    ).toEqual(
+      {a: 20}
+    )
+  );
+
+  it('_().loop',
+    () => expect(
+      _(O(3, 5, 7))
+      .loop(
+        o => o.ad( 5 ),
+        o => o.mt( 2 ),
+        o => o.ad( 3 )
+      )
+      ._
+      .c
+    ).toBe(
+      4387
+    )
   );
 
   it('',
     () => {
       expect(
         
-      )
-      .toBe(  )
+      ).toBe(
+        
+      );
     }
   );
 
@@ -320,10 +401,112 @@ describe("White Cats", function () {
   );
 
   it('',
+    () => {
+      expect(
+        
+      ).toBe(
+        
+      );
+    }
+  );
+
+  it('',
     () => expect(
 
     ).toEqual(
 
     )
+  );
+
+  it('_().fullen_',
+    () => {
+        const nulledAry0 = [null, 2, 3];
+        const nulledAry1 = [1, null, 3];
+        const nulledAry2 = [1, 2, null];
+        const voidAry0 = [void 0, 2, 3];
+        const voidAry1 = [1, void 0, 3];
+        const voidAry2 = [1, 2, void 0];
+
+        const nulledObj0 = {a: null, b: 2, c: 3};
+        const nulledObj1 = {a: 1, b: null, c: 3};
+        const nulledObj2 = {a: 1, b: 2, c: null};
+        const voidObj0 = {a: void 0, b: 2, c: 3};
+        const voidObj1 = {a: 1, b: void 0, c: 3};
+        const voidObj2 = {a: 1, b: 2, c: void 0};
+
+        const fulfillObj = {a: 0, b: true, c: false};
+        const fulfillAry = [0, true, false];
+
+        expect(
+          _(nulledAry0).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(nulledAry1).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(nulledAry2).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(voidAry0).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(voidAry1).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(voidAry2).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(nulledObj0).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(nulledObj1).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(nulledObj2).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(voidObj0).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(voidObj1).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(voidObj2).fullen_
+        ).toBe(
+          false
+        );
+        expect(
+          _(fulfillAry).fullen_
+        ).toBe(
+          true
+        );
+        expect(
+          _(fulfillObj).fullen_
+        ).toBe(
+          true
+        );
+    }
   );
 });

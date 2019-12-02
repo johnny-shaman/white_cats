@@ -69,31 +69,37 @@
     owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
     descripting: Object.getOwnPropertyDescriptors,
     adapt: a => (...b) => [...a].map(v => v == null ? b.shift() : v),
-    fullen: a => !(Object.values([...a]).includes(undefined) || Object.values([...a]).includes(null)),
     less: a => a.filter(v => v != null),
-    exist: a => a.includes,
+    exist: a => a.includes.bind(a),
     by: o => o == null ? undefined : o.constructor,
     isObject: o => o instanceof Object,
     isArray: o => o instanceof Array,
-    _: function* (a, b = 0, s = 1) {
+    _: function* (a, b, s = 1) {
       let f = true;
       while (f) {
         switch (true) {
+          case b == null : {
+            b = a;
+            a = 0;
+          }
           case a < b : {
             yield a;
             f = (a += s) < b;
             break;
           }
           case a > b : {
-            yield b;
-            f = a > (b += s);
+            yield a;
+            f = (a -= s) > b;
             break;
           }
         }
       }
       yield a > b ? b : a;
     },
-    async: f => new Promise(t => f(t)),
+    async: f => new Promise(f),
+    asyncAll: (...a) => Promise.all(a.map(o => typeof o === 'function' ? _.async(o) : o)),
+    join: v => v instanceof _ ? v._ : v,
+    timezoning: -(new Date().getTimezoneOffset()),
     Q: t => t
     .trim()
     .replace(/\s+/g, '')
@@ -138,7 +144,17 @@
     _pipe: {
       configurable: true,
       value (...f) {
-        return _(_.pipe(...f)(this._), this.$_, this['@']).pipe(v => v instanceof _ ? v._ : v);
+        return _(
+          _.pipe(
+            ...f.reduce(
+              (p, c) => [...p, _.join, c],
+              [f.shift()]
+            ),
+            _.join
+          )(this._$),
+          this.$_,
+          this['@']
+        );
       }
     },
     pipe: {
@@ -402,7 +418,7 @@
     fullen_: {
       configurable: true,
       get () {
-        return this.pipe(_.fullen)._;
+        return this.pipe(o => !(_.vals(o).includes(undefined) || _.vals(o).includes(null)))._;
       }
     },
     toDate: {
@@ -413,10 +429,11 @@
             year = 1970,
             month = 1,
             date = 1,
-            hour= 9,
-            minute = 0,
-            seconds = 0
-          }) => new Date(year, month - 1, date, hour, minute, seconds)
+            hour = 0,
+            minute = _.timezoning,
+            seconds = 0,
+            millis = 0,
+          }) => new Date(year, month - 1, date, hour, minute, seconds, millis)
         );
       }
     }
@@ -783,15 +800,13 @@
     fullen_: {
       configurable: true,
       get () {
-        return this.pipe(_.fullen)._;
+        return this.pipe(a => !([...a].includes(undefined) || [...a].includes(null)))._;
       }
     },
-    swap: {
+    pair: {
       configurable: true,
-      get () {
-        return this.pipe(
-          a => _([...a[0].keys]).map((_, c) => a.map(r => r[c]))
-        );
+      value (...v) {
+        return this.fold((p, c, k) => _.put(p, {[c]: v[k]}), {})
       }
     },
     to: {
@@ -799,9 +814,9 @@
       value (...w) {
         return this['@'] ? this.pipe(
           a => _.adapt(a)(...w),
-          a => _((_.fullen(a) && this['@']) ? this['@'](...a) : a,
+          a => _((_(a).fullen_ && this['@']) ? this['@'](...a) : a,
             this.$,
-            _.fullen(a) ? null : this['@']
+            _(a).fullen_ ? null : this['@']
           )
         )._ : this;
       }
@@ -811,9 +826,9 @@
       value (...w) {
         return this['@'] ? this.pipe(
           a => _.adapt(a.reverse())(...w).reverse(),
-          a => _((_.fullen(a) && this['@']) ? this['@'](...a) : a,
+          a => _((_(a).fullen_ && this['@']) ? this['@'](...a) : a,
             this.$,
-            _.fullen(a) ? null : this['@']
+            _(a).fullen_ ? null : this['@']
           )
         )._ : this;
       }
