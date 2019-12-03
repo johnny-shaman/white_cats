@@ -24,6 +24,12 @@ describe("White Cats", function () {
         this.a = this.a / v;
         this.b = this.a / this.b;
         this.c = this.b / this.c;
+      },
+      end () {
+        return this.c;
+      },
+      prog (...v) {
+        return [...v, this.c]
       }
     },
     {
@@ -382,6 +388,87 @@ describe("White Cats", function () {
     )
   );
 
+  it('_().call',
+    () => {
+      expect(
+        _(O(3, 5, 7)).call('prog')(5, 6)._
+      ).toEqual(
+        [5, 6, 7]
+      );
+    }
+  );
+
+  it('_().cast',
+    () => {
+      const o = O(3, 5, 7);
+      expect(
+        _(o).cast('prog')(5, 6)._
+      ).toBe(
+        o
+      )
+    }
+  );
+
+  it('_().been',
+    () => expect(
+      _(O(3, 5, 7))
+      .Been
+      .ad( 5 )
+      .mt( 2 )
+      .ad( 3 )
+      .To
+      ._
+      .c
+    ).toBe(
+      4387
+    )
+  );
+
+  it('_().toJSON',
+    () => expect(
+      _(O(3, 5, 7)).toJSON._      
+    ).toBe(
+      JSON.stringify(O(3, 5, 7))
+    )
+  );
+
+  it('_(async).then',
+    async () => expect(
+      await _(_.async(r => r([3, 5, 7]))).then(
+        a => _.async(r => r(a.push(11))),
+        a => a.push(13),
+        a => _.async(r => r(a.push(17))),
+        a => _.async(r => r(a.push(19)))
+      )._
+    ).toEqual(
+      [3, 5, 7, 11, 13, 17, 19]
+    )
+  );
+
+  it('_(function*).take',
+    () => expect(
+      
+    ).toEqual(
+
+    )
+  );
+
+  it('',
+    () => expect(
+
+    ).toEqual(
+
+    )
+  );
+
+  it('',
+    () => expect(
+
+    ).toEqual(
+
+    )
+  );
+
   it('',
     () => {
       expect(
@@ -394,20 +481,18 @@ describe("White Cats", function () {
 
   it('',
     () => expect(
-      
-    ).toBe(
-      
+
+    ).toEqual(
+
     )
   );
 
   it('',
-    () => {
-      expect(
-        
-      ).toBe(
-        
-      );
-    }
+    () => expect(
+
+    ).toEqual(
+
+    )
   );
 
   it('',

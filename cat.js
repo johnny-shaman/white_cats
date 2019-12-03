@@ -169,18 +169,6 @@
         return _(_.loop(...f)(this._$), this.$_, this['@']);
       }
     },
-    swap: {
-      configurable: true,
-      get () {
-        return _(this.$, this._, this['@']);
-      }
-    },
-    re: {
-      configurable: true,
-      get () {
-        return _(this.$, null, this['@']);
-      }
-    },
     done: {
       configurable: true,
       value () {
@@ -233,18 +221,18 @@
         );
       }
     },
-    been: {
+    Been: {
       configurable: true,
       get () {
         return new Proxy(this, {
           get (t, k) {
-            return k === 'to'
+            return k === 'To'
             ? t
-            : (
-              (...v) => typeof t._[k] === 'function'
+            : (...v) => (
+              typeof t._[k] === 'function'
               ? t.cast(k)(...v)
               : t.mod(k)(...v)
-            ).been;
+            ).Been;
           }
         });
       }
