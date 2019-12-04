@@ -503,17 +503,25 @@ describe("White Cats", function () {
 
   it('_({}).get',
     () => expect(
-      _({a: 3, b: {c : 4}}).get('b.c')._
+      _({a: 3, b: {c: 4, d: {e: 6}}}).get('b.d.e')._
     ).toBe(
-      4
+      6
     )
   );
 
-  it('',
+  it('_({}).set',
     () => expect(
+      _({a: 3, b: {c: 4, d: {e: 6}}}).set('b.d.e')(3)._.b.d.e
+    ).toBe(
+      3
+    )
+  );
 
-    ).toEqual(
-
+  it('_({}).mod',
+    () => expect(
+      _({a: 3, b: {c: 4, d: {e: 6}}}).mod('b.d.e')(v => v * 3)._.b.d.e
+    ).toBe(
+      18
     )
   );
 
