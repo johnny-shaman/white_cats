@@ -6,8 +6,8 @@
       x == null
       ? _.prototype
       : _['#'][
-        x instanceof Generator
-        ? 'Generator'
+        x.constructor.constructor.name === 'GeneratorFunction'
+        ? '*'
         : _['#'][x.constructor.name] == null ? 'Object' : x.constructor.name
       ],
       {
@@ -35,7 +35,7 @@
 
   Object.assign(_, {
     '#': (
-      ['Object', 'String', 'Number', 'Boolean', 'Generator', 'Promise']
+      ['Object', 'String', 'Number', 'Boolean', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
     version: '0.0.1',
@@ -266,7 +266,7 @@
     }
   });
 
-  _.defines(_['#'].Generator, {
+  _.defines(_['#']['*'], {
     take: {
       configurable: true,
       value (v) {
@@ -282,7 +282,7 @@
         return this.pipe(
           _.entries,
           a => a.reduce(
-            (p, [k, v]) => f({k, v}) ? _.put(p, {[k]: v}) : p,
+            (p, [k, v]) => f(v, k) ? _.put(p, {[k]: v}) : p,
             {}
           )
         );
@@ -292,7 +292,7 @@
       configurable: true,
       value (...f) {
         return this.loop(
-          o => _.entries(o).forEach(([k, v]) => _.pipe(...f)({k, v}))
+          o => _.entries(o).forEach(([k, v]) => _.loop(...f)(k, v))
         );
       }
     },
@@ -300,11 +300,7 @@
       configurable: true,
       value (...f) {
         return this.pipe(
-          _.entries,
-          a => a.reduce(
-            (p, [k, v]) => _.put(p, {[k]: _.pipe(...f)(v, k)})
-            , {}
-          )
+          o => _.entries(o).reduce((p, [k, v]) => _.put(p, {[k]: _.pipe(...f)(v, k)}), {})
         );
       }
     },
@@ -314,7 +310,7 @@
         return this.pipe(
           o => s
           .flatMap(w => w.split('.'))
-          .reduce((p, c) => p == null ? undefined : p[c], o)
+          .reduce((p, c) => p == null ? p : p[c], o)
         );
       }
     },
@@ -343,11 +339,13 @@
     },
     put: {
       configurable: true,
-      value (o) {
-        return this.loop(
-          p => _(o).entries.map(
-            ([k, v]) => _.isObject(v) && _.isObject(p[k]) ? _(p[k]).put(v) : _.put(o, {[k]: v})
-          )._
+      value (...o) {
+        return this.pipe(
+          p => o
+          .flatMap(_.entries)
+          .reduce(
+            (p, [k, v]) => _.isObject(v) && _.isObject(p[k]) ? _(p[k]).put(v)._ : _.put(p, {[k]: v}), p
+          )
         );
       }
     },
@@ -373,7 +371,7 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          () => _.Q(s).reduce((p, w) => p.set(w)(this.get(w)._), _({}))._
+          t => _.Q(s).reduce((p, w) => _.put(p, {[w]: t.w}), {})
         );
       }
     },
@@ -381,7 +379,7 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _.Q(s).reduce((p, w) => p.set(w)(undefined), _({...t}))._
+          t => _.Q(s).reduce((p, w) => (delete p[w], p), {...t})
         );
       }
     },
