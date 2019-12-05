@@ -99,6 +99,9 @@
     async: f => new Promise(f),
     asyncAll: (...a) => Promise.all(a.map(o => typeof o === 'function' ? _.async(o) : o)),
     join: v => v instanceof _ ? v._ : v,
+    give: o => p => (_.entries(o).reduce(
+      (q, [k, v]) => _.isObject(v) && _.isObject(q[k]) ? (_.give(v)(q[k]), q) : _.put(q, {[k]: v}), p
+    ), p),
     timezoning: -(new Date().getTimezoneOffset()),
     Q: t => t
     .trim()
@@ -231,7 +234,7 @@
             : (...v) => (
               typeof t._[k] === 'function'
               ? t.cast(k)(...v)
-              : t.mod(k)(...v)
+              : t.mend(k)(...v)
             ).Been;
           }
         });
@@ -326,7 +329,7 @@
         );
       }
     },
-    mod: {
+    mend: {
       configurable: true,
       value (...s) {
         return (...f) => this.set(...s)(
@@ -337,16 +340,10 @@
         );
       }
     },
-    put: {
+    take: {
       configurable: true,
       value (...o) {
-        return this.pipe(
-          p => o
-          .flatMap(_.entries)
-          .reduce(
-            (p, [k, v]) => _.isObject(v) && _.isObject(p[k]) ? _(p[k]).put(v)._ : _.put(p, {[k]: v}), p
-          )
-        );
+        return this.loop(...(o.map(_.give)));
       }
     },
     define: {

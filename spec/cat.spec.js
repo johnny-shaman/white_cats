@@ -102,6 +102,50 @@ describe("White Cats", function () {
     }
   );
 
+  it('_.give',
+    () => {
+      expect(JSON.stringify(
+        _.give(
+          {a: 4, b: {d: {f: 8, g: {h: 9, i: 10}}}}
+        )(
+          {a: 3, b: {c: 4, d: {e: 6}}}
+        )
+      )).toBe(JSON.stringify(
+        {a: 4, b: {c: 4, d: {e: 6, f: 8, g: {h: 9, i: 10}}}}
+      ));
+
+      expect(JSON.stringify(
+        _.give(
+          {a: 4, b: {d: {f: 8}, g: {h: 9, i: 10}}}
+        )(
+          {a: 3, b: {c: 4, d: {e: 6}}}
+        )
+      )).toBe(JSON.stringify(
+        {a: 4, b: {c: 4, d: {e: 6, f: 8}, g: {h: 9, i: 10}}}
+      ));
+
+      expect(JSON.stringify(
+        _.give(
+          {a: 3, b: {c: 4, d: {e: 6}}}
+        )(
+          {a: 4, b: {d: {f: 8, g: {h: 9, i: 10}}}}
+        )
+      )).toBe(JSON.stringify(
+        {a: 3, b: {d: {f: 8, g: {h: 9, i: 10}, e: 6}, c: 4}}
+      ));
+
+      expect(JSON.stringify(
+        _.give(
+          {a: 3, b: {c: 4, d: {e: 6}}}
+        )(
+          {a: 4, b: {d: {f: 8}, g: {h: 9, i: 10}}}
+        )
+      )).toBe(JSON.stringify(
+        {a: 3, b: {d: {f: 8, e: 6}, g: {h: 9, i: 10}, c: 4}}
+      ));
+    }
+  )
+
   it('_.define',
     () => {
       const target = {a: 5, b: 3};
@@ -479,7 +523,7 @@ describe("White Cats", function () {
           (k, v) => _.put(y, {[`${k.toUpperCase()}`]: v + 5}),
           (k, v) => _.put(z, {[`${k}z`]: v}),
         )
-        .put(y, z)
+        .take(y, z)
         ._
       ).toBe(
         x
@@ -517,19 +561,28 @@ describe("White Cats", function () {
     )
   );
 
-  it('_({}).mod',
+  it('_({}).mend',
     () => expect(
-      _({a: 3, b: {c: 4, d: {e: 6}}}).mod('b.d.e')(v => v * 3)._.b.d.e
+      _({a: 3, b: {c: 4, d: {e: 6}}}).mend('b.d.e')(v => v * 3)._.b.d.e
     ).toBe(
       18
     )
   );
 
-  it('',
+  it('_({}).take',
     () => expect(
-
-    ).toEqual(
-
+      _({a: 3, b: {c: 4, d: {e: 6}}})
+      .take(
+        {a: 4, b: {d: {f: 8}, g: {h: 9, i: 10}}},
+        {b: {d: {g: {j: 11, k: {l: 12}}}}},
+        {b: {g: {j: 13, k: {l: 14}}}},
+      )
+      .toJSON
+      ._
+    ).toBe(
+      JSON.stringify(
+        {a: 4, b: {c: 4, d: {e: 6, f: 8, g: {j: 11, k: {l: 12}}}, g: {h: 9, i: 10, j: 13, k: {l: 14}}}}
+      )
     )
   );
 
