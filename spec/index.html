@@ -1,25 +1,46 @@
 <!DOCTYPE HTML>
 <html>
-    <head></head>
-    <body>
-        <script src="../cat.js"></script>
-        <script>
-          function resolveAfter2Seconds() {
-            return new Promise(resolve => {
-              setTimeout(() => {
-                resolve('resolved');
-              }, 2000);
-            });
-          }
-          
-          async function asyncCall() {
-            console.log('calling');
-            var result = await resolveAfter2Seconds();
-            console.log(result);
-            // expected output: 'resolved'
-          }          
-        </script>
-    </body>
+  <head></head>
+  <body>
+    <script src="../cat.js"></script>
+    <script>
+      let test = _.pipe(
+        s => s.replace(/\s+/g, ''),
+        s => ({s, r: s.match(/[\$|\.|\w]+\[+[\$|\.|\w|\,]+\]/g)}),
+        o => o.r.reduce(
+          (p, c) => _.put(p, {
+            s: o.s.replace(c, c.split(/[\[|\,|\]]/g)
+            .filter(v => v.length > 0)
+            .reduce(
+              _.loop((p, c, k) => k === 0 ? _.put(p, {c}) : p.push(`${p.c}.${c}`)), []
+            )
+            .join(','))
+          }),
+          o
+        ).s
+      )('a, b.c, b.e[c, d[e, g.k, l, m[n, o.p]], f, g.h[i.j, k]], c.e, g[j.k.l, m]');
+
+      test1 = s => _.pipe(
+        s => s.replace(/\s+/g, ''),
+        s => ({s, r: s.match(/[\$|\.|\w]+\[+[\$|\.|\w|\,]+\]/g)}),
+        o => o.r.reduce(
+          (p, c) => _.put(p, {
+            s: o.s.replace(c, c.split(/[\[|\,|\]]/g)
+            .filter(v => v.length > 0)
+            .reduce(
+              _.loop((p, c, k) => k === 0 ? _.put(p, {c}) : p.push(`${p.c}.${c}`)), []
+            )
+            .join(','))
+          }),
+          o
+        ).s,
+        s => s.includes('[') ? test1(s) : s.split(/\,+/g)
+      )(s)
+      
+      console.log(test1('a, b.c, b.e[c, d[e, g.k, l, m[n, o.p]], f, g.h[i.j, k]], c.e, g[j.k.l, m]'));
+
+    </script>
+  </body>
 </html>
 
 //ここから！

@@ -60,6 +60,7 @@
     }, _.id),
     upto: Object.create,
     put: Object.assign,
+    mend: o => (...f) => Object.assign(o, _.pipe(...f)(o)),
     define: Object.defineProperty,
     defines: Object.defineProperties,
     entries: Object.entries,
@@ -106,7 +107,7 @@
     Q: t => t
     .trim()
     .replace(/\s+/g, '')
-    .match(/(\w|\$|_)+(\.\w|\$|_)*\[((\w|\$|_)+(\.\w|\$|_)*,?)+\]|(\w|\$|_)+(\.\w|\$|_)*/g)
+    .match(/(\w|\$|_)+(\.\w|\$|_|\[[\s\S]*\])*/g)
     .map(
       s => s
       .split(/\[|\]|,/g)
@@ -121,6 +122,7 @@
         ), p),
         []
       )
+      /*
     )
     .flatMap(
       a => (
@@ -128,7 +130,8 @@
         ? a
         : (a.shift() ,a)
       )
-    )
+      */
+     )
   });
 
   _.defines(_.prototype, {
@@ -352,13 +355,13 @@
         return this.pipe(p => _.defines(p, o));
       }
     },
-    append: {
+    depend: {
       configurable: true,
       value (o = {}) {
         return this.pipe(p => _.upto(o, p));
       }
     },
-    depend: {
+    append: {
       configurable: true,
       value (o = {}) {
         return this.pipe(p => _.upto(p, o));
@@ -368,7 +371,7 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _.Q(s).reduce((p, w) => _.put(p, {[w]: t.w}), {})
+          t => _.Q(s).reduce((p, w) => s)
         );
       }
     },

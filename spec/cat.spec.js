@@ -580,9 +580,65 @@ describe("White Cats", function () {
       .toJSON
       ._
     ).toBe(
-      JSON.stringify(
-        {a: 4, b: {c: 4, d: {e: 6, f: 8, g: {j: 11, k: {l: 12}}}, g: {h: 9, i: 10, j: 13, k: {l: 14}}}}
-      )
+      JSON.stringify({
+        a: 4, b: {
+          c: 4, d: {
+            e: 6, f: 8, g: {
+              j: 11, k: {l: 12}
+            }
+          },
+          g: {
+            h: 9, i: 10, j: 13, k: {l: 14}
+          }
+        }
+      })
+    )
+  );
+
+  it('_({}).define',
+    () => {
+      const target = {a: 5, b: 3};
+      expect( _(target).define({c: {value: 1}, d: {value: 2}})._ ).toBe( target );
+      expect( target.c ).toBe( 1 );
+      expect( target.d ).toBe( 2 );
+    }
+  );
+
+  it('_({}).append',
+    () => {
+      const target = _(fixed).append({c: {value: false}})._;
+      expect( target.c ).toBe( false );
+      expect( Object.getPrototypeOf(target) ).toBe( fixed );
+    }
+  );
+
+  it('_({}).depend',
+    () => {
+      const target = _({c: {value: false}}).depend(fixed)._;
+      expect( target.c ).toBe( false );
+      expect( Object.getPrototypeOf(target) ).toBe( fixed );
+    }
+  );
+
+  it('_({}).pick',
+    () => expect(
+      _({
+        a: 4, b: {
+          c: 4, d: {
+            e: 6, f: 8, g: {
+              j: 11, k: {l: 12}
+            }
+          },
+          g: {
+            h: 9, i: 10, j: 13, k: {l: 14}
+          }
+        }
+      })
+      .pick('a, b[c, d[e, g.k]], g[j, k]')
+      .toJSON
+      ._
+    ).toBe(
+      JSON.stringify({a: 4, b: {c: 4, d: {e: 6, g: {k: {l: 12}}}, g: {j: 13, k: {l: 14}}}})
     )
   );
 
