@@ -634,11 +634,22 @@ describe("White Cats", function () {
           }
         }
       })
-      .pick('a, b[c, d[e, g.k]], g[j, k]')
+      .pick('a, b[c, d[e, g.k], g[j, k]]')
       .toJSON
       ._
     ).toBe(
-      JSON.stringify({a: 4, b: {c: 4, d: {e: 6, g: {k: {l: 12}}}, g: {j: 13, k: {l: 14}}}})
+      JSON.stringify({
+        a: 4, b: {
+          c: 4, d: {
+            e: 6, g: {
+              k: {l: 12}
+            }
+          },
+          g: {
+            j: 13, k: {l: 14}
+          }
+        }
+      })
     )
   );
 

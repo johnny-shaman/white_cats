@@ -103,35 +103,26 @@
     give: o => p => (_.entries(o).reduce(
       (q, [k, v]) => _.isObject(v) && _.isObject(q[k]) ? (_.give(v)(q[k]), q) : _.put(q, {[k]: v}), p
     ), p),
-    timezoning: -(new Date().getTimezoneOffset()),
-    Q: t => t
-    .trim()
-    .replace(/\s+/g, '')
-    .match(/(\w|\$|_)+(\.\w|\$|_|\[[\s\S]*\])*/g)
-    .map(
-      s => s
-      .split(/\[|\]|,/g)
-      .filter(
-        s => s !== ''
-      )
-      .reduce(
-        (p, c) => ((
-          p.length
-          ? p.push(`${p[0]}.${c}`)
-          : p.push(c)
-        ), p),
-        []
-      )
-      /*
+    timezoning: -(new Date().getTimezoneOffset())
+  });
+  Object.assign(_, {
+    Q: _.pipe(
+      s => s.replace(/\s+/g, ''),
+      s => ({s, r: s.match(/[\$|\.|\w]+\[+[\$|\.|\w|\,]+\]/g)}),
+      o => o.r.reduce(
+        (p, c) => _.put(p, {
+          s: o.s.replace(c, c.split(/[\[|\,|\]]/g)
+          .filter(v => v.length > 0)
+          .reduce(
+            (p, c, k) => k === 0 ? _.put(p, {c}) : (p.push(`${p.c}.${c}`), p),
+            []
+          )
+          .join(','))
+        }),
+        o
+      ).s,
+      s => s.includes('[') ? _.Q(s) : s.split(/\,+/g)
     )
-    .flatMap(
-      a => (
-        a.length === 1
-        ? a
-        : (a.shift() ,a)
-      )
-      */
-     )
   });
 
   _.defines(_.prototype, {
@@ -371,7 +362,7 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _.Q(s).reduce((p, w) => s)
+          t => _.Q(s).reduce((o, w) => (o.r.set(w)(o.t.get(w)._), o), {r: _({}), t: this}).r._
         );
       }
     },
