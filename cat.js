@@ -58,14 +58,15 @@
         return k === (m.length - 1) ? v[0] : v;
       }
     }, _.id),
+    apply: (...a) => f => f(...a),
     upto: Object.create,
     put: Object.assign,
-    mend: o => (...f) => Object.assign(o, _.pipe(...f)(o)),
+    set: (...o) => p => _.put(p, ...o),
     define: Object.defineProperty,
     defines: Object.defineProperties,
-    entries: Object.entries,
     keys: Object.keys,
     vals: Object.values,
+    entries: Object.entries,
     equal: Object.is,
     owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
     descripting: Object.getOwnPropertyDescriptors,
@@ -103,8 +104,10 @@
     give: o => p => (_.entries(o).reduce(
       (q, [k, v]) => _.isObject(v) && _.isObject(q[k]) ? (_.give(v)(q[k]), q) : _.put(q, {[k]: v}), p
     ), p),
+    delay: _,
     timezoning: -(new Date().getTimezoneOffset())
   });
+
   Object.assign(_, {
     Q: _.pipe(
       s => s.replace(/\s+/g, ''),
@@ -172,12 +175,6 @@
         return this;
       }
     },
-    redo: {
-      configurable: true,
-      get () {
-        return _(this['@'], this.$).done
-      }
-    },
     call: {
       configurable: true,
       value (s) {
@@ -242,14 +239,14 @@
     },
     to: {
       configurable: true,
-      get () {
-        return this.done;
+      value () {
+        return this;
       }
     },
-    at: {
+    of: {
       configurable: true,
-      get () {
-        return this.done;
+      value () {
+        return this;
       }
     }
   });
@@ -323,6 +320,12 @@
         );
       }
     },
+    put: {
+      configurable: true,
+      value (...o) {
+        return this.pipe(_.set(...o))
+      }
+    },
     mend: {
       configurable: true,
       value (...s) {
@@ -362,7 +365,7 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _.Q(s).reduce((o, w) => (o.r.set(w)(o.t.get(w)._), o), {r: _({}), t: this}).r._
+          t => _.Q(s).reduce((o, w) => o.set(w)(this.get(w)._), _({}))._
         );
       }
     },
@@ -370,7 +373,7 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _.Q(s).reduce((p, w) => (delete p[w], p), {...t})
+          t => _.Q(s).reduce((o, w) => o.set(w)(undefined), _({...t}))._
         );
       }
     },
@@ -418,17 +421,17 @@
 
   _.put(_['#'], {Function: _.upto(_['#'].Object)});
   _.defines(_['#'].Function, {
-    deligates: {
+    delegate: {
       configurable: true,
       value (s) {
-        return this.loop(c => _.put(c, {prototype: _.upto(s.prototype, {
+        return this.set('prototype')(_.upto(s.prototype, {
           constructor: {
             configurable: true,
             writable: true,
             enumerable: false,
-            value: c
+            value: this._
           }
-        })}));
+        }));
       }
     },
     prepends: {
@@ -443,10 +446,10 @@
         return this.loop(c => _.defines(c.prototype, o));
       }
     },
-    collect: {
+    done: {
       configurable: true,
-      value (...a) {
-        return this.pipe(f => f(...a));
+      value (...v) {
+        return this.pipe(_.apply(...v));
       }
     },
     take: {
@@ -459,11 +462,6 @@
       configurable: true,
       value (...v) {
         return this.pipe(v.map.bind(v));
-      }
-    },
-    done: {
-      value (...v) {
-        return _(this._, this.$, this._).pipe(f => f(...v));
       }
     }
   });
@@ -479,37 +477,19 @@
     pick: {
       configurable: true,
       value (...a) {
-        return this.filter(
-          v => (
-            _.isObject(v) 
-            ? this
-              .filter(_.isObject)
-              .map((v, k) => _(v).pick(...a.filter(_.isArray)[k]))
-              ._
-            : a.includes(v)
-          )
-        );
+        return this.filter(v => a.includes(v));
       }
     },
     drop: {
       configurable: true,
       value (...a) {
-        return this.filter(
-          v => (
-            _.isObject(v)
-            ? this
-              .filter(_.isObject)
-              .map((v, k) => _(v).drop(a.filter(_.isArray)[k]))
-              ._
-            : !a.includes(v)
-          )
-        );
+        return this.filter(v => !a.includes(v));
       }
     },
     chunk: {
       configurable: true,
       value (n) {
-        return this.pipe(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(a.slice(n).chunk(n)));
+        return this.pipe(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(_(a).slice(n).chunk(n)._));
       }
     },
     unique: {
@@ -530,10 +510,10 @@
         return this.map((v, k) => a[k] == null ? v : a[k]);
       }
     },
-    exist_: {
+    exist: {
       configurable: true,
-      value (v) {
-        return this._.includes(v);
+      value (...v) {
+        return this.call('includes')(...v);
       }
     },
     pickKey: {
@@ -731,7 +711,7 @@
     average: {
       configurable: true,
       get () {
-        return this.fold((p, c) => p + c, 0).endo(n => n / this.$.length);
+        return this.fold((p, c) => p + c, 0).pipe(n => n / this.$.length);
       }
     },
     max: {

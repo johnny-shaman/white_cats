@@ -2,35 +2,40 @@ describe("White Cats", function () {
   'use strict';
 
   const _ = require('../cat.js');
-  const O = (a, b, c) => Object.create(
-    {
-      ad (v) {
-        this.a = this.a + v;
-        this.b = this.a + this.b;
-        this.c = this.b + this.c;
-      },
-      mt (v) {
-        this.a = this.a * v;
-        this.b = this.a * this.b;
-        this.c = this.b * this.c;
-      },
-      sb (v) {
-        this.a = this.a - v;
-        this.b = this.a - this.b;
-        this.c = this.b - this.c;
-      },
-      dv (v) {
-        this.a = this.a / v;
-        this.b = this.a / this.b;
-        this.c = this.b / this.c;
-      },
-      end () {
-        return this.c;
-      },
-      prog (...v) {
-        return [...v, this.c]
-      }
+  const sp = function (a, b, c) {
+    _.put(this, {a, b, c});
+  }
+  _.put(sp.prototype, {
+    ad (v) {
+      this.a = this.a + v;
+      this.b = this.a + this.b;
+      this.c = this.b + this.c;
     },
+    mt (v) {
+      this.a = this.a * v;
+      this.b = this.a * this.b;
+      this.c = this.b * this.c;
+    },
+    sb (v) {
+      this.a = this.a - v;
+      this.b = this.a - this.b;
+      this.c = this.b - this.c;
+    },
+    dv (v) {
+      this.a = this.a / v;
+      this.b = this.a / this.b;
+      this.c = this.b / this.c;
+    },
+    end () {
+      return this.c;
+    },
+    prog (...v) {
+      return [...v, this.c]
+    }
+  });
+
+  const O = (a, b, c) => Object.create(
+    sp.prototype,
     {
       a:{
         configurable: true,
@@ -54,6 +59,8 @@ describe("White Cats", function () {
   );
 
   const fixed = Object.freeze({a: true, b: true});
+  const TA = [..._._(15)];
+
 
   it('_.id',
     () => expect(
@@ -163,14 +170,6 @@ describe("White Cats", function () {
     }
   );
 
-  it('_.entries',
-    () => expect(
-      _.entries({a: 5, b: 6})
-    ).toEqual(
-      [['a', 5], ['b', 6]]
-    )
-  );
-
   it('_.keys',
     () => expect(
       _.keys({a: 5, b: 6})
@@ -183,6 +182,14 @@ describe("White Cats", function () {
       _.vals({a: 5, b: 6})
     )
     .toEqual( [5, 6] )
+  );
+
+  it('_.entries',
+    () => expect(
+      _.entries({a: 5, b: 6})
+    ).toEqual(
+      [['a', 5], ['b', 6]]
+    )
   );
 
   it('_.equal',
@@ -410,7 +417,12 @@ describe("White Cats", function () {
 
   it('_().pipe',
     () => expect(
-      _({a: 5}).pipe(o => ({a: o.a * 3}), o => ({a: o.a + 5}))._
+      _({a: 5})
+      .pipe(
+        o => ({a: o.a * 3}),
+        o => ({a: o.a + 5})
+      )
+      ._
     ).toEqual(
       {a: 20}
     )
@@ -653,22 +665,287 @@ describe("White Cats", function () {
     )
   );
 
-  it('',
+  it('_({}).pick',
     () => expect(
-
-    ).toEqual(
-
+      _({
+        a: 4, b: {
+          c: 4, d: {
+            e: 6, f: 8, g: {
+              j: 11, k: {l: 12}
+            }
+          },
+          g: {
+            h: 9, i: 10, j: 13, k: {l: 14}
+          }
+        }
+      })
+      .drop('a, b[c, d[e, g.k], g[j, k]]')
+      .toJSON
+      ._
+    ).toBe(
+      JSON.stringify({
+        b: {
+          d: {
+            f: 8, g: {
+              j: 11
+            }
+          },
+          g: {
+            h: 9, i: 10,
+          }
+        }
+      })
     )
   );
 
-  it('',
+  it('_().keys',
+    () => expect(
+      _({a: 5, b: 6}).keys._
+    ).toEqual(
+      ['a', 'b']
+    )
+  );
+
+  it('_().vals',
+    () => expect(
+      _({a: 5, b: 6}).vals._
+    ).toEqual(
+      [5, 6]
+    )
+  );
+
+  it('_().entries',
+    () => expect(
+      _({a: 5, b: 6}).entries._
+    ).toEqual(
+      [['a', 5], ['b', 6]]
+    )
+  );
+
+  it('_().toDate',
+    () => expect(
+      _({}).toDate._.valueOf()
+    ).toBe(
+      new Date(0).valueOf()
+    )
+  );
+  (() => {
+    let csp = _(function (...a) {
+      sp.call(this, ...a)
+    })
+    .delegate(sp)
+    .prepends({
+      admt (x) {
+        this.mt(x);
+        this.ad(x);
+      }
+    })
+    .implements({
+      sbdv : {
+        configurable: true,
+        value (x) {
+          this.dv(x);
+          this.sb(x);
+        }
+      }
+    })
+    ._;
+
+    let t = new csp(1,2,3);
+
+    it('_(constructor) methods',
+      () =>{
+        expect(
+          t.constructor
+        ).toBe(
+          csp
+        );
+
+        t.admt(4);
+
+        expect(
+          t.a
+        ).toBe(
+          8
+        );
+
+        t.sbdv(2)
+
+        expect(
+          t.a
+        ).toBe(
+          2
+        )
+      }
+    );
+  })()
+
+  it('_(function).take([]) is partial applying and .of means args.push .to means args.unshift what cut to overflow args and run once it',
     () => {
       expect(
-        
+        _((...a) => a.reduce((p, c) => p + c))
+        .take([,,3,,,])
+        .to(1, 2)
+        .of(4, 5)
+        .to(..._._(14))
+        .of(..._._(11))
+        ._
       ).toBe(
-        
+        15
       );
     }
+  );
+
+  it('_(function).each is applying each value',
+    () => expect(
+      _(v => v * 3).each(3, 5, 7)._
+    ).toEqual(
+      [9, 15, 21]
+    )
+  );
+
+  it('_(function).done is manageing onto delaying and forceing or applying',
+    () => {
+      expect(
+      _(v => v * 5)
+      .done(3)
+      .done(4)
+      .done(5)
+      ._
+      ).toBe(
+        15
+      );
+    }
+  );
+
+  it('_([]).pick',
+    () => {
+      expect(
+        _(TA).pick(-1, 2 ,5 ,6)._
+      ).toEqual(
+        [2, 5, 6]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).drop',
+    () => {
+      expect(
+        _(TA).drop(..._._(0, 19, 2))._
+      ).toEqual(
+        [1, 3, 5, 7, 9, 11, 13, 15]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).chunk',
+    () => {
+      expect(
+        _(TA).drop(..._._(0, 19, 2)).chunk(2)._
+      ).toEqual(
+        [[1, 3], [5, 7], [9, 11], [13, 15]]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    } 
+  );
+
+  it('_([]).unique',
+    () => {
+      expect(
+        _(TA).filter(v => v < 6).concat([..._._(2, 8, 2)]).unique._
+      ).toEqual(
+        [0, 1, 2, 3, 4, 5, 6, 8]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    } 
+  );
+
+  it('_([]).union',
+    () => {
+      expect(
+        _(TA).filter(v => v < 6).union([..._._(2, 8, 2)])._
+      ).toEqual(
+        [0, 1, 2, 3, 4, 5, 6, 8]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    } 
+  );
+
+  it('_([]).put',
+    () => {
+      expect(
+        _([3, 4, 5, 6, 7]).put([,,3,4,,,8,9])._
+      ).toEqual(
+        [3, 4, 3, 4, 7]
+      )
+
+      expect(
+        _([3,, 5,, 7]).put([7, 8, 9, 10])._
+      ).toEqual(
+        [7, undefined, 9, undefined, 7]
+      )
+
+      expect(
+        _(TA).filter(v => v < 6).put([..._._(2, 8, 2)])._
+      ).toEqual(
+        [2, 4, 6, 8, 4, 5]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    } 
+  );
+
+  it('_([]).exist is includes',
+    () => {
+      expect(
+        _(TA).exist(8)._
+      ).toBe(
+        true
+      );
+
+      expect(
+        _(TA).exist(20)._
+      ).toBe(
+        false
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    } 
   );
 
   it('',
@@ -697,9 +974,14 @@ describe("White Cats", function () {
 
   it('_().fullen_',
     () => {
+      const emptyAry0 = [,2,3]
+      const emptyAry1 = [1,,3]
+      const emptyAry2 = [1,2,,]
+
       const nulledAry0 = [null, 2, 3];
       const nulledAry1 = [1, null, 3];
       const nulledAry2 = [1, 2, null];
+
       const voidAry0 = [void 0, 2, 3];
       const voidAry1 = [1, void 0, 3];
       const voidAry2 = [1, 2, void 0];
@@ -707,12 +989,31 @@ describe("White Cats", function () {
       const nulledObj0 = {a: null, b: 2, c: 3};
       const nulledObj1 = {a: 1, b: null, c: 3};
       const nulledObj2 = {a: 1, b: 2, c: null};
+
       const voidObj0 = {a: void 0, b: 2, c: 3};
       const voidObj1 = {a: 1, b: void 0, c: 3};
       const voidObj2 = {a: 1, b: 2, c: void 0};
 
       const fulfillObj = {a: 0, b: true, c: false};
       const fulfillAry = [0, true, false];
+
+      expect(
+        _(emptyAry0).fullen_
+      ).toBe(
+        false
+      );
+
+      expect(
+        _(emptyAry1).fullen_
+      ).toBe(
+        false
+      );
+
+      expect(
+        _(emptyAry2).fullen_
+      ).toBe(
+        false
+      );
 
       expect(
         _(nulledAry0).fullen_
