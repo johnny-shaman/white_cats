@@ -206,7 +206,7 @@ describe("White Cats", function () {
       expect( _.equal(0, -0) ).toBe( Object.is(0, -0) );
       expect( _.equal(-0, -0) ).toBe( Object.is(-0, -0) );
       expect( _.equal(NaN, 0/0) ).toBe( Object.is(NaN, 0/0) );
-    } 
+    }
   );
 
   it('_.owns',
@@ -214,7 +214,7 @@ describe("White Cats", function () {
       const target = O(3, 4, 5);
 
       expect(
-        _.owns(target) 
+        _.owns(target)
       ).toEqual(
         Object.getOwnPropertyNames(target)
         .concat(
@@ -225,7 +225,7 @@ describe("White Cats", function () {
   );
 
   it('_.descripting',
-    () => expect( 
+    () => expect(
       _.descripting({
         a: 5,
         b: 6
@@ -267,6 +267,14 @@ describe("White Cats", function () {
       _.less([,null,void 0, 3, 4, 5])
     ).toEqual(
       [3, 4, 5]
+    )
+  );
+
+  it('_.sure',
+    () => expect(
+      _.sure([ , , ,0 , 3, 4, 5])
+    ).toEqual(
+      [undefined, undefined, undefined, 0, 3, 4, 5]
     )
   );
 
@@ -473,6 +481,12 @@ describe("White Cats", function () {
       ).toEqual(
         [5, 6, 7]
       );
+
+      expect(
+        _(O(3, 5, 7)).call('a')(5, 6)._
+      ).toBe(
+        3
+      );
     }
   );
 
@@ -487,9 +501,15 @@ describe("White Cats", function () {
       );
 
       expect(
+        _(o).s_r('a')(5)((w, v) => t.push(v + w))._
+      ).toBe(
+        o
+      );
+
+      expect(
         t
       ).toEqual(
-        [5, 6, 7]
+        [5, 6, 7, 8]
       );
     }
   );
@@ -501,6 +521,18 @@ describe("White Cats", function () {
         _(o).cast('prog')(5, 6)._
       ).toBe(
         o
+      );
+
+      expect(
+        _(o).cast('a')(5, 6)._
+      ).toBe(
+        o
+      );
+
+      expect(
+        o.a
+      ).toBe(
+        3
       );
     }
   );
@@ -534,7 +566,7 @@ describe("White Cats", function () {
 
   it('_().toJSON',
     () => expect(
-      _(O(3, 5, 7)).toJSON._      
+      _(O(3, 5, 7)).toJSON._
     ).toBe(
       JSON.stringify(O(3, 5, 7))
     )
@@ -624,6 +656,22 @@ describe("White Cats", function () {
       _({a: 3, b: {c: 4, d: {e: 6}}}).set('b.d.e')(3)._.b.d.e
     ).toBe(
       3
+    )
+  );
+
+  it('_({}).put',
+    () => expect(
+      _({a: 3, b: {c: 4, d: {e: 6}}}).get('b.d').put({f: 7}).$_
+    ).toEqual(
+      {a: 3, b: {c: 4, d: {e: 6, f: 7}}}
+    )
+  );
+
+  it('_({}).cut',
+    () => expect(
+      _({a: 3, b: {c: 4, d: {e: 6}}}).cut('b.d')._
+    ).toEqual(
+      {a: 3, b: {c: 4}}
     )
   );
 
@@ -754,7 +802,7 @@ describe("White Cats", function () {
     }
   );
 
-  it('_({}).pick',
+  it('_({}).drop',
     () => expect(
       _({
         a: 4, b: {
@@ -818,6 +866,7 @@ describe("White Cats", function () {
       new Date(0).valueOf()
     )
   );
+
   (() => {
     let csp = _(function (...a) {
       sp.call(this, ...a)
@@ -968,7 +1017,7 @@ describe("White Cats", function () {
       ).toEqual(
         [..._._(15)]
       );
-    } 
+    }
   );
 
   it('_([]).unique',
@@ -984,7 +1033,7 @@ describe("White Cats", function () {
       ).toEqual(
         [..._._(15)]
       );
-    } 
+    }
   );
 
   it('_([]).union',
@@ -1000,7 +1049,7 @@ describe("White Cats", function () {
       ).toEqual(
         [..._._(15)]
       );
-    } 
+    }
   );
 
   it('_([]).put',
@@ -1028,7 +1077,7 @@ describe("White Cats", function () {
       ).toEqual(
         [..._._(15)]
       );
-    } 
+    }
   );
 
   it('_([]).exist is includes',
@@ -1050,7 +1099,7 @@ describe("White Cats", function () {
       ).toEqual(
         [..._._(15)]
       );
-    } 
+    }
   );
 
   it('_([]).pickKey',

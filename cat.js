@@ -1,11 +1,3 @@
-/*
-  global 
-    module,
-    global
-
-  
-
-*/
 ((apex) => {
   'use strict';
   let _ = function (x, y, c) {
@@ -42,7 +34,7 @@
 
   Object.assign(_, {
     '#': (
-      ['Object', 'String', 'Number', 'Boolean', '*', 'Promise']
+      ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
     version: '0.0.1',
@@ -192,7 +184,7 @@
           .split('.')
           .reduce(
             (p, c) => p[c] == null
-            ? p 
+            ? p
             : (
               typeof p[c] === 'function'
               ? p[c].call(p, ...v)
@@ -212,11 +204,11 @@
           .split('.')
           .reduce(
             (p, c) => p[c] == null
-            ? p 
+            ? p
             : (
               typeof p[c] === 'function'
               ? _.pipe(...f)(p[c].call(p, ...v))
-              : p[c]
+              : _.pipe(...f)(p[c], ...v)
             )
             , o
           )
@@ -861,7 +853,7 @@
     month: {
       configurable: true,
       get () {
-        return this.pipe(o => o.getMonth() + 1);        
+        return this.pipe(o => o.getMonth() + 1);
       }
     },
     date: {
@@ -950,7 +942,7 @@
     UTCMonth: {
       configurable: true,
       get () {
-        return this.pipe(o => o.getUTCMonth() + 1);        
+        return this.pipe(o => o.getUTCMonth() + 1);
       }
     },
     UTCDate: {
@@ -992,7 +984,7 @@
     modUTCMonth: {
       configurable: true,
       value (f) {
-        return this.pipe(o => o.setUTCMonth(f(o.getUTCMonth() + 1) - 1));        
+        return this.pipe(o => o.setUTCMonth(f(o.getUTCMonth() + 1) - 1));
       }
     },
     modUTCDate: {
