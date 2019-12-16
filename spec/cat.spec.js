@@ -1671,5 +1671,4 @@ describe("White Cats", function () {
       new Date(0).toString()
     )
   );
-
 });

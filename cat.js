@@ -89,9 +89,7 @@
     isArray: o => o instanceof Array,
     _: function *(a, b, s = 1) {
       let f = true;
-      b == null
-      ? b = a
-      : a = 0;
+      b == null && (b = a, a = 0);
       while (f) {
         switch (true) {
           case a < b : {
@@ -345,7 +343,13 @@
     cut: {
       configurable: true,
       value (...s) {
-        
+        return this.loop(
+          o => _(s).pipe(
+            a => a.flatMap(s => s.split('.')),
+            a => ({a, l: a.pop()}),
+            ({a, l}) => delete a.reduce((p, c) => p[c] == null ? p : p[c], o)[l]
+          )
+        );
       }
     },
     mend: {
@@ -401,7 +405,7 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _.Q(s).reduce((o, w) => o.set(w)(undefined), _({}).put(t))._
+          t => _.Q(s).reduce((o, w) => o.cut(w), _({}).put(t))._
         );
       }
     },
