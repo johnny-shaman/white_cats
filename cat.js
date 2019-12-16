@@ -1,6 +1,13 @@
+/*
+  global 
+    module,
+    global
+
+  
+
+*/
 ((apex) => {
   'use strict';
-  const Generator = (function*(){}).constructor;
   let _ = function (x, y, c) {
     return _.upto(
       x == null
@@ -28,7 +35,7 @@
           get () {
             return c;
           }
-        },
+        }
       }
     );
   };
@@ -58,7 +65,9 @@
         return k === (m.length - 1) ? v[0] : v;
       }
     }, _.id),
-    apply: (...a) => f => f(...a),
+    apply: a => f => f(...a),
+    lazy: f => a => f(...a),
+    alter: (v, w) => w,
     upto: Object.create,
     put: Object.assign,
     set: (...o) => p => _.put(p, ...o),
@@ -70,28 +79,29 @@
     equal: Object.is,
     owns: o => Object.getOwnPropertyNames(o).concat(Object.getOwnPropertySymbols(o)),
     descripting: Object.getOwnPropertyDescriptors,
-    adapt: a => (...b) => [...a].map(v => v == null ? b.shift() : v),
+    adaptL: (...b) => a => [...a].map(v => v == null ? b.shift() : v),
+    adaptR: (...b) => a => _.adapt(...b)(a.reverse()).reverse(),
     less: a => a.filter(v => v != null),
+    sure: a => [...a],
     exist: a => a.includes.bind(a),
     by: o => o == null ? undefined : o.constructor,
     isObject: o => o instanceof Object,
     isArray: o => o instanceof Array,
-    _: function* (a, b, s = 1) {
+    _: function *(a, b, s = 1) {
       let f = true;
+      b == null
+      ? b = a
+      : a = 0;
       while (f) {
         switch (true) {
-          case b == null : {
-            b = a;
-            a = 0;
-          }
           case a < b : {
             yield a;
-            f = (a += s) < b;
+            f = (a += Math.abs(s)) < b;
             break;
           }
           case a > b : {
             yield a;
-            f = (a -= s) > b;
+            f = (a -= Math.abs(s)) > b;
             break;
           }
         }
@@ -104,17 +114,17 @@
     give: o => p => (_.entries(o).reduce(
       (q, [k, v]) => _.isObject(v) && _.isObject(q[k]) ? (_.give(v)(q[k]), q) : _.put(q, {[k]: v}), p
     ), p),
-    delay: _,
     timezoning: -(new Date().getTimezoneOffset())
   });
 
   Object.assign(_, {
+    adapt: _.adaptL,
     Q: _.pipe(
       s => s.replace(/\s+/g, ''),
-      s => ({s, r: s.match(/[\$|\.|\w]+\[+[\$|\.|\w|\,]+\]/g)}),
+      s => ({s, r: s.match(/[$|.|\w]+\[+[$|.|\w|,]+\]/g) || []}),
       o => o.r.reduce(
         (p, c) => _.put(p, {
-          s: o.s.replace(c, c.split(/[\[|\,|\]]/g)
+          s: o.s.replace(c, c.split(/[[|,|\]]/g)
           .filter(v => v.length > 0)
           .reduce(
             (p, c, k) => k === 0 ? _.put(p, {c}) : (p.push(`${p.c}.${c}`), p),
@@ -124,7 +134,7 @@
         }),
         o
       ).s,
-      s => s.includes('[') ? _.Q(s) : s.split(/\,+/g)
+      s => s.includes('[') ? _.Q(s) : s.split(/,+/g)
     )
   });
 
@@ -195,10 +205,10 @@
         );
       }
     },
-    cast: {
+    s_r: {
       configurable: true,
       value (s) {
-        return (...v) => this
+        return (...v) => (...f) => this
         .loop(
           o => s
           .split('.')
@@ -207,12 +217,18 @@
             ? p 
             : (
               typeof p[c] === 'function'
-              ? p[c].call(p, ...v)
+              ? _.pipe(...f)(p[c].call(p, ...v))
               : p[c]
             )
             , o
           )
         );
+      }
+    },
+    cast: {
+      configurable: true,
+      value (s) {
+        return (...v) => this.s_r(s)(...v)();
       }
     },
     Been: {
@@ -222,10 +238,10 @@
           get (t, k) {
             return k === 'To'
             ? t
-            : (...v) => (
+            : (...v) => (...f) => (
               typeof t._[k] === 'function'
-              ? t.cast(k)(...v)
-              : t.mend(k)(...v)
+              ? t.s_r(k)(...v)(...f)
+              : t.modify(k)(...v)(...f)
             ).Been;
           }
         });
@@ -323,16 +339,28 @@
     put: {
       configurable: true,
       value (...o) {
-        return this.pipe(_.set(...o))
+        return this.pipe(_.set(...o));
+      }
+    },
+    cut: {
+      configurable: true,
+      value (...s) {
+        
       }
     },
     mend: {
       configurable: true,
       value (...s) {
-        return (...f) => this.set(...s)(
+        return (...f) => this.modify(...s)()(...f);
+      }
+    },
+    modify: {
+      configurable: true,
+      value (...s) {
+        return (...v) => (...f) => this.set(...s)(
           this
           .get(...s)
-          .pipe(...f)
+          .pipe(p => _.pipe(...f)(p, ...v))
           ._
         );
       }
@@ -365,7 +393,7 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _.Q(s).reduce((o, w) => o.set(w)(this.get(w)._), _({}))._
+          t => _.Q(s).reduce((o, w) => o.set(w)(_(t).get(w)._), _({}))._
         );
       }
     },
@@ -373,7 +401,7 @@
       configurable: true,
       value (s) {
         return this.pipe(
-          t => _.Q(s).reduce((o, w) => o.set(w)(undefined), _({...t}))._
+          t => _.Q(s).reduce((o, w) => o.set(w)(undefined), _({}).put(t))._
         );
       }
     },
@@ -395,10 +423,10 @@
         return this.pipe(_.entries);
       }
     },
-    fullen_: {
+    fullen: {
       configurable: true,
       get () {
-        return this.pipe(o => !(_.vals(o).includes(undefined) || _.vals(o).includes(null)))._;
+        return this.pipe(o => !(_.vals(o).includes(undefined) || _.vals(o).includes(null)));
       }
     },
     toDate: {
@@ -412,7 +440,7 @@
             hour = 0,
             minute = _.timezoning,
             seconds = 0,
-            millis = 0,
+            millis = 0
           }) => new Date(year, month - 1, date, hour, minute, seconds, millis)
         );
       }
@@ -449,7 +477,7 @@
     done: {
       configurable: true,
       value (...v) {
-        return this.pipe(_.apply(...v));
+        return this.pipe(_.apply(v));
       }
     },
     take: {
@@ -471,7 +499,13 @@
     liken: {
       configurable: true,
       value (a) {
-        return this.drop(...a);
+        return this.pick(...a);
+      }
+    },
+    equaly: {
+      configurable: true,
+      value (a) {
+        return this.pipe(a => [...a]).filter((v, k) => a[k] === v);
       }
     },
     pick: {
@@ -512,38 +546,32 @@
     },
     exist: {
       configurable: true,
-      value (...v) {
-        return this.call('includes')(...v);
+      get () {
+        return this.call('includes');
       }
     },
     pickKey: {
       configurable: true,
-      value (...k) {
-        return this.fold(
-          (p, c) => p.map((d, a) => a.push(c[d]))._,
-          k.reduce((o, d) => o.put({[d]: []}), _({}))
-        )
+      value (s) {
+        return this.map(o => _(o).pick(s)._);
       }
     },
     dropKey: {
       configurable: true,
-      value (...k) {
-        return this.fold(
-          (p, c) => p.map((d, a) => a.push(c[d]))._,
-          k.reduce((o, d) => o.put({[d]: []}), _({}))
-        )
+      value (s) {
+        return this.map(o => _(o).drop(s)._);
       }
     },
     pushL: {
       configurable: true,
-      value (...v) {
-        return this.cast('unshift')(...v);
+      get () {
+        return this.cast('unshift');
       }
     },
     pushR: {
       configurable: true,
-      value (...v) {
-        return this.cast('push')(...v);
+      get () {
+        return this.cast('push');
       }
     },
     popL: {
@@ -590,26 +618,26 @@
     },
     foldL: {
       configurable: true,
-      value (f, ...v) {
-        return this.call('reduce')(f, ...v);
+      get () {
+        return this.call('reduce');
       }
     },
     foldR: {
       configurable: true,
-      value (f, ...v) {
-        return this.call('reduceRight')(f, ...v);
+      get () {
+        return this.call('reduceRight');
       }
     },
     filter: {
       configurable: true,
-      value (f) {
-        return this.call('filter')(f);
+      get () {
+        return this.call('filter');
       }
     },
     aMap: {
       configurable: true,
-      value (...v) {
-        return this.fMap(f => v.map(g => typeof f === 'function' ? f(g) : g(f)));
+      value (a) {
+        return this.map(f => a.map(g => typeof f === 'function' ? f(g) : g(f)));
       }
     },
     map: {
@@ -626,8 +654,8 @@
     },
     flat: {
       configurable: true,
-      value (v) {
-        return this.call('flat')(v);
+      get () {
+        return this.call('flat');
       }
     },
     back: {
@@ -636,100 +664,112 @@
         return this.call('reverse')();
       }
     },
-    adaptL: {
-      configurable: true,
-      value (...v) {
-        return this.pipe(a => _.adapt(a)(...v));
-      }
-    },
-    adaptR: {
-      configurable: true,
-      value (...v) {
-        return this.pipe(a => _.adapt(a.reverse())(...v).reverse());
-      }
-    },
     adapt: {
       configurable: true,
       get () {
         return this.adaptL;
       }
     },
-    concat: {
+    adaptL: {
       configurable: true,
       value (...v) {
-        return this.call('concat')(...v);
+        return this.pipe(_.adaptL(...v));
+      }
+    },
+    adaptR: {
+      configurable: true,
+      value (...v) {
+        return this.pipe(_.adaptR(...v));
+      }
+    },
+    concat: {
+      configurable: true,
+      get () {
+        return this.call('concat');
       }
     },
     replace: {
       configurable: true,
-      valuue (...v) {
-        return this.call('splice')(...v);
+      get () {
+        return this.call('splice');
       }
     },
     slice: {
       configurable: true,
-      value (...v) {
-        return this.call('slice')(...v);
+      get () {
+        return this.call('slice');
       }
     },
     sort: {
       configurable: true,
-      value (...v) {
-        return this.call('sort')(...v);
+      get () {
+        return this.pipe(_.sure).call('sort');
       }
     },
-    indexL_: {
+    indexL: {
       configurable: true,
-      value (...v) {
-        return this.call('indexOf')(...v)._;
+      get () {
+        return this.call('indexOf');
       }
     },
-    indexR_: {
+    indexR: {
       configurable: true,
-      value (...v) {
-        return this.call('lastIndexOf')(...v)._;
+      get () {
+        return this.call('lastIndexOf');
       }
     },
-    some_: {
+    any: {
       configurable: true,
-      value (...v) {
-        return this.call('some')(...v)._;
+      get () {
+        return this.call('some');
       }
     },
-    spread: {
+    all: {
       configurable: true,
-      value (...f) {
-        return this.pipe(a => f(...a));
+      get () {
+        return this.call('every');
+      }
+    },
+    apply: {
+      configurable: true,
+      value (f) {
+        return this.pipe(_.lazy(f));
       }
     },
     sum: {
       configurable: true,
       get () {
-        return this.fold((p, c) => p + c, 0);
+        return this.fold((p, c) => p + c);
+      }
+    },
+    pi: {
+      configurable: true,
+      get () {
+        return this.fold((p, c) => p * c);
       }
     },
     average: {
       configurable: true,
       get () {
-        return this.fold((p, c) => p + c, 0).pipe(n => n / this.$.length);
+        return this.pipe(a => a.reduce((p, c) => p + c) / a.length);
       }
     },
     max: {
       configurable: true,
       get () {
-        return this.spread(Math.max);
+        return this.apply(Math.max);
       }
     },
     min: {
       configurable: true,
       get () {
-        return this.spread(Math.min);
+        return this.apply(Math.min);
       }
     },
     mid: {
       configurable: true,
       get () {
-        return this.sort.pipe(
+        return this.sort((v, w) => v < w).pipe(
           a => (
             a.length === 0
             ? null
@@ -742,38 +782,32 @@
         );
       }
     },
-    refine: {
-      configurable: true,
-      get () {
-        return this.pipe(a => [...a]);
-      }
-    },
     less: {
       configurable: true,
       get () {
-        return this.vals
+        return this.vals;
       }
     },
-    fullen_: {
+    fullen: {
       configurable: true,
       get () {
-        return this.pipe(a => !([...a].includes(undefined) || [...a].includes(null)))._;
+        return this.pipe(a => !([...a].includes(undefined) || [...a].includes(null)));
       }
     },
     pair: {
       configurable: true,
       value (...v) {
-        return this.fold((p, c, k) => _.put(p, {[c]: v[k]}), {})
+        return this.fold((p, c, k) => _.put(p, {[v[k]]: c}), {});
       }
     },
     to: {
       configurable: true,
       value (...w) {
         return this['@'] ? this.pipe(
-          a => _.adapt(a)(...w),
-          a => _((_(a).fullen_ && this['@']) ? this['@'](...a) : a,
+          _.adaptL(...w),
+          a => _((_(a).fullen._ && this['@']) ? this['@'](...a) : a,
             this.$,
-            _(a).fullen_ ? null : this['@']
+            _(a).fullen._ ? null : this['@']
           )
         )._ : this;
       }
@@ -782,39 +816,12 @@
       configurable: true,
       value (...w) {
         return this['@'] ? this.pipe(
-          a => _.adapt(a.reverse())(...w).reverse(),
-          a => _((_(a).fullen_ && this['@']) ? this['@'](...a) : a,
+          _.adaptR(...w),
+          a => _((_(a).fullen._ && this['@']) ? this['@'](...a) : a,
             this.$,
-            _(a).fullen_ ? null : this['@']
+            _(a).fullen._ ? null : this['@']
           )
         )._ : this;
-      }
-    }
-  });
-
-  _.defines(_['#'].Number, {
-    order: {
-      configurable: true,
-      get () {
-        return this.pipe(v => [..._._(0, v)]);
-      }
-    },
-    fact: {
-      configurable: true,
-      get () {
-        this.order.fold((p, c) => p * c);
-      }
-    },
-    semiFact: {
-      configurable: true,
-      get () {
-        this.order.filter(v => this._ % 2 === 1 ? v % 2 === 1 : v % 2 === 0).fold((p, c) => p * c);
-      }
-    },
-    abs: {
-      configurable: true,
-      get () {
-        return this.pipe(Math.abs);
       }
     }
   });
@@ -981,7 +988,7 @@
     modUTCMonth: {
       configurable: true,
       value (f) {
-        return this.pipe(o => o.setUTCMonth(f(getUTCMonth() + 1) - 1));        
+        return this.pipe(o => o.setUTCMonth(f(o.getUTCMonth() + 1) - 1));        
       }
     },
     modUTCDate: {
@@ -1011,7 +1018,7 @@
     zone: {
       configurable: true,
       get () {
-        return this.pipe(o =>o.getTimezoneOffset())
+        return this.pipe(o =>o.getTimezoneOffset());
       }
     },
     raw: {

@@ -1,7 +1,7 @@
 describe("White Cats", function () {
   'use strict';
-
   const _ = require('../cat.js');
+
   const sp = function (a, b, c) {
     _.put(this, {a, b, c});
   }
@@ -10,24 +10,25 @@ describe("White Cats", function () {
       this.a = this.a + v;
       this.b = this.a + this.b;
       this.c = this.b + this.c;
+      return [this.a, this.b, this.c];
     },
     mt (v) {
       this.a = this.a * v;
       this.b = this.a * this.b;
       this.c = this.b * this.c;
+      return [this.a, this.b, this.c];
     },
     sb (v) {
       this.a = this.a - v;
       this.b = this.a - this.b;
       this.c = this.b - this.c;
+      return [this.a, this.b, this.c];
     },
     dv (v) {
       this.a = this.a / v;
       this.b = this.a / this.b;
       this.c = this.b / this.c;
-    },
-    end () {
-      return this.c;
+      return [this.a, this.b, this.c];
     },
     prog (...v) {
       return [...v, this.c]
@@ -239,9 +240,25 @@ describe("White Cats", function () {
 
   it('_.adapt',
     () => expect(
-      _.adapt([,,3,4,,6])(1, 2, 5)
+      _.adapt(1, 2, 5)([,,3,4,,6])
     ).toEqual(
       [1, 2, 3, 4, 5, 6]
+    )
+  );
+
+  it('_.adaptL',
+    () => expect(
+      _.adaptL(1, 2, 5)([,,3,4,,6])
+    ).toEqual(
+      [1, 2, 3, 4, 5, 6]
+    )
+  );
+
+  it('_.adaptR',
+    () => expect(
+      _.adaptR(1, 2, 5)([,,3,4,,6])
+    ).toEqual(
+      [5, 2, 3, 4, 1, 6]
     )
   );
 
@@ -313,17 +330,19 @@ describe("White Cats", function () {
   it('_._',
     () => {
       expect(
-        [..._._(1, 5)]
+        [..._._(0, 8, 2)]
       )
       .toEqual(
-        [1, 2, 3, 4, 5]
+        [0, 2, 4, 6, 8]
       );
+
       expect(
-        [..._._(5, 1)]
+        [..._._(8, 0, -2)]
       )
       .toEqual(
-        [5, 4, 3, 2, 1]
+        [8, 6, 4, 2, 0]
       );
+
       expect(
         [..._._(5)]
       )
@@ -334,24 +353,28 @@ describe("White Cats", function () {
   );
 
   it('_.async',
-    async () => expect(
-      await _.async(r => r(3))
-    )
-    .toBe(
-      3
+    () => _.async(r => r(3)).then(
+      v => expect(
+        v
+      )
+      .toBe(
+        3
+      )
     )
   );
 
   it('_.asyncAll',
-    async () => expect(
-      await _.asyncAll(
-        r => r(3),
-        4,
-        _.async(r => r(5))
-      )
+    () => _.asyncAll(
+      r => r(3),
+      4,
+      _.async(r => r(5))
     )
-    .toEqual(
-      [3, 4, 5]
+    .then(
+      a => expect(
+      a
+      ).toEqual(
+        [3, 4, 5]
+      )
     )
   );
 
@@ -453,6 +476,24 @@ describe("White Cats", function () {
     }
   );
 
+  it('_().s_r',
+    () => {
+      const o = O(3, 5, 7);
+      const t = [];
+      expect(
+        _(o).s_r('prog')(5, 6)(a => a.map(v => t.push(v)))._
+      ).toBe(
+        o
+      );
+
+      expect(
+        t
+      ).toEqual(
+        [5, 6, 7]
+      );
+    }
+  );
+
   it('_().cast',
     () => {
       const o = O(3, 5, 7);
@@ -460,23 +501,35 @@ describe("White Cats", function () {
         _(o).cast('prog')(5, 6)._
       ).toBe(
         o
-      )
+      );
     }
   );
 
-  it('_().been',
-    () => expect(
-      _(O(3, 5, 7))
-      .Been
-      .ad( 5 )
-      .mt( 2 )
-      .ad( 3 )
-      .To
-      ._
-      .c
-    ).toBe(
-      4387
-    )
+  it('_().Been',
+    () => {
+      const r = [];
+      expect(
+      _(O(0, 5, 2))
+        .Been
+        .a(3)(_.alter)
+        .b(10)()
+        .c(5)((v, w) => v + w)
+        .ad( 5 )(a => a.map(v => r.push(v)))
+        .mt( 2 )(a => a.map(v => r.push(v)))
+        .ad( 3 )(a => a.map(v => r.push(v)))
+        .To
+        ._
+        .c
+      ).toBe(
+        4387
+      );
+
+      expect(
+        r
+      ).toEqual(
+        [8, 13, 20, 16, 208, 4160, 19, 227, 4387]
+      )
+    }
   );
 
   it('_().toJSON',
@@ -488,16 +541,17 @@ describe("White Cats", function () {
   );
 
   it('_(async).then',
-    async () => expect(
-      await _(_.async(r => r([3, 5, 7]))).then(
-        a => _.async(r => r(a.push(11))),
-        a => a.push(13),
-        a => _.async(r => r(a.push(17))),
-        a => _.async(r => r(a.push(19)))
-      )._
-    ).toEqual(
-      [3, 5, 7, 11, 13, 17, 19]
-    )
+    () => _(_.async(r => r([3, 5, 7]))).then(
+      a => _.async(r => r(a.push(11))),
+      a => a.push(13),
+      a => _.async(r => r(a.push(17))),
+      a => _.async(r => r(a.push(19))),
+      a => expect(
+        a
+      ).toEqual(
+        [3, 5, 7, 11, 13, 17, 19]
+      )
+    )._
   );
 
   it('_(function*).take',
@@ -533,7 +587,7 @@ describe("White Cats", function () {
         _(x)
         .each(
           (k, v) => _.put(y, {[`${k.toUpperCase()}`]: v + 5}),
-          (k, v) => _.put(z, {[`${k}z`]: v}),
+          (k, v) => _.put(z, {[`${k}z`]: v})
         )
         .take(y, z)
         ._
@@ -581,13 +635,21 @@ describe("White Cats", function () {
     )
   );
 
+  it('_({}).modify',
+    () => expect(
+      _({a: 3, b: {c: 4, d: {e: 6}}}).modify('b.d.e')(4)((v, w) => v * w)._.b.d.e
+    ).toBe(
+      24
+    )
+  );
+
   it('_({}).take',
     () => expect(
       _({a: 3, b: {c: 4, d: {e: 6}}})
       .take(
         {a: 4, b: {d: {f: 8}, g: {h: 9, i: 10}}},
         {b: {d: {g: {j: 11, k: {l: 12}}}}},
-        {b: {g: {j: 13, k: {l: 14}}}},
+        {b: {g: {j: 13, k: {l: 14}}}}
       )
       .toJSON
       ._
@@ -633,36 +695,63 @@ describe("White Cats", function () {
   );
 
   it('_({}).pick',
-    () => expect(
-      _({
-        a: 4, b: {
-          c: 4, d: {
-            e: 6, f: 8, g: {
-              j: 11, k: {l: 12}
+    () => {
+      expect(
+        _({
+          a: 4, b: {
+            c: 4, d: {
+              e: 6, f: 8, g: {
+                j: 11, k: {l: 12}
+              }
+            },
+            g: {
+              h: 9, i: 10, j: 13, k: {l: 14}
             }
-          },
-          g: {
-            h: 9, i: 10, j: 13, k: {l: 14}
           }
-        }
-      })
-      .pick('a, b[c, d[e, g.k], g[j, k]]')
-      .toJSON
-      ._
-    ).toBe(
-      JSON.stringify({
-        a: 4, b: {
-          c: 4, d: {
-            e: 6, g: {
-              k: {l: 12}
+        })
+        .pick('a, b[c, d[e, g.k], g[j, k]]')
+        .toJSON
+        ._
+      ).toBe(
+        JSON.stringify({
+          a: 4, b: {
+            c: 4, d: {
+              e: 6, g: {
+                k: {l: 12}
+              }
+            },
+            g: {
+              j: 13, k: {l: 14}
             }
-          },
-          g: {
-            j: 13, k: {l: 14}
           }
-        }
-      })
-    )
+        })
+      );
+      expect(
+        _({
+          a: 4, b: {
+            c: 4, d: {
+              e: 6, f: 8, g: {
+                j: 11, k: {l: 12}
+              }
+            },
+            g: {
+              h: 9, i: 10, j: 13, k: {l: 14}
+            }
+          }
+        })
+        .pick('a, b.g')
+        .toJSON
+        ._
+      ).toBe(
+        JSON.stringify({
+          a: 4, b: {
+            g: {
+              h: 9, i: 10, j: 13, k: {l: 14}
+            }
+          }
+        })
+      );
+    }
   );
 
   it('_({}).pick',
@@ -818,6 +907,22 @@ describe("White Cats", function () {
     }
   );
 
+  it('_([]).liken',
+    () => {
+      expect(
+        _(TA).liken([1, 100, 2, 200, 3, 300])._
+      ).toEqual(
+        [1, 2, 3]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
   it('_([]).pick',
     () => {
       expect(
@@ -907,7 +1012,7 @@ describe("White Cats", function () {
       )
 
       expect(
-        _([3,, 5,, 7]).put([7, 8, 9, 10])._
+        _([3,,5,,7]).put([7, 8, 9, 10])._
       ).toEqual(
         [7, undefined, 9, undefined, 7]
       )
@@ -948,31 +1053,481 @@ describe("White Cats", function () {
     } 
   );
 
-  it('',
+  it('_([]).pickKey',
+    () => {
+      expect(
+        _([
+          {a: 30, b: 40, c: 50},
+          {a: 31, b: 41, c: 51},
+          {a: 32, b: 42, c: 52},
+          {a: 33, b: 43, c: 53}
+        ])
+        .pickKey('a, c')
+        ._
+      ).toEqual(
+        [
+          {a: 30, c: 50},
+          {a: 31, c: 51},
+          {a: 32, c: 52},
+          {a: 33, c: 53}
+        ]
+      );
+    }
+  );
+
+  it('_([]).dropKey',
+    () => {
+      expect(
+        _([
+          {a: 30, b: 40, c: 50},
+          {a: 31, b: 41, c: 51},
+          {a: 32, b: 42, c: 52},
+          {a: 33, b: 43, c: 53}
+        ])
+        .dropKey('a, c')
+        ._
+      ).toEqual(
+        [
+          {b: 40},
+          {b: 41},
+          {b: 42},
+          {b: 43}
+        ]
+      );
+    }
+  );
+
+  it('_([]).pushL',
     () => expect(
-
+      _([1, 2, 3]).pushL(-1, 0)._
     ).toEqual(
-
+      [-1, 0, 1, 2, 3]
     )
   );
 
-  it('',
+  it('_([]).pushR',
     () => expect(
-
+      _([1, 2, 3]).pushR(4, 5)._
     ).toEqual(
-
+      [1, 2, 3, 4, 5]
     )
   );
 
-  it('',
+  it('_([]).popL',
     () => expect(
-
-    ).toEqual(
-
+      _([1, 2, 3]).popL._
+    ).toBe(
+      1
     )
   );
 
-  it('_().fullen_',
+  it('_([]).popR',
+    () => expect(
+      _([1, 2, 3]).popR._
+    ).toBe(
+      3
+    )
+  );
+
+  it('_([]).omitL',
+    () => expect(
+      _([1, 2, 3]).omitL._
+    ).toEqual(
+      [2, 3]
+    )
+  );
+
+  it('_([]).omitR',
+    () => expect(
+      _([1, 2, 3]).omitR._
+    ).toEqual(
+      [1, 2]
+    )
+  );
+
+  it('_([]).each',
+    () => {
+      const a = [0]
+      _(TA).each((v, k) => a.push(a[k] + v))._
+
+      expect(
+        a
+      ).toEqual(
+        [0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105, 120]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).lift',
+    () => expect(
+      _([1,2,3,4,5]).lift(
+        a => a
+        .map(v => v + 8)
+        .reduce((p, c) => p + c)
+      )._
+    ).toBe(
+      55
+    )
+  );
+
+  it('_([]).fold',
+    () => {
+      expect(
+        _(TA).fold((p, c) => `${p}, ${c}`)._
+      ).toEqual(
+        TA.join(', ')
+      );
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).foldL',
+    () => {
+      expect(
+        _(TA).foldL((p, c) => `${p}, ${c}`)._
+      ).toEqual(
+        TA.join(', ')
+      );
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).foldR',
+    () => {
+      expect(
+        _(TA).foldR((p, c) => `${p}, ${c}`)._
+      ).toEqual(
+        TA.reverse().join(', ')
+      );
+
+      expect(
+        TA.reverse()
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).filter',
+    () => {
+      expect(
+        _(TA).filter(v => v < 8)._
+      ).toEqual(
+        TA.filter(v => v < 8)
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).aMap',
+    () => {
+      expect(
+        _([v => v + 5, v => v * 5]).aMap(TA)._
+      ).toEqual(
+        [TA.map(v => v + 5), TA.map(v => v * 5)]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).map',
+    () => {
+      expect(
+        _(TA).map(v => v * 5)._
+      ).toEqual(
+        TA.map(v => v * 5)
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).fMap',
+    () => {
+      expect(
+        _(TA).fMap(v => [v * 5])._
+      ).toEqual(
+        TA.flatMap(v => [v * 5])
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).flat',
+    () => {
+      expect(
+        _(TA).map(v => [v * 5]).flat()._
+      ).toEqual(
+        TA.map(v => [v * 5]).flat()
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).back',
+    () => {
+      expect(
+        _(TA).back._
+      ).toEqual(
+        TA.reverse()
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).adapt',
+    () => {
+      const T = [ , ,3 , , ,]
+      expect(
+        _(T).adapt(1, 2, 4, 5)._
+      ).toEqual(
+        [1, 2, 3, 4, 5]
+      );
+
+      expect(
+        T
+      ).toEqual(
+        [ , ,3 , , ,]
+      );
+    }
+  );
+
+  it('_([]).adaptL',
+    () => {
+      const T = [ , ,3 , , ,]
+      expect(
+        _(T).adaptL(1, 2, 4, 5)._
+      ).toEqual(
+        [1, 2, 3, 4, 5]
+      );
+
+      expect(
+        T
+      ).toEqual(
+        [ , ,3 , , ,]
+      );
+    }
+  );
+
+  it('_([]).adaptR',
+    () => {
+      const T = [ , ,3 , , ,]
+      expect(
+        _(T).adaptR(1, 2, 4, 5)._
+      ).toEqual(
+        [5, 4, 3, 2, 1]
+      );
+
+      expect(
+        T
+      ).toEqual(
+        [ , ,3 , , ,]
+      );
+    }
+  );
+
+  it('_([]).concat',
+    () => {
+      expect(
+        _(TA).concat([..._._(16, 20)])._
+      ).toEqual(
+        TA.concat([..._._(16, 20)])
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).replace',
+    () => expect(
+      _([1, 2, 3, 4, 5]).replace(2, 4, 3)._
+    ).toEqual(
+      [1, 2, 3, 4, 5].splice(2, 4, 3)
+    )
+  );
+
+  it('_([]).concat',
+    () => {
+      expect(
+        _(TA).slice(5, 8)._
+      ).toEqual(
+        TA.slice(5, 8)
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).sort',
+    () => expect(
+      _([4, 2, 5, 1, 3]).sort()._
+    ).toEqual(
+      [1, 2, 3, 4, 5]
+    )
+  );
+
+  it('_([]).indexL',
+    () => expect(
+      _([1, 2, 3, 2, 5]).indexL(2)._
+    ).toBe(
+      1
+    )
+  );
+
+  it('_([]).indexR',
+    () => expect(
+      _([1, 2, 3, 2, 5]).indexR(2)._
+    ).toBe(
+      3
+    )
+  );
+
+  it('_([]).any',
+    () => expect(
+      _([1, 2, 3, 2, 5]).any(v => v > 4)._
+    ).toBe(
+      [1, 2, 3, 4, 5].some(v => v > 4)
+    )
+  );
+
+  it('_([]).all',
+    () => expect(
+      _([1, 2, 3, 2, 5]).all(v => v > 4)._
+    ).toBe(
+      [1, 2, 3, 4, 5].every(v => v > 4)
+    )
+  );
+
+  it('_([]).apply',
+    () => expect(
+      _([1, 2, 3]).apply((a, b, c) => (a + b) * c)._
+    ).toBe(
+      9
+    )
+  );
+
+  it('_([]).sum',
+    () => expect(
+      _(TA).sum._
+    ).toBe(
+      120
+    )
+  );
+
+  it('_([]).pi',
+    () => expect(
+      _([1,2,3,4,5]).pi._
+    ).toBe(
+      120
+    )
+  );
+
+  it('_([]).average',
+    () => expect(
+      _(TA).average._
+    ).toBe(
+      7.5
+    )
+  );
+
+  it('_([]).max',
+    () => expect(
+      _(TA).max._
+    ).toBe(
+      15
+    )
+  );
+
+  it('_([]).min',
+    () => expect(
+      _(TA).min._
+    ).toBe(
+      0
+    )
+  );
+
+  it('_([]).mid',
+    () => expect(
+      _(TA).mid._
+    ).toBe(
+      7.5
+    )
+  );
+
+  it('_([]).less',
+    () => expect(
+      _([ , ,3 ,4 , , ,5 , ,]).less._
+    ).toEqual(
+      [3, 4, 5]
+    )
+  );
+
+  it('_([]).pair',
+    () => expect(
+      _([1, 2, 3, 4, 5]).pair(...'a, b, c, d, e'.split(', '))._
+    ).toEqual(
+      {
+        a: 1,
+        b: 2,
+        c: 3,
+        d: 4,
+        e: 5
+      }
+    )
+  );
+
+  it('_().fullen',
     () => {
       const emptyAry0 = [,2,3]
       const emptyAry1 = [1,,3]
@@ -998,106 +1553,123 @@ describe("White Cats", function () {
       const fulfillAry = [0, true, false];
 
       expect(
-        _(emptyAry0).fullen_
+        _(emptyAry0).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(emptyAry1).fullen_
+        _(emptyAry1).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(emptyAry2).fullen_
+        _(emptyAry2).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(nulledAry0).fullen_
+        _(nulledAry0).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(nulledAry1).fullen_
+        _(nulledAry1).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(nulledAry2).fullen_
+        _(nulledAry2).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(voidAry0).fullen_
+        _(voidAry0).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(voidAry1).fullen_
+        _(voidAry1).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(voidAry2).fullen_
+        _(voidAry2).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(nulledObj0).fullen_
+        _(nulledObj0).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(nulledObj1).fullen_
+        _(nulledObj1).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(nulledObj2).fullen_
+        _(nulledObj2).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(voidObj0).fullen_
+        _(voidObj0).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(voidObj1).fullen_
+        _(voidObj1).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(voidObj2).fullen_
+        _(voidObj2).fullen._
       ).toBe(
         false
       );
 
       expect(
-        _(fulfillAry).fullen_
+        _(fulfillAry).fullen._
       ).toBe(
         true
       );
 
       expect(
-        _(fulfillObj).fullen_
+        _(fulfillObj).fullen._
       ).toBe(
         true
       );
     }
   );
+
+  it("_('').toObject",
+    () => expect(
+      _({a: 5}).toJSON.toObject._
+    ).toEqual(
+      {a: 5}
+    )
+  );
+
+  it("_('').toDate",
+    () => expect(
+      _(new Date(0).toString()).toDate._.toString()
+    ).toBe(
+      new Date(0).toString()
+    )
+  );
+
 });
