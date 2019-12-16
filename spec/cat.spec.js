@@ -71,27 +71,65 @@ describe("White Cats", function () {
   );
 
   it('_.pipe',
-    () => expect(
-      _.pipe(
-        v => v * 2,
-        v => v + 5,
-        v => v * 10
-      )(5)
-    )
-    .toBe( 150 )
+    () => {
+      expect(
+        _.pipe(
+          v => v * 2,
+          v => v + 5,
+          v => v * 10
+        )(5)
+      )
+      .toBe( 150 );
+
+      expect(
+        _.pipe(
+          v => v * 2,
+          v => v + 5,
+          v => v * 10
+        )()
+      )
+      .toBe();
+
+      expect(
+        _.pipe(
+          v => v * 2,
+          v => ({}).push(v),
+          v => v * 10
+        )(1)[0]
+      )
+      .toBe(2);
+    }
   );
 
   it('_.loop',
-    () => expect(
-      _.loop(
-        o => o.ad( 5 ),
-        o => o.mt( 2 ),
-        o => o.ad( 3 )
-      )( O(3, 5, 7) )
-      .c
-    ).toBe(
-      4387
-    )
+    () => {
+      expect(
+        _.loop(
+          o => o.ad( 5 ),
+          o => o.mt( 2 ),
+          o => o.ad( 3 )
+        )( O(3, 5, 7) )
+        .c
+      ).toBe(
+        4387
+      );
+
+      expect(
+        _.loop(
+          o => o.ad( 5 ),
+          o => o.mt( 2 ),
+          o => o.ad( 3 )
+        )()
+      ).toBe();
+
+      expect(
+        _.loop(
+          o => o.ad( 5 ),
+          o => ({}).push(o),
+          o => o.ad( 3 )
+        )( O(3, 5, 7) ).c
+      ).toBe( 20 );
+    }
   );
 
   it('_.upto',
@@ -487,6 +525,12 @@ describe("White Cats", function () {
       ).toBe(
         3
       );
+
+      expect(
+        _(O(3, 5, 7)).call('d')(5, 6)._
+      ).toBe(
+        undefined
+      );
     }
   );
 
@@ -502,6 +546,12 @@ describe("White Cats", function () {
 
       expect(
         _(o).s_r('a')(5)((w, v) => t.push(v + w))._
+      ).toBe(
+        o
+      );
+
+      expect(
+        _(o).s_r('d')()()._
       ).toBe(
         o
       );
@@ -525,6 +575,12 @@ describe("White Cats", function () {
 
       expect(
         _(o).cast('a')(5, 6)._
+      ).toBe(
+        o
+      );
+
+      expect(
+        _(o).cast('d.e')(5, 6)._
       ).toBe(
         o
       );
@@ -609,7 +665,7 @@ describe("White Cats", function () {
     )
   );
 
-  it('',
+  it('_({}).each',
     () => {
       const x = {d: 3, e: 4, f: 5};
       const y = {};
@@ -644,19 +700,35 @@ describe("White Cats", function () {
   );
 
   it('_({}).get',
-    () => expect(
-      _({a: 3, b: {c: 4, d: {e: 6}}}).get('b.d.e')._
-    ).toBe(
-      6
-    )
+    () => {
+      expect(
+        _({a: 3, b: {c: 4, d: {e: 6}}}).get('b.d.e')._
+      ).toBe(
+        6
+      );
+
+      expect(
+        _({a: 3, b: {c: 4, d: {e: 6}}}).get('b.e.f')._
+      ).toBe(
+        undefined
+      );
+    }
   );
 
   it('_({}).set',
-    () => expect(
-      _({a: 3, b: {c: 4, d: {e: 6}}}).set('b.d.e')(3)._.b.d.e
-    ).toBe(
-      3
-    )
+    () => {
+      expect(
+        _({a: 3, b: {c: 4, d: {e: 6}}}).set('b.d.e')(3)._.b.d.e
+      ).toBe(
+        3
+      );
+
+      expect(
+        _({a: 3, b: {c: 4, d: {e: 6}}}).set('b.c.f')(3)._.b.c.f
+      ).toBe(
+        3
+      );
+    }
   );
 
   it('_({}).put',
@@ -668,11 +740,25 @@ describe("White Cats", function () {
   );
 
   it('_({}).cut',
-    () => expect(
-      _({a: 3, b: {c: 4, d: {e: 6}}}).cut('b.d')._
-    ).toEqual(
-      {a: 3, b: {c: 4}}
-    )
+    () => {
+      expect(
+        _({a: 3, b: {c: 4, d: {e: 6}}}).cut('b.d')._
+      ).toEqual(
+        {a: 3, b: {c: 4}}
+      );
+
+      expect(
+        _({a: 3, b: {c: 4, d: {e: 6}}}).cut('b.e')._
+      ).toEqual(
+        {a: 3, b: {c: 4, d: {e: 6}}}
+      );
+
+      expect(
+        _({a: 3, b: {c: 4, d: {e: 6}}}).cut('c.d.e')._
+      ).toEqual(
+        {a: 3, b: {c: 4, d: {e: 6}}}
+      );
+    }
   );
 
   it('_({}).mend',
@@ -931,6 +1017,18 @@ describe("White Cats", function () {
       ).toBe(
         15
       );
+
+      expect(
+        _((...a) => a.reduce((p, c) => p + c))
+        .take([,,3,,,])
+        .of(4, 5)
+        .to(1, 2)
+        .of(..._._(11))
+        .to(..._._(14))
+        ._
+      ).toBe(
+        15
+      );
     }
   );
 
@@ -960,6 +1058,22 @@ describe("White Cats", function () {
     () => {
       expect(
         _(TA).liken([1, 100, 2, 200, 3, 300])._
+      ).toEqual(
+        [1, 2, 3]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).equaly',
+    () => {
+      expect(
+        _(TA).equaly([1, 1, 2, 3, 5, 8])._
       ).toEqual(
         [1, 2, 3]
       );
@@ -1442,7 +1556,7 @@ describe("White Cats", function () {
     )
   );
 
-  it('_([]).concat',
+  it('_([]).slice',
     () => {
       expect(
         _(TA).slice(5, 8)._
@@ -1547,11 +1661,19 @@ describe("White Cats", function () {
   );
 
   it('_([]).mid',
-    () => expect(
-      _(TA).mid._
-    ).toBe(
-      7.5
-    )
+    () => {
+      expect(
+        _(TA).mid._
+      ).toBe(
+        7.5
+      );
+
+      expect(
+        _([..._._(14)]).mid._
+      ).toBe(
+        7
+      );
+    }
   );
 
   it('_([]).less',
@@ -1720,4 +1842,6 @@ describe("White Cats", function () {
       new Date(0).toString()
     )
   );
+
+
 });

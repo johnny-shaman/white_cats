@@ -42,8 +42,6 @@ _.timezoning
 .cast
 .Been
 .toJSON
-.to
-.of
 
 .filter
 .each
@@ -63,7 +61,6 @@ _.timezoning
 .keys
 .vals
 .entries
-.fullen
 .toDate
 
 .liken

@@ -45,7 +45,7 @@
       } catch (e) {
         console.error(e);
         v.push(e);
-        return k === (m.length - 1) ? v[0] : v;
+        return v;
       }
     }, _.id),
     loop: (...m) => m.reduceRight((f, g, k) => (...v) => {
@@ -54,7 +54,7 @@
       } catch (e) {
         console.error(e);
         v.push(e);
-        return k === (m.length - 1) ? v[0] : v;
+        return v[0];
       }
     }, _.id),
     apply: a => f => f(...a),
@@ -183,8 +183,8 @@
           o => s
           .split('.')
           .reduce(
-            (p, c) => p[c] == null
-            ? p
+            (p, c) => (p == null || p[c] == null)
+            ? undefined
             : (
               typeof p[c] === 'function'
               ? p[c].call(p, ...v)
@@ -203,8 +203,8 @@
           o => s
           .split('.')
           .reduce(
-            (p, c) => p[c] == null
-            ? p
+            (p, c) => (p == null || p[c] == null)
+            ? undefined
             : (
               typeof p[c] === 'function'
               ? _.pipe(...f)(p[c].call(p, ...v))
@@ -310,7 +310,7 @@
         return this.pipe(
           o => s
           .flatMap(w => w.split('.'))
-          .reduce((p, c) => p == null ? p : p[c], o)
+          .reduce((p, c) => (p == null || p[c] == null) ? undefined : p[c], o)
         );
       }
     },
@@ -321,7 +321,7 @@
           o => _(s).pipe(
             a => a.flatMap(s => s.split('.')),
             a => ({a, l: a.pop()}),
-            ({a, l}) => a.reduce((p, c) => p[c] == null ? _.put(p, {[c]: {}})[c] : p[c], o)[l] = v
+            ({a, l}) => a.reduce((p, c) => _.isObject(p[c]) ? p[c] : _.put(p, {[c]: {}})[c], o)[l] = v
           )
         );
       }
@@ -339,7 +339,7 @@
           o => _(s).pipe(
             a => a.flatMap(s => s.split('.')),
             a => ({a, l: a.pop()}),
-            ({a, l}) => delete a.reduce((p, c) => p[c] == null ? p : p[c], o)[l]
+            ({a, l}) => delete a.reduce((p, c) => (p == null || p[c] == null) ? {} : p[c], o)[l]
           )
         );
       }
