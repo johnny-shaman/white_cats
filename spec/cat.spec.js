@@ -332,11 +332,17 @@ describe("White Cats", function () {
   );
 
   it('_.by',
-    () => expect(
-      _.by([])
-    ).toBe(
-      [].constructor
-    )
+    () => {
+      expect(
+        _.by([])
+      ).toBe(
+        [].constructor
+      );
+
+      expect(
+        _.by()
+      ).toBe();
+    }
   );
 
   it('_.isObject',
@@ -466,20 +472,17 @@ describe("White Cats", function () {
       ).toEqual(
         (o => _({a: o.a * 3}))({a: 5})._
       );
+
       expect(
-        _({a: 5})._pipe(_)._
+        _({a: 5})._pipe(_)._pipe(_)._
       ).toEqual(
         {a: 5}
       );
+
       expect(
         _({a: 5})._pipe(o => _({a: o.a * 3}))._pipe(o => _({a: o.a + 5}))._
       ).toEqual(
         _({a: 5})._pipe(o => _({a: o.a * 3})._pipe(o => _({a: o.a + 5})))._
-      );
-      expect(
-        _({a: 5})._pipe(o => _({a: o.a * 3}), o => _({a: o.a + 5}))._
-      ).toEqual(
-        _({a: 5})._pipe(o => _({a: o.a * 3}))._pipe(o => _({a: o.a + 5}))._
       );
     }
   );
@@ -777,6 +780,24 @@ describe("White Cats", function () {
     )
   );
 
+  it('_({}).give',
+    () => expect(
+      _({a: 3, b: {c: 4, d: {e: 6}}})
+      .give(
+        {a: 4, b: {d: {f: 8}, g: {h: 9, i: 10}}},
+        {b: {d: {g: {j: 11, k: {l: 12}}}}},
+        {b: {g: {j: 13, k: {l: 14}}}}
+      )
+      ._
+    ).toEqual({
+      b : {
+        g : { j : 13, k : { l : 14 }, h : 9, i : 10 },
+        d : { g : { j : 11, k : { l : 12 } }, f : 8, e : 6 },
+        c : 4
+      }, a : 3
+    })
+  );
+
   it('_({}).take',
     () => expect(
       _({a: 3, b: {c: 4, d: {e: 6}}})
@@ -952,6 +973,14 @@ describe("White Cats", function () {
       new Date(0).valueOf()
     )
   );
+
+  it('_().toDateUTC',
+  () => expect(
+    _({}).toDateUTC._.getTime()
+  ).toBe(
+    new Date(0).getTime()
+  )
+);
 
   (() => {
     let csp = _(function (...a) {
@@ -1401,10 +1430,32 @@ describe("White Cats", function () {
     }
   );
 
+  it('_([]).rotate',
+    () => expect(
+      _([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+      ]).rotate._
+    ).toEqual(
+      [
+        [1, 4, 7],
+        [2, 5, 8],
+        [3, 6, 9],
+      ]
+    )
+  )
+
   it('_([]).aMap',
     () => {
       expect(
         _([v => v + 5, v => v * 5]).aMap(TA)._
+      ).toEqual(
+        [TA.map(v => v + 5), TA.map(v => v * 5)]
+      );
+
+      expect(
+        _(TA).aMap([v => v + 5, v => v * 5]).rotate._
       ).toEqual(
         [TA.map(v => v + 5), TA.map(v => v * 5)]
       );
@@ -1673,6 +1724,10 @@ describe("White Cats", function () {
       ).toBe(
         7
       );
+
+      expect(
+        _([]).mid._
+      ).toBe();
     }
   );
 
@@ -1681,6 +1736,14 @@ describe("White Cats", function () {
       _([ , ,3 ,4 , , ,5 , ,]).less._
     ).toEqual(
       [3, 4, 5]
+    )
+  );
+
+  it('_([]).sure',
+    () => expect(
+      _([ , ,3 ,4 , , ,5 , ,]).sure._
+    ).toEqual(
+      [undefined ,undefined ,3 ,4 ,undefined ,undefined ,5 ,undefined]
     )
   );
 
@@ -1695,6 +1758,22 @@ describe("White Cats", function () {
         d: 4,
         e: 5
       }
+    )
+  );
+
+  it('_([]).to',
+    () => expect(
+      _(TA).to(3, 4, 5)._
+    ).toEqual(
+      [..._._(15)]
+    )
+  );
+
+  it('_([]).of',
+    () => expect(
+      _(TA).of(3, 4, 5)._
+    ).toEqual(
+      [..._._(15)]
     )
   );
 
@@ -1843,5 +1922,282 @@ describe("White Cats", function () {
     )
   );
 
+  it('_(Date).get',
+    () => {
+      expect(
+        _(new Date(0)).get('yr')._
+      ).toBe(
+        1970
+      );
 
+      expect(
+        _(new Date(0)).get('yr, mo, dt, dy, hr, min, sec, ms')._
+      ).toEqual(
+        {
+          yr: 1970,
+          mo: 1,
+          dt: 1,
+          dy: 4,
+          hr: Math.trunc(_.zone / 60),
+          min: _.zone % 60,
+          sec: 0,
+          ms: 0
+        }
+      );
+
+      expect(
+        _(new Date(0)).get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC')._
+      ).toEqual(
+        {
+          yrUTC: 1970,
+          moUTC: 1,
+          dtUTC: 1,
+          dyUTC: 4,
+          hrUTC: 0,
+          minUTC: 0,
+          secUTC: 0
+        }
+      );
+    }
+  );
+
+  it('_(Date).put',
+    () =>{
+      expect(
+        _(new Date(0))
+        .put({
+          yr: 2020,
+          mo: 5,
+          dt: 28,
+          hr: 15,
+          min: 28,
+          sec: 16,
+          ms: 330
+        })
+        .get('yr, mo, dt, dy, hr, min, sec, ms')
+        ._
+      ).toEqual(
+        {
+          yr: 2020,
+          mo: 5,
+          dt: 28,
+          dy: 4,
+          hr: 15,
+          min: 28,
+          sec: 16,
+          ms: 330
+        }
+      );
+
+      expect(
+        _(new Date(0))
+        .put({
+          yrUTC: 2020,
+          moUTC: 5,
+          dtUTC: 28,
+          hrUTC: 15,
+          minUTC: 28,
+          secUTC: 16
+        })
+        .get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC')
+        ._
+      ).toEqual(
+        {
+          yrUTC: 2020,
+          moUTC: 5,
+          dtUTC: 28,
+          dyUTC: 4,
+          hrUTC: 15,
+          minUTC: 28,
+          secUTC: 16,
+        }
+      );
+    }
+  );
+
+  it('_(Date).map',
+    () =>{
+      expect(
+        _(new Date(0))
+        .map(
+          'min, sec'
+        )(
+          ({min, sec}) => ({min: min + 1, sec: sec + 30})
+        )
+        .get('min, sec')
+        ._
+      ).toEqual(
+        {
+          min: 1,
+          sec: 30
+        }
+      );
+
+      expect(
+        _(new Date(0))
+        .map(
+          'sec'
+        )(
+          s => s + 15
+        )
+        .get('sec')
+        ._
+      ).toBe(
+        15
+      );
+    }
+  );
+
+  it('_(Date).endOfMo',
+    () => expect(
+      _(new Date(0)).endOfMo.get('mo, dt')._
+    ).toEqual(
+      {
+        mo: 1,
+        dt: 31
+      }
+    )
+  );
+
+  it('_(Date).endOfMoUTC',
+    () => expect(
+      _(new Date(0)).endOfMoUTC.get('moUTC, dtUTC')._
+    ).toEqual(
+      {
+        moUTC: 1,
+        dtUTC: 31
+      }
+    )
+  );
+
+  it('_(Date).zone',
+    () => expect(
+      _(new Date(0)).zone._
+    ).toBe(
+      new Date(0).getTimezoneOffset()
+    )
+  );
+
+  it('_(Date).raw',
+    () => expect(
+      _(new Date(0)).raw._
+    ).toBe(
+      0
+    )
+  );
+
+  it('_(Date).ISO',
+    () => expect(
+      _(new Date(0)).ISO._
+    ).toBe(
+      new Date(0).toISOString()
+    )
+  );
+
+  it('_(Date).UTC',
+    () => expect(
+      _(new Date(0)).UTC._
+    ).toBe(
+      new Date(0).toUTCString()
+    )
+  );
+
+  it('_(Date).toObject',
+    () => expect(
+      _(new Date(0)).toObject._
+    ).toEqual(
+      {
+        yr: 1970,
+        mo: 1,
+        dt: 1,
+        dy: 4,
+        hr: Math.trunc(_.zone / 60),
+        min: _.zone % 60,
+        sec: 0,
+        ms: 0
+      }
+    )
+  );
+
+  it('_(Date).toObjectUTC',
+    () => expect(
+      _(new Date(0)).toObjectUTC._
+    ).toEqual(
+      {
+        yrUTC: 1970,
+        moUTC: 1,
+        dtUTC: 1,
+        dyUTC: 4,
+        hrUTC: 0,
+        minUTC: 0,
+        secUTC: 0
+      }
+    )
+  );
+
+  it('_(Date).toJSON',
+    () => expect(
+      _(new Date(0)).toJSON._
+    ).toBe(
+      JSON.stringify({
+        yr: 1970,
+        mo: 1,
+        dt: 1,
+        dy: 4,
+        hr: Math.trunc(_.zone / 60),
+        min: _.zone % 60,
+        sec: 0,
+        ms: 0
+      })
+    )
+  );
+
+  it('_(Date).toJSONUTC',
+    () => expect(
+      _(new Date(0)).toJSONUTC._
+    ).toBe(
+      JSON.stringify({
+        yrUTC: 1970,
+        moUTC: 1,
+        dtUTC: 1,
+        dyUTC: 4,
+        hrUTC: 0,
+        minUTC: 0,
+        secUTC: 0
+      })
+    )
+  );
+
+  it('_(JSON).toDate',
+    () => expect(
+      _(new Date(0)).toJSON.toDate.toObject._
+    ).toEqual(
+      {
+        yr: 1970,
+        mo: 1,
+        dt: 1,
+        dy: 4,
+        hr: Math.trunc(_.zone / 60),
+        min: _.zone % 60,
+        sec: 0,
+        ms: 0
+      }
+    )
+  );
+
+  it('_(Date).toJSONUTC',
+    () => expect(
+      _(new Date(0)).toJSONUTC.toDateUTC.toObjectUTC._
+    ).toEqual(
+      {
+        yrUTC: 1970,
+        moUTC: 1,
+        dtUTC: 1,
+        dyUTC: 4,
+        hrUTC: 0,
+        minUTC: 0,
+        secUTC: 0
+      }
+    )
+  );
 });

@@ -100,11 +100,12 @@
     },
     async: f => new Promise(f),
     asyncAll: (...a) => Promise.all(a.map(o => typeof o === 'function' ? _.async(o) : o)),
-    join: v => v instanceof _ ? v._ : v,
     give: o => p => (_.entries(o).reduce(
       (q, [k, v]) => _.isObject(v) && _.isObject(q[k]) ? (_.give(v)(q[k]), q) : _.put(q, {[k]: v}), p
     ), p),
-    timezoning: -(new Date().getTimezoneOffset())
+    take: p => o => (_.entries(o).reduce(
+      (q, [k, v]) => _.isObject(v) && _.isObject(q[k]) ? (_.give(v)(q[k]), q) : _.put(q, {[k]: v}), p
+    ), p)
   });
 
   Object.assign(_, {
@@ -143,15 +144,9 @@
     },
     _pipe: {
       configurable: true,
-      value (...f) {
+      value (f) {
         return _(
-          _.pipe(
-            ...f.reduce(
-              (p, c) => [...p, _.join, c],
-              [f.shift()]
-            ),
-            _.join
-          )(this._$),
+          _.pipe(f)(this._$)._,
           this.$_,
           this['@']
         );
@@ -361,6 +356,12 @@
         );
       }
     },
+    give: {
+      configurable: true,
+      value (...o) {
+        return this.pipe(...(o.map(_.take)));
+      }
+    },
     take: {
       configurable: true,
       value (...o) {
@@ -430,14 +431,30 @@
       get () {
         return this.pipe(
           ({
-            year = 1970,
-            month = 1,
-            date = 1,
-            hour = 0,
-            minute = _.timezoning,
-            seconds = 0,
-            millis = 0
-          }) => new Date(year, month - 1, date, hour, minute, seconds, millis)
+            yr = 1970,
+            mo = 1,
+            dt = 1,
+            hr = 0,
+            min = _.zone,
+            sec = 0,
+            ms = 0
+          }) => new Date(yr, mo - 1, dt, hr, min, sec, ms)
+        );
+      }
+    },
+    toDateUTC: {
+      configurable: true,
+      get () {
+        return this.pipe(
+          ({
+            yrUTC = 1970,
+            moUTC = 1,
+            dtUTC = 1,
+            hrUTC = 0,
+            minUTC = 0,
+            secUTC = 0,
+          }) => _(new Date(0))
+          .put({yrUTC, moUTC: moUTC, dtUTC, hrUTC, minUTC, secUTC})._
         );
       }
     }
@@ -630,6 +647,11 @@
         return this.call('filter');
       }
     },
+    rotate: {
+      get () {
+        return this.pipe(a => _.keys(a[0]).map(c => a.map(r => r[c])));
+      }
+    },
     aMap: {
       configurable: true,
       value (a) {
@@ -768,7 +790,7 @@
         return this.sort((v, w) => v < w).pipe(
           a => (
             a.length === 0
-            ? null
+            ? undefined
             : (
               a.length % 2 === 0
               ? (a[a.length / 2 - 1] + a[a.length / 2]) / 2
@@ -782,6 +804,12 @@
       configurable: true,
       get () {
         return this.vals;
+      }
+    },
+    sure: {
+      configurable: true,
+      get () {
+        return this.pipe(_.sure);
       }
     },
     fullen: {
@@ -833,188 +861,116 @@
       configurable: true,
       get () {
         return this.pipe(
-          s => new Date(s),
-          d => typeof d === 'string'
-          ? _(JSON.parse(d)).toObject.toDate._
-          : d
+          _,
+          t => t.pipe(
+            s => new Date(s),
+            d => isNaN(d.getFullYear())
+            ? _(JSON.parse(t._)).toDate._
+            : d
+          )._
         );
+      }
+    },
+    toDateUTC: {
+      get () {
+        return this.pipe(s => _(JSON.parse(s)).toDateUTC._)
       }
     }
   });
 
+  Object.assign(_, {
+    zone : _(new Date(0)).pipe(d => d.getHours() * 60 + d.getMinutes())._
+  })
+
   _.put(_['#'], {Date: _.upto(_['#'].Object)});
   _.defines(_['#'].Date, {
-    year: {
+    get: {
+      configurable: true,
+      value (s) {
+        return this.pipe(
+          d => _({
+            yr:     d.getFullYear(),
+            mo:     d.getMonth() + 1,
+            dt:     d.getDate(),
+            dy:     d.getDay(),
+            hr:     d.getHours(),
+            min:    d.getMinutes(),
+            sec:    d.getSeconds(),
+            ms:     d.getMilliseconds(),
+            yrUTC:  d.getUTCFullYear(),
+            moUTC:  d.getUTCMonth() + 1,
+            dtUTC:  d.getUTCDate(),
+            dyUTC:  d.getUTCDay(),
+            hrUTC:  d.getUTCHours(),
+            minUTC: d.getUTCMinutes(),
+            secUTC: d.getUTCSeconds()
+          }),
+          o => s.includes(',') ? o.pick(s)._ : o.get(s)._
+        );
+      }
+    },
+    put: {
+      configurable: true,
+      value (o) {
+        return this.loop(
+          _.pipe(
+            d => ({
+              yr:     v => d.setFullYear(v),
+              mo:     v => d.setMonth(v - 1),
+              dt:     v => d.setDate(v),
+              hr:     v => d.setHours(v),
+              min:    v => d.setMinutes(v),
+              sec:    v => d.setSeconds(v),
+              ms:     v => d.setMilliseconds(v),
+              yrUTC:  v => d.setUTCFullYear(v),
+              moUTC:  v => d.setUTCMonth(v - 1),
+              dtUTC:  v => d.setUTCDate(v),
+              hrUTC:  v => d.setUTCHours(v),
+              minUTC: v => d.setUTCMinutes(v),
+              secUTC: v => d.setUTCSeconds(v)
+            }),
+            p => _.entries(o).forEach(([k, v]) => p[k](v))
+          )
+        );
+      }
+    },
+    map: {
+      configurable: true,
+      value (s) {
+        return (...f) => this.put(
+          this.get(s).pipe(
+            ...f,
+            o => s.includes(',')
+            ? o
+            : {[s]: o}
+          )._
+        );
+      }
+    },
+    endOfMo: {
       configurable: true,
       get () {
-        return this.pipe(o => o.getFullYear());
+        return this
+        .put({dt: 1})
+        .map('mo, dt')(
+          ({mo, dt}) => ({mo: mo + 1, dt: dt - 1})
+        );
       }
     },
-    month: {
+    endOfMoUTC: {
       configurable: true,
       get () {
-        return this.pipe(o => o.getMonth() + 1);
-      }
-    },
-    date: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getDate());
-      }
-    },
-    day: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getDay());
-      }
-    },
-    hour: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getHours());
-      }
-    },
-    minute: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getMinutes());
-      }
-    },
-    seconds: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getSeconds());
-      }
-    },
-    millis: {
-      get () {
-        return this.pipe(o => o.getMilliseconds());
-      }
-    },
-    modYear: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setFullYear(f(o.getFullYear())));
-      }
-    },
-    modMonth: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setMonth(f(o.getMonth() + 1) - 1));
-      }
-    },
-    modDate: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setDate(f(o.getDate())));
-      }
-    },
-    modHour: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setHours(f(o.getHours())));
-      }
-    },
-    modMinute: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setMinutes(f(o.getMinutes())));
-      }
-    },
-    modSeconds: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setSeconds(f(o.getSeconds())));
-      }
-    },
-    modMillis: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setMilliseconds(f(o.getMilliseconds())));
-      }
-    },
-    UTCYear: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getUTCFullYear());
-      }
-    },
-    UTCMonth: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getUTCMonth() + 1);
-      }
-    },
-    UTCDate: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getUTCDate());
-      }
-    },
-    UTCDay: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getUTCDay());
-      }
-    },
-    UTCHour: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getUTCHours());
-      }
-    },
-    UTCMinute: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getUTCMinutes());
-      }
-    },
-    UTCSeconds: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getUTCSeconds());
-      }
-    },
-    modUTCYear: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setUTCFullYear(f(o.getUTCFullYear())));
-      }
-    },
-    modUTCMonth: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setUTCMonth(f(o.getUTCMonth() + 1) - 1));
-      }
-    },
-    modUTCDate: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setUTCDate(f(o.getUTCDate())));
-      }
-    },
-    modUTCHour: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setUTCHours(f(o.getUTCHours())));
-      }
-    },
-    modUTCMinute: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setUTCMinutes(f(o.getUTCMinutes())));
-      }
-    },
-    modUTCSeconds: {
-      configurable: true,
-      value (f) {
-        return this.pipe(o => o.setUTCSeconds(f(o.getUTCSeconds())));
+        return this
+        .put({dtUTC: 1})
+        .map('moUTC, dtUTC')(
+          ({moUTC, dtUTC}) => ({moUTC: moUTC + 1, dtUTC: dtUTC - 1})
+        );
       }
     },
     zone: {
       configurable: true,
       get () {
-        return this.pipe(o =>o.getTimezoneOffset());
+        return this.pipe(o => o.getTimezoneOffset());
       }
     },
     raw: {
@@ -1038,29 +994,25 @@
     toObject: {
       configurable: true,
       get () {
-        return _(
-          this
-        )
-        .pipe(
-          ({
-            year, month, date, day, hour, minute, seconds, millis
-          }) => ({
-            year: year._,
-            month: month._,
-            date: date._,
-            day: day._,
-            hour: hour._,
-            minute: minute._,
-            seconds: seconds._,
-            millis: millis._
-          })
-        );
+        return this.get('yr, mo, dt, dy, hr, min, sec, ms');
+      }
+    },
+    toObjectUTC: {
+      configurable: true,
+      get () {
+        return this.get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC');
       }
     },
     toJSON: {
       configurable: true,
       get () {
         return this.toObject.toJSON;
+      }
+    },
+    toJSONUTC: {
+      configurable: true,
+      get () {
+        return this.toObjectUTC.toJSON;
       }
     }
   });
