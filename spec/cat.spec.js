@@ -457,6 +457,14 @@ describe("White Cats", function () {
     }
   );
 
+  it('_().re',
+    () => expect(
+      _(3, 4).re._
+    ).toBe(
+      4
+    )
+  );
+
   it('_()._pipe has Kleisli Triple and function piping',
     () => {
       expect(
@@ -1593,9 +1601,17 @@ describe("White Cats", function () {
 
   it('_([]).replace',
     () => expect(
-      _([1, 2, 3, 4, 5]).replace(2, 4, 3)._
+      _([1, 2, 3, 4, 5]).replace(1, 3, 3)._
     ).toEqual(
-      [1, 2, 3, 4, 5].splice(2, 4, 3)
+      [1, 3, 5]
+    )
+  );
+
+  it('_([]).splice',
+    () => expect(
+      _([1, 2, 3, 4, 5]).splice(1, 3, 3)._
+    ).toEqual(
+      [2, 3, 4]
     )
   );
 

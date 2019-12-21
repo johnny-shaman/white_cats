@@ -232,11 +232,11 @@
         });
       }
     },
-    toJSON: {
+    re: {
       configurable: true,
       get () {
-        return this.pipe(JSON.stringify);
-      }
+        return _(this.$_, this._$, this['@']);
+      }      
     },
     to: {
       configurable: true,
@@ -248,6 +248,12 @@
       configurable: true,
       value () {
         return this;
+      }
+    },
+    toJSON: {
+      configurable: true,
+      get () {
+        return this.pipe(JSON.stringify);
       }
     }
   });
@@ -707,6 +713,12 @@
       }
     },
     replace: {
+      configurable: true,
+      get () {
+        return this.cast('splice');
+      }
+    },
+    splice: {
       configurable: true,
       get () {
         return this.call('splice');

@@ -233,6 +233,13 @@ _(3, 4)._$
 _(null, 4)._$
 // 4
 
+### _().re
+swap starting and ending value
+
+_(3, 4).re
+// it same at _(4, 3)
+
+
 ### _()._pipe
 has Kleisli Triple and function piping
 
@@ -581,7 +588,7 @@ _({
   ms: 0
 }).toDate._
 
-//Data: 2020-1-1 and Local TimeZone's
+//Data: 2020-1-1 that have Local TimeZone
 
 
 ### _().toDateUTC
@@ -596,7 +603,7 @@ _({
   secUTC: 0,
 }).toDateUTC._
 
-//Data: 2020-1-1 and UTC GMT
+//Data: 2020-1-1 that have UTC GMT
 
 
 ### _(constructor).delegate
@@ -685,9 +692,11 @@ const MyCtor = _(function (a, b) {
 
 ### _(function).take([])
 is partial applying and
+what cut to overflow args and run once it
+
 .of means args.push
 .to means args.unshift
-what cut to overflow args and run once it
+
 
 _((...a) => a.reduce((p, c) => p + c))
 .take([,,3,,,])
@@ -734,586 +743,339 @@ _([0, 1, 2, 3, 4, 5, 6, 7, 8]).pick(-1, 2 ,5 ,6)._
 // [2, 5, 6]
 
 ### _([]).drop
+omit at exist values
 
+_([1, 2, 3, 4, 5]).drop(2, 4, 6)._
+// [1, 3, 5]
 
-        _(TA).drop(..._._(0, 19, 2))._
+### _([]).chunk
+rewrap array in partial array
 
-        [1, 3, 5, 7, 9, 11, 13, 15]
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).chunk
-
-
-        _(TA).drop(..._._(0, 19, 2)).chunk(2)._
-
-        [[1, 3], [5, 7], [9, 11], [13, 15]]
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
+_([0, 1, 2, 3, 4, 5]).chunk(2)._
+// [[0, 1], [2, 3], [4, 5]]
 
   ### _([]).unique
+is pick up different values
 
+_([1, 2, 3, 4, 5, 2, 6, 3]).unique._
+// [1, 2, 3, 4, 5, 6]
 
-        _(TA).filter(v => v < 6).concat([..._._(2, 8, 2)]).unique._
+### _([]).union
+is concat other Array and pick up different values
 
-        [0, 1, 2, 3, 4, 5, 6, 8]
-      );
+_([3, 4, 5, 6]).union([0, 1, 2, 3, 4])._
+// [0, 1, 2, 3, 4, 5, 6]
 
+### _([]).put
+is replase other Array;
 
-        TA
+_([3, 4, 5, 6, 7]).put([,,3,4,,,8,9])._
+// [3, 4, 3, 4, 7]
 
-        [..._._(15)]
-      );
-    }
-  );
+### _([]).exist
+is apply Array.prototype.includes
 
-  ### _([]).union
+_([2, 8]).exist(8)._
+// true
 
+_([2, 8]).exist(3)._
+// false
 
-        _(TA).filter(v => v < 6).union([..._._(2, 8, 2)])._
+### _([]).pickKey
+is pick Array in Object can use _({}).pick 's query string
 
-        [0, 1, 2, 3, 4, 5, 6, 8]
-      );
+_([
+  {a: 30, b: 40, c: 50},
+  {a: 31, b: 41, c: 51},
+  {a: 32, b: 42, c: 52},
+  {a: 33, b: 43, c: 53}
+])
+.pickKey('a, c')
+._
 
+/*
+  [
+    {a: 30, c: 50},
+    {a: 31, c: 51},
+    {a: 32, c: 52},
+    {a: 33, c: 53}
+  ]
+*/
 
-        TA
+### _([]).dropKey
+is drop Array in Object can use _({}).drop 's query string
 
-        [..._._(15)]
-      );
-    }
-  );
+  _([
+    {a: 30, b: 40, c: 50},
+    {a: 31, b: 41, c: 51},
+    {a: 32, b: 42, c: 52},
+    {a: 33, b: 43, c: 53}
+  ])
+  .dropKey('a, c')
+  ._
+/*
+  [
+    {b: 40},
+    {b: 41},
+    {b: 42},
+    {b: 43}
+  ]
+*/
 
-  ### _([]).put
+### _([]).pushL
 
+_([1, 2, 3]).pushL(-1, 0)._
+// [-1, 0, 1, 2, 3]
 
-        _([3, 4, 5, 6, 7]).put([,,3,4,,,8,9])._
+### _([]).pushR
 
-        [3, 4, 3, 4, 7]
-      )
+_([1, 2, 3]).pushR(4, 5)._
+// [1, 2, 3, 4, 5]
 
+### _([]).popL
+
+_([1, 2, 3]).popL._
+// 1
+
+### _([]).popR
+
+_([1, 2, 3]).popR._
+// 3
+
+### _([]).omitL
+
+_([1, 2, 3]).omitL._
+// [2, 3]
+
+_([]).omitR
+
+_([1, 2, 3]).omitR._
+// [1, 2]
+
+### _([]).each
+like for ...of iteration
+
+_([1, 2, 3, 4, 5]).each(console.log)._
+
+### _([]).lift
+highly function recieve in this Array
+
+_([1 ,2 ,3 ,4 ,5])
+.lift(
+  a => a
+  .map(v => v + 8)
+  .reduce((p, c) => p + c)
+)._
+// 55
+
+### _([]).fold
+is reduceing to left 
+
+_([1, 3, 5]).fold((p, c) => p - c)._
+// -7
+
+### _([]).foldL
+is reduceing to left 
+
+_([1, 3, 5]).foldL((p, c) => p - c)._
+// -7
+
+### _([]).foldR
+is reduceing to Right
+
+_([1, 3, 5]).foldR((p, c) => p - c)._
+// 1
+
+### _([]).filter
+apply Array.prototype.filter
+
+_([1, 2, 3, 4, 5]).filter(v => v < 4)._
+// [1, 2, 3]
 
-        _([3,,5,,7]).put([7, 8, 9, 10])._
+### _([]).rotate
+is transeform Array vector 
+
+_([
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8, 9]
+])
+.rotate
+._
 
-        [7, undefined, 9, undefined, 7]
-      )
+/*
+  [
+    [1, 4, 7],
+    [2, 5, 8],
+    [3, 6, 9],
+  ]
+*/
 
+### _([]).aMap
+via applicative map
 
-        _(TA).filter(v => v < 6).put([..._._(2, 8, 2)])._
+_([v => v + 5, v => v * 5])
+.aMap([1, 2, 3, 4, 5])
+._
 
-        [2, 4, 6, 8, 4, 5]
-      );
+/*
+  [
+    [6, 7, 8, 9, 10],
+    [5, 10, 15, 20, 25]
+  ]
+*/
 
+_([1, 2, 3, 4, 5])
+.aMap([v => v + 5, v => v * 5])
+._
+/*
+  [
+    [6, 5],
+    [7, 10],
+    [8, 15],
+    [9, 20],
+    [10, 25]
+  ]
+*/
 
-        TA
+### _([]).map
+is map to other Array
 
-        [..._._(15)]
-      );
-    }
-  );
+_([1, 2, 3, 4, 5])
+.map(v => v * 5)
+._
+// [5, 10, 15, 20, 25]
 
-  ### _([]).exist is includes
+### _([]).fMap
+is Array flatMap 
 
+_([1, 2, 3, 4, 5])
+.fMap(v => [v * 5])
+._
+// [5, 10, 15, 20, 25]
 
-        _(TA).exist(8)._
+### _([]).flat
+is Array flatten
 
-        true
-      );
+_([[1, 2], 3, [4, [5]]]).flat(2)._
+// [ 1, 2, 3, 4, 5 ]
 
+### _([]).back
+apply Array .prototype.reverce
+!!!Not Pure!!!
 
-        _(TA).exist(20)._
+_([1, 2, 3, 4, 5]).back._
+// [5, 4, 3, 2, 1]
 
-        false
-      );
+### _([]).adapt
+assign empty place at left
 
+_([ , ,3 , , ,]).adapt(1, 2, 4, 5)._
+// [1, 2, 3, 4, 5]
 
-        TA
+### _([]).adaptL
+assign empty place at left
 
-        [..._._(15)]
-      );
-    }
-  );
+_([ , ,3 , , ,]).adaptL(1, 2, 4, 5)._
+// [1, 2, 3, 4, 5]
 
-  ### _([]).pickKey
+### _([]).adaptR
+assign empty place at right
 
+_([ , ,3 , , ,]).adaptR(1, 2, 4, 5)._
+// [5, 4, 3, 2, 1]
 
-        _([
-          {a: 30, b: 40, c: 50},
-          {a: 31, b: 41, c: 51},
-          {a: 32, b: 42, c: 52},
-          {a: 33, b: 43, c: 53}
-        ])
-        .pickKey('a, c')
-        ._
+### _([]).concat
+marge Array
 
-        [
-          {a: 30, c: 50},
-          {a: 31, c: 51},
-          {a: 32, c: 52},
-          {a: 33, c: 53}
-        ]
-      );
-    }
-  );
+_([1, 2, 3, 4, 5]).concat([6, 7, 8])._
+// [1, 2, 3, 4, 5, 6, 7, 8]
 
-  ### _([]).dropKey
+### _([]).replace
+is Array replacement
+!!!Not Pure!!!
 
+_([1, 2, 3, 4, 5]).replace(2, 2, 6)._
+// [1, 2, 6, 5]
 
-        _([
-          {a: 30, b: 40, c: 50},
-          {a: 31, b: 41, c: 51},
-          {a: 32, b: 42, c: 52},
-          {a: 33, b: 43, c: 53}
-        ])
-        .dropKey('a, c')
-        ._
+### _([]).splice
+call Array.prototype.splice
+!!!Not Pure!!!
 
-        [
-          {b: 40},
-          {b: 41},
-          {b: 42},
-          {b: 43}
-        ]
-      );
-    }
-  );
+_([1, 2, 3, 4, 5]).splice(2, 2, 6)._
+// [3, 4]
 
-  ### _([]).pushL
-    () =>
-      _([1, 2, 3]).pushL(-1, 0)._
+### _([]).slice
+call Array.prototype.slice
 
-      [-1, 0, 1, 2, 3]
-    )
-  );
+_([1, 2, 3, 4, 5]).slice(2, 2)._
+// [3, 4]
 
-  ### _([]).pushR
-    () =>
-      _([1, 2, 3]).pushR(4, 5)._
+### _([]).sort
+apply Array.prototype.sort
 
-      [1, 2, 3, 4, 5]
-    )
-  );
+_([4, 2, 5, 1, 3]).sort()._
+// [1, 2, 3, 4, 5]
 
-  ### _([]).popL
-    () =>
-      _([1, 2, 3]).popL._
+### _([]).indexL
+via indexOf
 
-      1
-    )
-  );
+_([1, 2, 3, 2, 5]).indexL(2)._
+// 1
 
-  ### _([]).popR
-    () =>
-      _([1, 2, 3]).popR._
+### _([]).indexR
+via lastIndexOf
 
-      3
-    )
-  );
+_([1, 2, 3, 2, 5]).indexR(2)._
+// 3
 
-  ### _([]).omitL
-    () =>
-      _([1, 2, 3]).omitL._
+### _([]).any
+via Array.prototype.some
 
-      [2, 3]
-    )
-  );
+_([1, 2, 3, 2, 5]).any(v => v > 4)._
+// true
 
-  ### _([]).omitR
-    () =>
-      _([1, 2, 3]).omitR._
+### _([]).all
+via Array.prototype.every
 
-      [1, 2]
-    )
-  );
+_([1, 2, 3, 2, 5]).all(v => v > 4)._
+// [1, 2, 3, 4, 5].every(v => v > 4)
 
-  ### _([]).each
+### _([]).apply
+spread and apply to function
+_([1, 2, 3]).apply((a, b, c) => (a + b) * c)._
+// 9
 
-      const a = [0]
-      _(TA).each((v, k) => a.push(a[k] + v))._
+### _([]).sum
+add all value
 
+_([1, 2, 3, 4, 5]).sum._
+// 15
 
-        a
+### _([]).pi
+product all value
 
-        [0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105, 120]
-      );
+_([1, 2, 3, 4, 5]).pi._
+// 120
 
+### _([]).average
+get average value
+_([1,1,5,3,8,8,9,10,12,12,13,13,13,14]).average._
+// 8.71...
 
-        TA
+### _([]).max
+get max value
 
-        [..._._(15)]
-      );
-    }
-  );
+_([1,2,3,4,5,3,8,2]).max._
+// 8
 
-  ### _([]).lift
-    () =>
-      _([1,2,3,4,5]).lift(
-        a => a
-        .map(v => v + 8)
-        .reduce((p, c) => p + c)
-      )._
+### _([]).min
+get min value
 
-      55
-    )
-  );
+_([1,2,3,4,-3,3,8,2]).min._
+// -3
 
-  ### _([]).fold
-
-
-        _(TA).fold((p, c) => `${p}, ${c}`)._
-
-        TA.join(', ')
-      );
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).foldL
-
-
-        _(TA).foldL((p, c) => `${p}, ${c}`)._
-
-        TA.join(', ')
-      );
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).foldR
-
-
-        _(TA).foldR((p, c) => `${p}, ${c}`)._
-
-        TA.reverse().join(', ')
-      );
-
-
-        TA.reverse()
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).filter
-
-
-        _(TA).filter(v => v < 8)._
-
-        TA.filter(v => v < 8)
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).rotate
-    () =>
-      _([
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9]
-      ]).rotate._
-
-      [
-        [1, 4, 7],
-        [2, 5, 8],
-        [3, 6, 9],
-      ]
-    )
-  )
-
-  ### _([]).aMap
-
-
-        _([v => v + 5, v => v * 5]).aMap(TA)._
-
-        [TA.map(v => v + 5), TA.map(v => v * 5)]
-      );
-
-
-        _(TA).aMap([v => v + 5, v => v * 5]).rotate._
-
-        [TA.map(v => v + 5), TA.map(v => v * 5)]
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).map
-
-
-        _(TA).map(v => v * 5)._
-
-        TA.map(v => v * 5)
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).fMap
-
-
-        _(TA).fMap(v => [v * 5])._
-
-        TA.flatMap(v => [v * 5])
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).flat
-
-
-        _(TA).map(v => [v * 5]).flat()._
-
-        TA.map(v => [v * 5]).flat()
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).back
-
-
-        _(TA).back._
-
-        TA.reverse()
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).adapt
-
-      const T = [ , ,3 , , ,]
-
-        _(T).adapt(1, 2, 4, 5)._
-
-        [1, 2, 3, 4, 5]
-      );
-
-
-        T
-
-        [ , ,3 , , ,]
-      );
-    }
-  );
-
-  ### _([]).adaptL
-
-      const T = [ , ,3 , , ,]
-
-        _(T).adaptL(1, 2, 4, 5)._
-
-        [1, 2, 3, 4, 5]
-      );
-
-
-        T
-
-        [ , ,3 , , ,]
-      );
-    }
-  );
-
-  ### _([]).adaptR
-
-      const T = [ , ,3 , , ,]
-
-        _(T).adaptR(1, 2, 4, 5)._
-
-        [5, 4, 3, 2, 1]
-      );
-
-
-        T
-
-        [ , ,3 , , ,]
-      );
-    }
-  );
-
-  ### _([]).concat
-
-
-        _(TA).concat([..._._(16, 20)])._
-
-        TA.concat([..._._(16, 20)])
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).replace
-    () =>
-      _([1, 2, 3, 4, 5]).replace(2, 4, 3)._
-
-      [1, 2, 3, 4, 5].splice(2, 4, 3)
-    )
-  );
-
-  ### _([]).slice
-
-
-        _(TA).slice(5, 8)._
-
-        TA.slice(5, 8)
-      );
-
-
-        TA
-
-        [..._._(15)]
-      );
-    }
-  );
-
-  ### _([]).sort
-    () =>
-      _([4, 2, 5, 1, 3]).sort()._
-
-      [1, 2, 3, 4, 5]
-    )
-  );
-
-  ### _([]).indexL
-    () =>
-      _([1, 2, 3, 2, 5]).indexL(2)._
-
-      1
-    )
-  );
-
-  ### _([]).indexR
-    () =>
-      _([1, 2, 3, 2, 5]).indexR(2)._
-
-      3
-    )
-  );
-
-  ### _([]).any
-    () =>
-      _([1, 2, 3, 2, 5]).any(v => v > 4)._
-
-      [1, 2, 3, 4, 5].some(v => v > 4)
-    )
-  );
-
-  ### _([]).all
-    () =>
-      _([1, 2, 3, 2, 5]).all(v => v > 4)._
-
-      [1, 2, 3, 4, 5].every(v => v > 4)
-    )
-  );
-
-  ### _([]).apply
-    () =>
-      _([1, 2, 3]).apply((a, b, c) => (a + b) * c)._
-
-      9
-    )
-  );
-
-  ### _([]).sum
-    () =>
-      _(TA).sum._
-
-      120
-    )
-  );
-
-  ### _([]).pi
-    () =>
-      _([1,2,3,4,5]).pi._
-
-      120
-    )
-  );
-
-  ### _([]).average
-    () =>
-      _(TA).average._
-
-      7.5
-    )
-  );
-
-  ### _([]).max
-    () =>
-      _(TA).max._
-
-      15
-    )
-  );
-
-  ### _([]).min
-    () =>
-      _(TA).min._
-
-      0
-    )
-  );
-
-  ### _([]).mid
+### _([]).mid
 
 
         _(TA).mid._
