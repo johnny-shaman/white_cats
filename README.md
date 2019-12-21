@@ -1206,12 +1206,12 @@ _(new Date(0)).get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC')._
 */
 
 ### _(Date).put
-
+Date Object set value like a Object.assign
 
 _(new Date(0))
 .put({
   yr: 2020,
-  mo: 5,
+  mo: 5, // not Month ID It meen 'May'
   dt: 28,
   hr: 15,
   min: 28,
@@ -1221,130 +1221,117 @@ _(new Date(0))
 .get('yr, mo, dt, dy, hr, min, sec, ms')
 ._
 
-        {
-          yr: 2020,
-          mo: 5,
-          dt: 28,
-          dy: 4,
-          hr: 15,
-          min: 28,
-          sec: 16,
-          ms: 330
-        }
-      );
+/*
+  {
+    yr: 2020,
+    mo: 5,
+    dt: 28,
+    dy: 4,
+    hr: 15,
+    min: 28,
+    sec: 16,
+    ms: 330
+  }
+*/
+
+_(new Date(0))
+.put({
+  yrUTC: 2020,
+  moUTC: 5, // not Month ID It meen 'May'
+  dtUTC: 28,
+  hrUTC: 15,
+  minUTC: 28,
+  secUTC: 16
+})
+.get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC')
+._
+
+/*
+  {
+    yrUTC: 2020,
+    moUTC: 5,
+    dtUTC: 28,
+    dyUTC: 4,
+    hrUTC: 15,
+    minUTC: 28,
+    secUTC: 16,
+  }
+*/
+
+### _(Date).map
+modify Date Object's it works likely Date .get's and set's keys
+
+_(new Date(0))
+.map('min, sec')(
+  ({min, sec}) => ({min: min + 1, sec: sec + 30})
+)
+.get('min, sec')
+._
+
+/*
+  {
+    min: 1,
+    sec: 30
+  }
+*/
+
+_(new Date(0))
+.map(
+  'sec'
+)(
+  s => s + 15
+)
+.get('sec')
+._
+
+// 15
+
+### _(Date).endOfMo
+get the last month of the date
+
+_(new Date(0)).endOfMo.get('mo, dt')._
+/*
+  {
+    mo: 1,
+    dt: 31
+  }
+*/
+
+### _(Date).endOfMoUTC
+get the last month of the date in UTC GMT
+
+_(new Date(0)).endOfMoUTC.get('moUTC, dtUTC')._
+
+/*
+  {
+    moUTC: 1,
+    dtUTC: 31
+  }
+*/
+
+### _(Date).zone
+get TimeZone offset value
+
+_(new Date(0)).zone._
 
 
-        _(new Date(0))
-        .put({
-          yrUTC: 2020,
-          moUTC: 5,
-          dtUTC: 28,
-          hrUTC: 15,
-          minUTC: 28,
-          secUTC: 16
-        })
-        .get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC')
-        ._
+### _(Date).raw
+get raw millisec at UTC 0
 
-        {
-          yrUTC: 2020,
-          moUTC: 5,
-          dtUTC: 28,
-          dyUTC: 4,
-          hrUTC: 15,
-          minUTC: 28,
-          secUTC: 16,
-        }
-      );
-    }
-  );
+_(new Date(0)).raw._
+// 0
 
-  ### _(Date).map
-    () =>{
+### _(Date).ISO
+get ISO String
 
-        _(new Date(0))
-        .map(
-          'min, sec'
-        )(
-          ({min, sec}) => ({min: min + 1, sec: sec + 30})
-        )
-        .get('min, sec')
-        ._
+_(new Date(0)).ISO._
 
-        {
-          min: 1,
-          sec: 30
-        }
-      );
+### _(Date).UTC
+get UTC String
 
+_(new Date(0)).UTC._
+// 0
 
-        _(new Date(0))
-        .map(
-          'sec'
-        )(
-          s => s + 15
-        )
-        .get('sec')
-        ._
-
-        15
-      );
-    }
-  );
-
-  ### _(Date).endOfMo
-    () =>
-      _(new Date(0)).endOfMo.get('mo, dt')._
-
-      {
-        mo: 1,
-        dt: 31
-      }
-    )
-  );
-
-  ### _(Date).endOfMoUTC
-    () =>
-      _(new Date(0)).endOfMoUTC.get('moUTC, dtUTC')._
-
-      {
-        moUTC: 1,
-        dtUTC: 31
-      }
-    )
-  );
-
-  ### _(Date).zone
-    () =>
-      _(new Date(0)).zone._
-
-      new Date(0).getTimezoneOffset()
-    )
-  );
-
-  ### _(Date).raw
-    () =>
-      _(new Date(0)).raw._
-
-      0
-    )
-  );
-
-  ### _(Date).ISO
-    () =>
-      _(new Date(0)).ISO._
-
-      new Date(0).toISOString()
-    )
-  );
-
-  ### _(Date).UTC
-    () =>
-      _(new Date(0)).UTC._
-
-      new Date(0).toUTCString()
-    )
-  );
 
   ### _(Date).toObject
     () =>
