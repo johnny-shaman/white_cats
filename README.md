@@ -1076,270 +1076,150 @@ _([1,2,3,4,-3,3,8,2]).min._
 // -3
 
 ### _([]).mid
-
-
-        _(TA).mid._
-
-        7.5
-      );
-
-
-        _([..._._(14)]).mid._
-
-        7
-      );
-
-
-        _([]).mid._
-      );
-    }
-  );
-
-  ### _([]).less
-    () =>
-      _([ , ,3 ,4 , , ,5 , ,]).less._
-
-      [3, 4, 5]
-    )
-  );
-
-  ### _([]).sure
-    () =>
-      _([ , ,3 ,4 , , ,5 , ,]).sure._
-
-      [undefined ,undefined ,3 ,4 ,undefined ,undefined ,5 ,undefined]
-    )
-  );
-
-  ### _([]).pair
-    () =>
-      _([1, 2, 3, 4, 5]).pair(...'a, b, c, d, e'.spl### , '))._
-
-      {
-        a: 1,
-        b: 2,
-        c: 3,
-        d: 4,
-        e: 5
-      }
-    )
-  );
-
-  ### _([]).to
-    () =>
-      _(TA).to(3, 4, 5)._
-
-      [..._._(15)]
-    )
-  );
-
-  ### _([]).of
-    () =>
-      _(TA).of(3, 4, 5)._
-
-      [..._._(15)]
-    )
-  );
-
-  ### _().fullen
-
-      const emptyAry0 = [,2,3]
-      const emptyAry1 = [1,,3]
-      const emptyAry2 = [1,2,,]
-
-      const nulledAry0 = [null, 2, 3];
-      const nulledAry1 = [1, null, 3];
-      const nulledAry2 = [1, 2, null];
-
-      const voidAry0 = [void 0, 2, 3];
-      const voidAry1 = [1, void 0, 3];
-      const voidAry2 = [1, 2, void 0];
-
-      const nulledObj0 = {a: null, b: 2, c: 3};
-      const nulledObj1 = {a: 1, b: null, c: 3};
-      const nulledObj2 = {a: 1, b: 2, c: null};
-
-      const voidObj0 = {a: void 0, b: 2, c: 3};
-      const voidObj1 = {a: 1, b: void 0, c: 3};
-      const voidObj2 = {a: 1, b: 2, c: void 0};
-
-      const fulfillObj = {a: 0, b: true, c: false};
-      const fulfillAry = [0, true, false];
-
-
-        _(emptyAry0).fullen._
-
-        false
-      );
-
-
-        _(emptyAry1).fullen._
-
-        false
-      );
-
-
-        _(emptyAry2).fullen._
-
-        false
-      );
-
-
-        _(nulledAry0).fullen._
-
-        false
-      );
-
-
-        _(nulledAry1).fullen._
-
-        false
-      );
-
-
-        _(nulledAry2).fullen._
-
-        false
-      );
-
-
-        _(voidAry0).fullen._
-
-        false
-      );
-
-
-        _(voidAry1).fullen._
-
-        false
-      );
-
-
-        _(voidAry2).fullen._
-
-        false
-      );
-
-
-        _(nulledObj0).fullen._
-
-        false
-      );
-
-
-        _(nulledObj1).fullen._
-
-        false
-      );
-
-
-        _(nulledObj2).fullen._
-
-        false
-      );
-
-
-        _(voidObj0).fullen._
-
-        false
-      );
-
-
-        _(voidObj1).fullen._
-
-        false
-      );
-
-
-        _(voidObj2).fullen._
-
-        false
-      );
-
-
-        _(fulfillAry).fullen._
-
-        true
-      );
-
-
-        _(fulfillObj).fullen._
-
-        true
-      );
-    }
-  );
-
-  it("_('').toObject",
-    () =>
-      _({a: 5}).toJSON.toObject._
-
-      {a: 5}
-    )
-  );
-
-  it("_('').toDate",
-    () =>
-      _(new Date(0).toString()).toDate._.toString()
-
-      new Date(0).toString()
-    )
-  );
-
-  ### _(Date).get
-
-
-        _(new Date(0)).get('yr')._
-
-        1970
-      );
-
-
-        _(new Date(0)).get('yr, mo, dt, dy, hr, min, sec, ms')._
-
-        {
-          yr: 1970,
-          mo: 1,
-          dt: 1,
-          dy: 4,
-          hr: Math.trunc(_.zone / 60),
-          min: _.zone % 60,
-          sec: 0,
-          ms: 0
-        }
-      );
-
-
-        _(new Date(0)).get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC')._
-
-        {
-          yrUTC: 1970,
-          moUTC: 1,
-          dtUTC: 1,
-          dyUTC: 4,
-          hrUTC: 0,
-          minUTC: 0,
-          secUTC: 0
-        }
-      );
-    }
-  );
-
-  ### _(Date).put
-    () =>{
-
-        _(new Date(0))
-        .put({
-          yr: 2020,
-          mo: 5,
-          dt: 28,
-          hr: 15,
-          min: 28,
-          sec: 16,
-          ms: 330
-        })
-        .get('yr, mo, dt, dy, hr, min, sec, ms')
-        ._
+get median value
+
+_([3, 4, 2, 7, 6, 5, 1]).mid._
+// 4
+
+### _([]).less
+omit voidly value
+
+_([ , ,3 ,4 , , ,5 , ,]).less._
+
+// [3, 4, 5]
+
+### _([]).sure
+replase from empty to undefined
+
+_([ , ,3 ,4 , , ,5 , ,]).sure._
+// [undefined ,undefined ,3 ,4 ,undefined ,undefined ,5 ,undefined]
+
+### _([]).pair
+from Array to Object
+
+_([1, 2, 3, 4, 5]).pair(...'a, b, c, d, e'))._
+/*
+  {
+    a: 1,
+    b: 2,
+    c: 3,
+    d: 4,
+    e: 5
+  }
+*/
+
+### _().fullen
+not exist voidly value
+
+// *** false ***
+_([,2,3]).fullen._
+_([1,,3]).fullen._
+_([1,2,,]).fullen._
+_([null, 2, 3]).fullen._
+_([1, null, 3]).fullen._
+_([1, 2, null]).fullen._
+_([void 0, 2, 3]).fullen._
+_([1, void 0, 3]).fullen._
+_([1, 2, void 0]).fullen._
+_({a: null, b: 2, c: 3}).fullen._
+_({a: 1, b: null, c: 3}).fullen._
+_({a: 1, b: 2, c: null}).fullen._
+_({a: void 0, b: 2, c: 3}).fullen._
+_({a: 1, b: void 0, c: 3}).fullen._
+_({a: 1, b: 2, c: void 0}).fullen._
+
+// *** true ***
+_({a: 0, b: true, c: false}).fullen._
+_([0, true, false]).fullen._
+
+### _('').toObject
+apply JSON.parse
+
+_('{"a": 5}').toObject._
+// {a: 5}
+
+_('').toDate
+date string parse to Date Object
+
+_("2000-01-01T00:00:00.000Z").toDate._.getDate()
+// 1
+
+_('{"yr": 2000, "mo": 1, "dt": 1}').toDate._.getDate()
+// 1
+​
+### _(Date).get
+is get whitch 
+
+Get LocalTimeZone
+'yr':   fullYear
+'mo':   month (not month ID)
+'dt':   date
+'dy':   day of the week ID
+'hr':   hour
+'min':  minute
+'sec':  secounds
+'ms':   msec
+
+Get UTC
+'yrUTC':  fullYear
+'moUTC':  month (not month ID)
+'dtUTC':  date
+'dyUTC':  day of the week ID
+'hrUTC':  hour
+'minUTC': minute
+'secUTC': secounds
+'msUTC':  msec
+
+if single kind return value
+_(new Date(0)).get('yr')._
+// 1970
+
+if multi kind return Object
+_(new Date(0)).get('yr, mo, dt, dy, hr, min, sec, ms')._
+
+/*
+  {
+    yr: 1970,
+    mo: 1,
+    dt: 1,
+    dy: 4,
+    hr: Math.trunc(_.zone / 60),
+    min: _.zone % 60,
+    sec: 0,
+    ms: 0
+  }
+*/
+
+get UTC
+_(new Date(0)).get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC')._
+
+/*
+  {
+    yrUTC: 1970,
+    moUTC: 1,
+    dtUTC: 1,
+    dyUTC: 4,
+    hrUTC: 0,
+    minUTC: 0,
+    secUTC: 0
+  }
+*/
+
+### _(Date).put
+
+
+_(new Date(0))
+.put({
+  yr: 2020,
+  mo: 5,
+  dt: 28,
+  hr: 15,
+  min: 28,
+  sec: 16,
+  ms: 330
+})
+.get('yr, mo, dt, dy, hr, min, sec, ms')
+._
 
         {
           yr: 2020,
