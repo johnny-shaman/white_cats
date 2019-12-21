@@ -39,7 +39,7 @@
     ),
     version: '0.0.1',
     id: v => v,
-    pipe: (...m) => m.reduceRight((f, g, k) => (...v) => {
+    pipe: (...m) => m.reduceRight((f, g) => (...v) => {
       try {
         return v[0] == null ? undefined : (v.unshift(g(...v)), f(...v));
       } catch (e) {
@@ -48,7 +48,7 @@
         return v;
       }
     }, _.id),
-    loop: (...m) => m.reduceRight((f, g, k) => (...v) => {
+    loop: (...m) => m.reduceRight((f, g) => (...v) => {
       try {
         return v[0] == null ? undefined : (v.push(g(...v)), f(...v));
       } catch (e) {
@@ -99,7 +99,7 @@
       yield a > b ? b : a;
     },
     async: f => new Promise(f),
-    asyncAll: (...a) => Promise.all(a.map(o => typeof o === 'function' ? _.async(o) : o)),
+    asyncAll: (...a) => Promise.all(a),
     give: o => p => (_.entries(o).reduce(
       (q, [k, v]) => _.isObject(v) && _.isObject(q[k]) ? (_.give(v)(q[k]), q) : _.put(q, {[k]: v}), p
     ), p),
@@ -873,14 +873,14 @@
     },
     toDateUTC: {
       get () {
-        return this.pipe(s => _(JSON.parse(s)).toDateUTC._)
+        return this.pipe(s => _(JSON.parse(s)).toDateUTC._);
       }
     }
   });
 
   Object.assign(_, {
     zone : _(new Date(0)).pipe(d => d.getHours() * 60 + d.getMinutes())._
-  })
+  });
 
   _.put(_['#'], {Date: _.upto(_['#'].Object)});
   _.defines(_['#'].Date, {

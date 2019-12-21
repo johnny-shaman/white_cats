@@ -72,21 +72,17 @@ describe("White Cats", function () {
 
   it('_.pipe',
     () => {
+      const f = v => v * 2,
+            g = v => v + 5,
+            h = v => v * 10;
+      
       expect(
-        _.pipe(
-          v => v * 2,
-          v => v + 5,
-          v => v * 10
-        )(5)
+        _.pipe(f, g, h)(5)
       )
       .toBe( 150 );
 
       expect(
-        _.pipe(
-          v => v * 2,
-          v => v + 5,
-          v => v * 10
-        )()
+        _.pipe(f, g, h)()
       )
       .toBe();
 
@@ -94,7 +90,7 @@ describe("White Cats", function () {
         _.pipe(
           v => v * 2,
           v => ({}).push(v),
-          v => v * 10
+          h
         )(1)[0]
       )
       .toBe(2);
@@ -103,30 +99,26 @@ describe("White Cats", function () {
 
   it('_.loop',
     () => {
+      const f = o => o.ad( 5 ),
+            g = o => o.mt( 2 ),
+            h = o => o.ad( 3 );
+
       expect(
-        _.loop(
-          o => o.ad( 5 ),
-          o => o.mt( 2 ),
-          o => o.ad( 3 )
-        )( O(3, 5, 7) )
+        _.loop(f, g, h)( O(3, 5, 7) )
         .c
       ).toBe(
         4387
       );
 
       expect(
-        _.loop(
-          o => o.ad( 5 ),
-          o => o.mt( 2 ),
-          o => o.ad( 3 )
-        )()
+        _.loop(f, g, h)()
       ).toBe();
 
       expect(
         _.loop(
-          o => o.ad( 5 ),
+          f,
           o => ({}).push(o),
-          o => o.ad( 3 )
+          h
         )( O(3, 5, 7) ).c
       ).toBe( 20 );
     }
@@ -417,8 +409,8 @@ describe("White Cats", function () {
 
   it('_.asyncAll',
     () => _.asyncAll(
-      r => r(3),
-      4,
+      _.async(r => r(3)),
+      _.async(r => r(4)),
       _.async(r => r(5))
     )
     .then(
