@@ -17,7 +17,7 @@ and...
 
 ### browser
 ```html
-<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.0/cat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.2/cat.js"></script>
 ```
 
 ## contents:
@@ -199,16 +199,6 @@ change empty to undefined
 ```javascript
 _.sure([ , , ,0 , 3, 4, 5])
 // [undefined, undefined, undefined, 0, 3, 4, 5]
-```
-
-### _.exist
-is Array.prototype.includes
-
-```javascript
-_.exist([1, 2, 3])(1)
-// true
-_.exist([1, 2, 3])(4)
-// false
 ```
 
 ### _.by
@@ -659,7 +649,7 @@ _({
     }
   }
 })
-.pick('a, b[c, d[e, g.k], g[j, k]]') // parse to  'a, b.c, b.d.e, b.d.g.k, g.j, g.k'
+.drop('a, b[c, d[e, g.k], g[j, k]]') // parse to  'a, b.c, b.d.e, b.d.g.k, g.j, g.k'
 ._
 
 /*
@@ -678,7 +668,7 @@ _({
 */
 ```
 
-### _().keys
+### _({}).keys
 get's Object.keys
 
 ```javascript
@@ -686,7 +676,7 @@ _({a: 5, b: 6}).keys._
 // ['a', 'b']
 ```
 
-### _().vals
+### _({}).vals
 get's Object.values
 
 ```javascript
@@ -694,7 +684,7 @@ _({a: 5, b: 6}).vals._
 // [5, 6]
 ```
 
-### _().entries
+### _({}).entries
 get's Object.entries
 
 ```javascript
@@ -702,7 +692,7 @@ _({a: 5, b: 6}).entries._
 // [['a', 5], ['b', 6]]
 ```
 
-### _().toDate
+### _({}).toDate
 process from Date structure to Date Object
 
 ```javascript
@@ -719,7 +709,7 @@ _({
 //Data: 2020-1-1 that have Local TimeZone
 ```
 
-### _().toDateUTC
+### _({}).toDateUTC
 process from DateUTC structure to Date Object
 
 ```javascript
@@ -878,6 +868,14 @@ pick of same key value
 ```javascript
 _([0, 1, 2, 3, 4, 5]).equaly([1, 1, 2, 3, 5, 8])._
 // [1, 2, 3]
+```
+
+### _([]).toggle
+exist value remove and unexist value add
+
+```javascript
+_([0, 1, 2, 3, 4, 5]).toggle(1, 3, 5, 8)._
+// [0, 2, 4, 8]
 ```
 
 ### _([]).pick
