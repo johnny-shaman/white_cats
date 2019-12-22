@@ -21,22 +21,27 @@ and...
 ## contents:
 
 ### id
+
+```javascript
 _.id(57)
 // 57
+```
 
 ###  _.pipe
 is function pipe runner
 
+```javascript
 _.pipe(
   v => v * 2,
   v => v + 5,
   v => v * 10
 )(5)
 // 150
-
+```
 ### _.loop
 watch out on argument's first
 
+```javascript
 _.loop(
   a => a.forEach(v => v),
   a => a.forEach(v => v)
@@ -44,65 +49,81 @@ _.loop(
   [3, 5, 7]
 )
 // [3, 5, 7]
+```
 
 ###  _.upto(prototype, descriptor)
 is Object.create
 
+```javascript
 (() =>  {
   const target = _.upto(Object.freeze({a: true, b: false}), {c: {value: false}});
   target.c === false
 })()
+```
 
 ### _.put(base, assign)
 is Object.assign
 
+```javascript
 () => {
   const target = {a: 5, b: 3};
   _.put(target, {c: 1, d: 2});
   target.c === 1;
   target.d === 2;
 }
+```
 
 ###  _.define(base, 'key', description)
 is Object.defineProperty
 
+```javascript
 () => {
   const target = {a: 5, b: 3};
   _.defines(target, 'c', {value: 1});
   target.c === 1;
 }
+```
 
 ###  _.defines(base, descriptions)
 is Object.defineProperties
 
+```javascript
 () => {
   const target = {a: 5, b: 3};
   _.defines(target, {c: {value: 1}, d: {value: 2}});
   target.c === 1;
   target.d === 2;
 }
+```
 
 ### _.keys
 is Object.keys
 
+```javascript
 _.keys({a: 5, b: 6})
 // ['a', 'b']
+```
 
 ### _.vals
 is Object.values
 
-_.keys({a: 5, b: 6})
+```javascript
+_.vals({a: 5, b: 6})
 // [5, 6]
+```
 
 ### _.entries
 is Object.entries
 
-_.keys({a: 5, b: 6})
+```javascript
+_.entries({a: 5, b: 6})
 // [['a', 5], ['b', 6]]
+```
 
 ### _.equal
 is Object.is
 
+```javascript
 (() => {
   _.equal('foo', 'foo');     // true
   _.equal('foo', 'bar');     // false
@@ -119,69 +140,107 @@ is Object.is
   _.equal(-0, -0);           // true
   _.equal(NaN, 0/0);         // true
 })()
+```
 
 ### _.owns
 _.owns(target)
-// sameOf
+
+```javascript
+// same of
 Object.getOwnPropertyNames(target).concat(Object.getOwnPropertySymbols(target))
+```
 
 ### _.descpipting
 is Object.getOwnPropertyDescriptors
+
+```javascript
 _.descripting({
   a: 5,
   b: 6
 })
+```
 
 ### _.adapt
+assign arguments value in empty to left
+
+```javascript
 _.adapt(1, 2, 5)([,,3,4,,6])
 // [1, 2, 3, 4, 5, 6]
+```
 
 ### _.adaptL
+assign arguments value in empty to left
+
+```javascript
 _.adaptL(1, 2, 5)([,,3,4,,6])
 // [1, 2, 3, 4, 5, 6]
+```
 
 ### _.adaptR
+assign arguments value in empty to Right
+
+```javascript
 _.adaptR(1, 2, 5)([,,3,4,,6])
 // [5, 2, 3, 4, 1, 6]
+```
 
 ### _.less
+omit voidly value
+```javascript
 _.less([,,null ,undefined ,3 ,4 ,5,,])
 // [3, 4, 5]
+```
 
 ### _.sure
 change empty to undefined
 
+```javascript
 _.sure([ , , ,0 , 3, 4, 5])
 // [undefined, undefined, undefined, 0, 3, 4, 5]
+```
 
 ### _.exist
 is Array.prototype.includes
 
+```javascript
 _.exist([1, 2, 3])(1)
 // true
 _.exist([1, 2, 3])(4)
 // false
+```
 
 ### _.by
+get's constructor
+
+```javascript
 _.by([])
 // Array
-
+```
 
 ### _.isObject
+
+```javascript
+// true
 _.isObject({});
 _.isObject([]);
-// true
-_.isObject(8);
+
 // false
+_.isObject(8);
+```
 
 ### _.isArray
-_.isArray([])
-// true
 
-_.isArray({})
+```javascript
+// true
+_.isArray([])
+
 // false
+_.isArray({})
+```
 
 ### _._(start, end, step)
+
+```javascript
 [..._._(0, 8, 2)]
 // [0, 2, 4, 6, 8]
 
@@ -190,39 +249,47 @@ _.isArray({})
 
 [..._._(5)]
 // [0, 1, 2, 3, 4, 5]
+```
 
 ### _.async(resolver)
 create Promise
 
+```javascript
 async () => await _.async(
   r => setTimeout(t => r('done'), 3000)
 )();
 // 3sec after return 'done'
+```
 
 ### _.asyncAll
 is Promise.all
 
+```javascript
 async () => await _.asyncAll(
-      r => r(3),
-      4,
+      _.async(r => r(3)),
+      _.async(r => r(4)),
       _.async(
         r => setTimeout(t => r('done'), 3000)
       )
     )
 // 3sec after return [3, 4, 5]
+```
 
 ### _().$_
 return right first
 
+```javascript
 _(3).$_
 // 3
 
 _(3, 4).$_
 // 4
+```
 
 ### _()._$
 return left first
 
+```javascript
 _(3)._$
 // 3
 
@@ -231,17 +298,20 @@ _(3, 4)._$
 
 _(null, 4)._$
 // 4
+```
 
 ### _().re
 swap starting and ending value
 
+```javascript
 _(3, 4).re
 // it same at _(4, 3)
-
+```
 
 ### _()._pipe
 has Kleisli Triple and function piping
 
+```javascript
 // left Identity
 _({a: 5})._pipe(o => _({a: o.a * 3}))._
 (o => _({a: o.a * 3}))({a: 5})._
@@ -253,10 +323,12 @@ _({a: 5})._pipe(_)._pipe(_)._
 // Associativity
 _({a: 5})._pipe(o => _({a: o.a * 3}))._pipe(o => _({a: o.a + 5}))._
 _({a: 5})._pipe(o => _({a: o.a * 3})._pipe(o => _({a: o.a + 5})))._
+```
 
 ### _().pipe
 function's pipeline runner
 
+```javascript
 _({a: 5})
 .pipe(
   o => ({a: o.a * 3}),
@@ -264,10 +336,12 @@ _({a: 5})
 )
 ._.a
 // 20
+```
 
 ### _().loop
 is watch out on argument's first
 
+```javascript
 _([3, 4, 5])
 .loop(
   o => o.unshift(2, 3),
@@ -276,28 +350,35 @@ _([3, 4, 5])
 )
 ._
 // [2, 3. 3, 4, 5, 2, 3]
+```
 
 ### _().call
 is Object's method caller in call(self) and return result
 
+```javascript
 _([3, 4, 5]).call('push')(5, 6)._
 // 5
+```
 
 ### _().s_r
 is Object's method caller in call(self) and callback recieve result and return self
 
+```javascript
 _([3, 4, 5]).s_r('push')(5, 6)(v => v === 5)._
 // [3, 4, 5, 5, 6]
-
+```
 ### _().cast
 is Object's method caller in call(self) and return self
 
+```javascript
 _([3, 4, 5]).call('push')(5, 6)._
 // [3, 4, 5, 5, 6]
+```
 
 ### _().Been
 is Chaining method calling in the way to take a Object
 
+```javascript
 _([3, 5, 7])
 .Been
 [0](7)((v, w) => w)       // rewrite
@@ -308,15 +389,19 @@ _([3, 5, 7])
 .To
 ._
 // [7, 5, 12, 5, 6, 4, 3]
+```
 
 ### _().toJSON
 is JSON.stringify
 
+```javascript
 _({a: 5, b: 6}).toJSON._ === JSON.stringify({a: 5, b: 6})
+```
 
 ### _(async).then
 is pipe runner on promise
 
+```javascript
 _(_.async(r => r([3, 5, 7]))).then(
     a => _.async(r => r(a, a.push(11))),
     a => (a.push(13), a),
@@ -325,10 +410,12 @@ _(_.async(r => r([3, 5, 7]))).then(
     console.log    // output : [3, 5, 7, 11, 13, 17, 19]
   )
 )._
+```
 
 ### _(function*).take
 is take generator's valuelist
 
+```javascript
 _((function* (x) {
   while (true) {
     yield x++;
@@ -337,18 +424,22 @@ _((function* (x) {
 .take(5)
 ._
 //[0, 1, 2, 3, 4]
+```
 
 ### _({}).filter
 is Object.filter
 
+```javascript
 _({a: 5, b: 4, c: 3, d: 2, e : 1})
 .filter(v => v < 4)
 ._
 // {c: 3, d: 2, e : 1}
+```
 
 ### _({}).each
 is Object.entries.forEach
 
+```javascript
 _({
   req: undefined,
   res: undefined,
@@ -362,62 +453,76 @@ _({
 .each(
   (k, v) => emitter.on(k, v)
 )
+```
 
 ### _({}).map
 is Object.map
 
+```javascript
 _({a: 5, b: 4, c: 6}).map((v, k) => k + v)._
 // {a: 'a5', b: 'b4', c: 'c6'}
+```
 
 ### _({}).get
 is getter about Object
 
+```javascript
 _({a: 3, b: {c: 4, d: {e: 6}}}).get('b.d.e')._
 // 6
 
 _({a: 3, b: {c: 4, d: {e: 6}}}).get('b.e.f')._
 // undefined
+```
 
 ### _({}).set
 is setter about Object
 
+```javascript
 _({a: 3, b: {c: 4, d: {e: 6}}}).set('b.d.e')(3)._
 // {a: 3, b: {c: 4, d: {e: 3}}}
 
 _({a: 3, b: {c: 4, d: {e: 6}}}).set('b.c.f')(3)._
 // {a: 3, b: {c: {f: 3}, d: {e: 6}}}
+```
 
 ### _({}).put
 is Object.assign
 
+```javascript
 _({a: 3, b: {c: 4, d: {e: 6}}}).get('b.d').put({f: 7}).$_
 // {a: 3, b: {c: 4, d: {e: 6, f: 7}}}
+```
 
 ### _({}).cut
 is delete property
 
+```javascript
 _({a: 3, b: {c: 4, d: {e: 6}}}).cut('b.d')._
 // {a: 3, b: {c: 4}}
 
-
 _({a: 3, b: {c: 4, d: {e: 6}}}).cut('b.e')._
 // {a: 3, b: {c: 4, d: {e: 6}}}
+```
 
 ### _({}).mend
 is property modifier
 
+```javascript
 _({a: 3, b: {c: 4, d: {e: 6}}}).mend('b.d.e')(v => v * 3)._
 // {a: 3, b: {c: 4, d: {e: 18}}}
+```
 
 ### _({}).modify
 is modify property and get's more argument
 
+```javascript
 _({a: 3, b: {c: 4, d: {e: 6}}})
 .modify('b.d.e')(4, 5, 6)(
   (v, w, x, y) => (v - w) * x + y
 )
 ._
 // {a: 3, b: {c: 4, d: {e: 16}}}
+```
 
 ### _({}).give
 is deepAssigning Object more safely about Object.assign
@@ -426,6 +531,7 @@ is deepAssigning Object more safely about Object.assign
 give is take of the first argument Object
 normaly use _({}).take
 
+```javascript
 _({a: 3, b: {c: 4, d: {e: 6}}})
 .give(
   {a: 4, b: {d: {f: 8}, g: {h: 9, i: 10}}},
@@ -443,10 +549,12 @@ _({a: 3, b: {c: 4, d: {e: 6}}})
     }, a : 3
   }
 */
+```
 
 ### _({}).take
 is deepAssigning Object more safely about Object.assign
 
+```javascript
 _({a: 3, b: {c: 4, d: {e: 6}}})
 .take(
   {a: 4, b: {d: {f: 8}, g: {h: 9, i: 10}}},
@@ -469,31 +577,39 @@ _({a: 3, b: {c: 4, d: {e: 6}}})
     }
   }
 */
+```
 
 ### _({}).define
 is Object.defineProperties applying
 
+```javascript
 (() => {
   const target = {a: 5, b: 3};
   _(target).define({c: {value: 1}, d: {value: 2}})._;
   // target like {a: 5, b: 3, c: 1, d: 2}
 })
+```
 
 ### _({}).append
 is promoting prototype that Object.create
 
+```javascript
 _(Object.prototype).append({c: {value: false}})._;
 // {c: false}
+```
 
 ### _({}).depend
 is depending prototype that Object.create
 
+```javascript
 _({c: {value: false}}).depend(Object.prototype)._;
 // {c: false}
+```
 
 ### _({}).pick
 Object's deepPicker that distinate Query String
 
+```javascript
 _({
   a: 4, b: {
     c: 4, d: {
@@ -523,10 +639,12 @@ _({
     }
   }
 */
+```
 
 ### _({}).drop
 Object's deepDropper that distinate Query String
 
+```javascript
 _({
   a: 4, b: {
     c: 4, d: {
@@ -541,6 +659,7 @@ _({
 })
 .pick('a, b[c, d[e, g.k], g[j, k]]') // parse to  'a, b.c, b.d.e, b.d.g.k, g.j, g.k'
 ._
+
 /*
   {
     b: {
@@ -555,28 +674,36 @@ _({
     }
   }
 */
+```
 
 ### _().keys
 get's Object.keys
 
+```javascript
 _({a: 5, b: 6}).keys._
 // ['a', 'b']
+```
 
 ### _().vals
 get's Object.values
 
+```javascript
 _({a: 5, b: 6}).vals._
 // [5, 6]
+```
 
 ### _().entries
 get's Object.entries
 
+```javascript
 _({a: 5, b: 6}).entries._
 // [['a', 5], ['b', 6]]
+```
 
 ### _().toDate
 process from Date structure to Date Object
 
+```javascript
 _({
   yr: 2020,
   mo: 1,
@@ -588,11 +715,12 @@ _({
 }).toDate._
 
 //Data: 2020-1-1 that have Local TimeZone
-
+```
 
 ### _().toDateUTC
 process from DateUTC structure to Date Object
 
+```javascript
 _({
   yrUTC: 2020,
   moUTC: 1,
@@ -603,11 +731,12 @@ _({
 }).toDateUTC._
 
 //Data: 2020-1-1 that have UTC GMT
-
+```
 
 ### _(constructor).delegate
 constructor function's inheritance Other One's
 
+```javascript
 const MyEmitter = _(function (a, b) {
   events.EventEmitter.call(this)
   this.a = a;
@@ -623,10 +752,12 @@ const MyImage = _(function (src, alt) {
 })
 .delegate(Image)
 ._
+```
 
 ### _(constructor).prepends
 assign methods in this constructor
 
+```javascript
 const MyCtor = _(function (a, b) {
   this.a = a;
   this.b = b;
@@ -647,10 +778,12 @@ const MyCtor = _(function (a, b) {
   }
 })
 ._
+```
 
 ### _(constructor).implements
 define methods in this constructor
 
+```javascript
 const MyCtor = _(function (a, b) {
   this['@a'] = a;
   this['@b'] = b;
@@ -688,6 +821,7 @@ const MyCtor = _(function (a, b) {
   }
 })
 ._
+```
 
 ### _(function).take([])
 is partial applying and
@@ -697,6 +831,7 @@ what cut to overflow args and run once it
 .to means args.unshift
 
 
+```javascript
 _((...a) => a.reduce((p, c) => p + c))
 .take([,,3,,,])
 .to(1, 2)
@@ -705,15 +840,19 @@ _((...a) => a.reduce((p, c) => p + c))
 .of(2, 3)
 ._
 // 15
+```
 
 ### _(function).each
 is applying each value
 
+```javascript
 _(v => v * 3).each(3, 5, 7)._
 // [9, 15, 21]
+```
 
 ### _(function).done is manageing onto delaying and forceing or applying
 
+```javascript
 _(v => v * 5)
 .done(3) // apply it
 .done(4) // no action
@@ -721,68 +860,87 @@ _(v => v * 5)
 ._
 
 // 15
+```
 
 ### _([]).liken
 to likely value array 
 
+```javascript
 _([0, 1, 2, 3, 4, 5]).liken([1, 100, 2, 200, 3, 300])._
 // [1, 2, 3]
-
+```
 
 ### _([]).equaly
 pick of same key value
 
+```javascript
 _([0, 1, 2, 3, 4, 5]).equaly([1, 1, 2, 3, 5, 8])._
 // [1, 2, 3]
+```
 
 ### _([]).pick
 pick up exist values
 
+```javascript
 _([0, 1, 2, 3, 4, 5, 6, 7, 8]).pick(-1, 2 ,5 ,6)._
 // [2, 5, 6]
+```
 
 ### _([]).drop
 omit at exist values
 
+```javascript
 _([1, 2, 3, 4, 5]).drop(2, 4, 6)._
 // [1, 3, 5]
+```
 
 ### _([]).chunk
 rewrap array in partial array
 
+```javascript
 _([0, 1, 2, 3, 4, 5]).chunk(2)._
 // [[0, 1], [2, 3], [4, 5]]
+```
 
   ### _([]).unique
 is pick up different values
 
+```javascript
 _([1, 2, 3, 4, 5, 2, 6, 3]).unique._
 // [1, 2, 3, 4, 5, 6]
+```
 
 ### _([]).union
 is concat other Array and pick up different values
 
+```javascript
 _([3, 4, 5, 6]).union([0, 1, 2, 3, 4])._
 // [0, 1, 2, 3, 4, 5, 6]
+```
 
 ### _([]).put
 is replase other Array;
 
+```javascript
 _([3, 4, 5, 6, 7]).put([,,3,4,,,8,9])._
 // [3, 4, 3, 4, 7]
+```
 
 ### _([]).exist
 is apply Array.prototype.includes
 
+```javascript
 _([2, 8]).exist(8)._
 // true
 
 _([2, 8]).exist(3)._
 // false
+```
 
 ### _([]).pickKey
 is pick Array in Object can use _({}).pick 's query string
 
+```javascript
 _([
   {a: 30, b: 40, c: 50},
   {a: 31, b: 41, c: 51},
@@ -800,18 +958,20 @@ _([
     {a: 33, c: 53}
   ]
 */
+```
 
 ### _([]).dropKey
 is drop Array in Object can use _({}).drop 's query string
 
-  _([
-    {a: 30, b: 40, c: 50},
-    {a: 31, b: 41, c: 51},
-    {a: 32, b: 42, c: 52},
-    {a: 33, b: 43, c: 53}
-  ])
-  .dropKey('a, c')
-  ._
+```javascript
+_([
+  {a: 30, b: 40, c: 50},
+  {a: 31, b: 41, c: 51},
+  {a: 32, b: 42, c: 52},
+  {a: 33, b: 43, c: 53}
+])
+.dropKey('a, c')
+._
 /*
   [
     {b: 40},
@@ -820,45 +980,61 @@ is drop Array in Object can use _({}).drop 's query string
     {b: 43}
   ]
 */
+```
 
 ### _([]).pushL
 
+```javascript
 _([1, 2, 3]).pushL(-1, 0)._
 // [-1, 0, 1, 2, 3]
+```
 
 ### _([]).pushR
 
+```javascript
 _([1, 2, 3]).pushR(4, 5)._
 // [1, 2, 3, 4, 5]
+```
 
 ### _([]).popL
 
+```javascript
 _([1, 2, 3]).popL._
 // 1
+```
 
 ### _([]).popR
 
+```javascript
 _([1, 2, 3]).popR._
 // 3
+```
 
 ### _([]).omitL
 
+```javascript
 _([1, 2, 3]).omitL._
 // [2, 3]
+```
 
 _([]).omitR
 
+```javascript
 _([1, 2, 3]).omitR._
 // [1, 2]
+```
 
 ### _([]).each
 like for ...of iteration
 
+```javascript
 _([1, 2, 3, 4, 5]).each(console.log)._
+```
 
 ### _([]).lift
 highly function recieve in this Array
 
+```javascript
 _([1 ,2 ,3 ,4 ,5])
 .lift(
   a => a
@@ -866,34 +1042,44 @@ _([1 ,2 ,3 ,4 ,5])
   .reduce((p, c) => p + c)
 )._
 // 55
+```
 
 ### _([]).fold
 is reduceing to left 
 
+```javascript
 _([1, 3, 5]).fold((p, c) => p - c)._
 // -7
+```
 
 ### _([]).foldL
 is reduceing to left 
 
+```javascript
 _([1, 3, 5]).foldL((p, c) => p - c)._
 // -7
+```
 
 ### _([]).foldR
 is reduceing to Right
 
+```javascript
 _([1, 3, 5]).foldR((p, c) => p - c)._
 // 1
+```
 
 ### _([]).filter
 apply Array.prototype.filter
 
+```javascript
 _([1, 2, 3, 4, 5]).filter(v => v < 4)._
 // [1, 2, 3]
+```
 
 ### _([]).rotate
 is transeform Array vector 
 
+```javascript
 _([
   [1, 2, 3],
   [4, 5, 6],
@@ -909,10 +1095,12 @@ _([
     [3, 6, 9],
   ]
 */
+```
 
 ### _([]).aMap
 via applicative map
 
+```javascript
 _([v => v + 5, v => v * 5])
 .aMap([1, 2, 3, 4, 5])
 ._
@@ -936,166 +1124,219 @@ _([1, 2, 3, 4, 5])
     [10, 25]
   ]
 */
+```
 
 ### _([]).map
 is map to other Array
 
+```javascript
 _([1, 2, 3, 4, 5])
 .map(v => v * 5)
 ._
 // [5, 10, 15, 20, 25]
+```
 
 ### _([]).fMap
 is Array flatMap 
 
+```javascript
 _([1, 2, 3, 4, 5])
 .fMap(v => [v * 5])
 ._
 // [5, 10, 15, 20, 25]
+```
 
 ### _([]).flat
 is Array flatten
 
+```javascript
 _([[1, 2], 3, [4, [5]]]).flat(2)._
 // [ 1, 2, 3, 4, 5 ]
+```
 
 ### _([]).back
 apply Array .prototype.reverce
 !!!Not Pure!!!
 
+```javascript
 _([1, 2, 3, 4, 5]).back._
 // [5, 4, 3, 2, 1]
+```
 
 ### _([]).adapt
 assign empty place at left
 
+```javascript
 _([ , ,3 , , ,]).adapt(1, 2, 4, 5)._
 // [1, 2, 3, 4, 5]
+```
 
 ### _([]).adaptL
 assign empty place at left
 
+```javascript
 _([ , ,3 , , ,]).adaptL(1, 2, 4, 5)._
 // [1, 2, 3, 4, 5]
+```
 
 ### _([]).adaptR
 assign empty place at right
 
+```javascript
 _([ , ,3 , , ,]).adaptR(1, 2, 4, 5)._
 // [5, 4, 3, 2, 1]
+```
 
 ### _([]).concat
 marge Array
 
+```javascript
 _([1, 2, 3, 4, 5]).concat([6, 7, 8])._
 // [1, 2, 3, 4, 5, 6, 7, 8]
+```
 
 ### _([]).replace
 is Array replacement
 !!!Not Pure!!!
 
+```javascript
 _([1, 2, 3, 4, 5]).replace(2, 2, 6)._
 // [1, 2, 6, 5]
+```
 
 ### _([]).splice
 call Array.prototype.splice
 !!!Not Pure!!!
 
+```javascript
 _([1, 2, 3, 4, 5]).splice(2, 2, 6)._
 // [3, 4]
+```
 
 ### _([]).slice
 call Array.prototype.slice
 
+```javascript
 _([1, 2, 3, 4, 5]).slice(2, 2)._
 // [3, 4]
+```
 
 ### _([]).sort
 apply Array.prototype.sort
 
+```javascript
 _([4, 2, 5, 1, 3]).sort()._
 // [1, 2, 3, 4, 5]
+```
 
 ### _([]).indexL
 via indexOf
 
+```javascript
 _([1, 2, 3, 2, 5]).indexL(2)._
 // 1
+```
 
 ### _([]).indexR
 via lastIndexOf
 
+```javascript
 _([1, 2, 3, 2, 5]).indexR(2)._
 // 3
+```
 
 ### _([]).any
 via Array.prototype.some
 
+```javascript
 _([1, 2, 3, 2, 5]).any(v => v > 4)._
 // true
+```
 
 ### _([]).all
 via Array.prototype.every
 
+```javascript
 _([1, 2, 3, 2, 5]).all(v => v > 4)._
 // [1, 2, 3, 4, 5].every(v => v > 4)
+```
 
 ### _([]).apply
 spread and apply to function
+
+```javascript
 _([1, 2, 3]).apply((a, b, c) => (a + b) * c)._
 // 9
+```
 
 ### _([]).sum
 add all value
 
+```javascript
 _([1, 2, 3, 4, 5]).sum._
 // 15
+```
 
 ### _([]).pi
 product all value
 
+```javascript
 _([1, 2, 3, 4, 5]).pi._
 // 120
+```
 
 ### _([]).average
 get average value
+
+```javascript
 _([1,1,5,3,8,8,9,10,12,12,13,13,13,14]).average._
 // 8.71...
+```
 
 ### _([]).max
 get max value
 
+```javascript
 _([1,2,3,4,5,3,8,2]).max._
 // 8
+```
 
 ### _([]).min
 get min value
 
+```javascript
 _([1,2,3,4,-3,3,8,2]).min._
 // -3
+```
 
 ### _([]).mid
 get median value
 
+```javascript
 _([3, 4, 2, 7, 6, 5, 1]).mid._
 // 4
+```
 
 ### _([]).less
 omit voidly value
 
+```javascript
 _([ , ,3 ,4 , , ,5 , ,]).less._
-
 // [3, 4, 5]
+```
 
 ### _([]).sure
 replase from empty to undefined
 
+```javascript
 _([ , ,3 ,4 , , ,5 , ,]).sure._
 // [undefined ,undefined ,3 ,4 ,undefined ,undefined ,5 ,undefined]
+```
 
 ### _([]).pair
 from Array to Object
 
+```javascript
 _([1, 2, 3, 4, 5]).pair(...'a, b, c, d, e'))._
 /*
   {
@@ -1106,10 +1347,12 @@ _([1, 2, 3, 4, 5]).pair(...'a, b, c, d, e'))._
     e: 5
   }
 */
+```
 
 ### _().fullen
 not exist voidly value
 
+```javascript
 // *** false ***
 _([,2,3]).fullen._
 _([1,,3]).fullen._
@@ -1130,21 +1373,26 @@ _({a: 1, b: 2, c: void 0}).fullen._
 // *** true ***
 _({a: 0, b: true, c: false}).fullen._
 _([0, true, false]).fullen._
+```
 
 ### _('').toObject
 apply JSON.parse
 
+```javascript
 _('{"a": 5}').toObject._
 // {a: 5}
+```
 
-_('').toDate
+### _('').toDate
 date string parse to Date Object
 
+```javascript
 _("2000-01-01T00:00:00.000Z").toDate._.getDate()
 // 1
 
 _('{"yr": 2000, "mo": 1, "dt": 1}').toDate._.getDate()
 // 1
+```
 ​
 ### _(Date).get
 is get whitch 
@@ -1170,10 +1418,16 @@ Get UTC
 'msUTC':  msec
 
 if single kind return value
+
+```javascript
 _(new Date(0)).get('yr')._
 // 1970
+```
+
 
 if multi kind return Object
+
+```javascript
 _(new Date(0)).get('yr, mo, dt, dy, hr, min, sec, ms')._
 
 /*
@@ -1188,8 +1442,11 @@ _(new Date(0)).get('yr, mo, dt, dy, hr, min, sec, ms')._
     ms: 0
   }
 */
+```
 
 get UTC
+
+```javascript
 _(new Date(0)).get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC')._
 
 /*
@@ -1203,10 +1460,12 @@ _(new Date(0)).get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC')._
     secUTC: 0
   }
 */
+```
 
 ### _(Date).put
 Date Object set value like a Object.assign
 
+```javascript
 _(new Date(0))
 .put({
   yr: 2020,
@@ -1256,10 +1515,12 @@ _(new Date(0))
     secUTC: 16,
   }
 */
+```
 
 ### _(Date).map
 modify Date Object's it works likely Date .get's and set's keys
 
+```javascript
 _(new Date(0))
 .map('min, sec')(
   ({min, sec}) => ({min: min + 1, sec: sec + 30})
@@ -1284,21 +1545,26 @@ _(new Date(0))
 ._
 
 // 15
+```
 
 ### _(Date).endOfMo
 get the last month of the date
 
+```javascript
 _(new Date(0)).endOfMo.get('mo, dt')._
+
 /*
   {
     mo: 1,
     dt: 31
   }
 */
+```
 
 ### _(Date).endOfMoUTC
 get the last month of the date in UTC GMT
 
+```javascript
 _(new Date(0)).endOfMoUTC.get('moUTC, dtUTC')._
 
 /*
@@ -1307,35 +1573,43 @@ _(new Date(0)).endOfMoUTC.get('moUTC, dtUTC')._
     dtUTC: 31
   }
 */
+```
 
 ### _(Date).zone
 get TimeZone offset value
 
+```javascript
 _(new Date(0)).zone._
-
+```
 
 ### _(Date).raw
 get raw millisec at UTC 0
 
+```javascript
 _(new Date(0)).raw._
 // 0
+```
 
 ### _(Date).ISO
 get ISO String
 
+```javascript
 _(new Date(0)).ISO._
+```
 
 ### _(Date).UTC
 get UTC String
 
+```javascript
 _(new Date(0)).UTC._
+```
 
 
 ### _(Date).toObject
 get Date infomation on Object
 
+```javascript
 _(new Date(0)).toObject._
-
 
 /*
   {
@@ -1349,10 +1623,12 @@ _(new Date(0)).toObject._
     ms: 0
   }
 */
+```
 
 ### _(Date).toObjectUTC
 get Date by UTC infomation on Object
 
+```javascript
 _(new Date(0)).toObjectUTC._
 
 /*
@@ -1366,10 +1642,12 @@ _(new Date(0)).toObjectUTC._
         secUTC: 0
       }
 */
+```
 
 ### _(Date).toJSON
 via _(Date).toObject.toJSON._
 
+```javascript
 _(new Date(0)).toJSON._
 
 // expect
@@ -1383,10 +1661,12 @@ JSON.stringify({
   sec: 0,
   ms: 0
 });
+```
 
 ### _(Date).toJSONUTC
 via _(Date).toObjectUTC.toJSON._
 
+```javascript
 _(new Date(0)).toJSONUTC._
 
 JSON.stringify({
@@ -1398,10 +1678,12 @@ JSON.stringify({
   minUTC: 0,
   secUTC: 0
 })
+```
 
 ### _(JSON).toDate
-invert of _(Date).toJSON._
+Parse from _(Date).toJSON._
 
+```javascript
 _(new Date(0)).toJSON.toDate.toObject._
 
 /*
@@ -1416,10 +1698,12 @@ _(new Date(0)).toJSON.toDate.toObject._
     ms: 0
   }
 */
+```
 
 ### _(Date).toJSONUTC
-invert of _(Date).toJSONUTC._
+Parse from _(Date).toJSONUTC._
 
+```javascript
 _(new Date(0)).toJSONUTC.toDateUTC.toObjectUTC._
 
 /*
@@ -1433,6 +1717,7 @@ _(new Date(0)).toJSONUTC.toDateUTC.toObjectUTC._
     secUTC: 0
   }
 */
+```
 
 ### _.zone
 have a Timezone information on minutes base
