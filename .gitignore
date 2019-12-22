@@ -62,3 +62,8 @@ typings/
 
 #directory entry
 .directory
+
+#misc
+.eslintrc.js
+package-lock.json
+./coverage
