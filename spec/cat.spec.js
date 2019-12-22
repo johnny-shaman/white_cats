@@ -75,7 +75,7 @@ describe("White Cats", function () {
       const f = v => v * 2,
             g = v => v + 5,
             h = v => v * 10;
-      
+
       expect(
         _.pipe(f, g, h)(5)
       )
@@ -306,21 +306,6 @@ describe("White Cats", function () {
     ).toEqual(
       [undefined, undefined, undefined, 0, 3, 4, 5]
     )
-  );
-
-  it('_.exist',
-    () => {
-      expect(
-        _.exist([1, 2, 3])(1)
-      ).toBe(
-        true
-      );
-      expect(
-        _.exist([1, 2, 3])(4)
-      ).toBe(
-        false
-      );
-    }
   );
 
   it('_.by',
@@ -1105,6 +1090,22 @@ describe("White Cats", function () {
         _(TA).equaly([1, 1, 2, 3, 5, 8])._
       ).toEqual(
         [1, 2, 3]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
+  it('_([]).toggle',
+    () => {
+      expect(
+        _(TA).toggle(..._._(0, 15, 2), ..._._(16, 18))._
+      ).toEqual(
+        [1, 3, 5, 7, 9, 11, 13, 16, 17, 18]
       );
 
       expect(

@@ -75,7 +75,6 @@
     adaptR: (...b) => a => _.adapt(...b)(a.reverse()).reverse(),
     less: a => a.filter(v => v != null),
     sure: a => [...a],
-    exist: a => a.includes.bind(a),
     by: o => o == null ? undefined : o.constructor,
     isObject: o => o instanceof Object,
     isArray: o => o instanceof Array,
@@ -236,7 +235,7 @@
       configurable: true,
       get () {
         return _(this.$_, this._$, this['@']);
-      }      
+      }
     },
     to: {
       configurable: true,
@@ -525,6 +524,18 @@
       configurable: true,
       value (a) {
         return this.pipe(a => [...a]).filter((v, k) => a[k] === v);
+      }
+    },
+    toggle: {
+      configurable: true,
+      value (...d) {
+        return this.pipe(
+          s => ({
+            s: s.filter(v => !d.includes(v)),
+            d: d.filter(v => !s.includes(v))
+          }),
+          ({s, d}) => s.concat(d)
+        );
       }
     },
     pick: {
