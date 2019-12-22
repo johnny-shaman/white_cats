@@ -6,6 +6,20 @@
   "scripts": {
     "test": "istanbul cover jasmine-node ./spec/cat.spec.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johnny-shaman/white_cats.git"
+  },
+  "keywords": [
+    "functional",
+    "algebraic",
+    "server",
+    "worker",
+    "browser"
+  ],
+  "bugs": {
+    "url": "https://github.com/johnny-shaman/white_cats/issues"
+  },
   "author": "Noboru Okazaki",
   "license": "MIT"
 }
