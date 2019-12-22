@@ -1,0 +1,28 @@
+env:
+  global:
+    - "CC_TEST_REPORTER_ID=0edd8e96f10262bf74bbc76d82c34f2c7a6da8b72322bebd48ec69d90004a964"
+    
+language: node_js
+  - "stable"
+
+branches:
+  except:
+    - develop
+
+addons:
+  apt:
+    packages:
+      - lynx
+
+before_script:
+  - "curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter"
+  - "chmod +x ./cc-test-reporter"
+  - "./cc-test-reporter before-build"
+  - "npm i -g jasmine-node"
+  - "npm i -g istanbul"
+  
+script:
+  - "npm test"
+
+after_script:
+  - "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
