@@ -19,7 +19,6 @@ and...
 ```
 
 ## contents:
-```javascript
 
 ### id
 _.id(57)
@@ -1330,96 +1329,33 @@ _(new Date(0)).ISO._
 get UTC String
 
 _(new Date(0)).UTC._
-// 0
 
 
-  ### _(Date).toObject
-    () =>
-      _(new Date(0)).toObject._
+### _(Date).toObject
+get Date infomation on Object
 
-      {
-        yr: 1970,
-        mo: 1,
-        dt: 1,
-        dy: 4,
-        hr: Math.trunc(_.zone / 60),
-        min: _.zone % 60,
-        sec: 0,
-        ms: 0
-      }
-    )
-  );
+_(new Date(0)).toObject._
 
-  ### _(Date).toObjectUTC
-    () =>
-      _(new Date(0)).toObjectUTC._
 
-      {
-        yrUTC: 1970,
-        moUTC: 1,
-        dtUTC: 1,
-        dyUTC: 4,
-        hrUTC: 0,
-        minUTC: 0,
-        secUTC: 0
-      }
-    )
-  );
+/*
+  {
+    yr: 1970,
+    mo: 1,
+    dt: 1,
+    dy: 4,
+    hr: Math.trunc(_.zone / 60),
+    min: _.zone % 60,
+    sec: 0,
+    ms: 0
+  }
+*/
 
-  ### _(Date).toJSON
-    () =>
-      _(new Date(0)).toJSON._
+### _(Date).toObjectUTC
+get Date by UTC infomation on Object
 
-      JSON.stringify({
-        yr: 1970,
-        mo: 1,
-        dt: 1,
-        dy: 4,
-        hr: Math.trunc(_.zone / 60),
-        min: _.zone % 60,
-        sec: 0,
-        ms: 0
-      })
-    )
-  );
+_(new Date(0)).toObjectUTC._
 
-  ### _(Date).toJSONUTC
-    () =>
-      _(new Date(0)).toJSONUTC._
-
-      JSON.stringify({
-        yrUTC: 1970,
-        moUTC: 1,
-        dtUTC: 1,
-        dyUTC: 4,
-        hrUTC: 0,
-        minUTC: 0,
-        secUTC: 0
-      })
-    )
-  );
-
-  ### _(JSON).toDate
-    () =>
-      _(new Date(0)).toJSON.toDate.toObject._
-
-      {
-        yr: 1970,
-        mo: 1,
-        dt: 1,
-        dy: 4,
-        hr: Math.trunc(_.zone / 60),
-        min: _.zone % 60,
-        sec: 0,
-        ms: 0
-      }
-    )
-  );
-
-  ### _(Date).toJSONUTC
-    () =>
-      _(new Date(0)).toJSONUTC.toDateUTC.toObjectUTC._
-
+/*
       {
         yrUTC: 1970,
         moUTC: 1,
@@ -1429,7 +1365,78 @@ _(new Date(0)).UTC._
         minUTC: 0,
         secUTC: 0
       }
-    )
-  );
+*/
+
+### _(Date).toJSON
+via _(Date).toObject.toJSON._
+
+_(new Date(0)).toJSON._
+
+// expect
+JSON.stringify({
+  yr: 1970,
+  mo: 1,
+  dt: 1,
+  dy: 4,
+  hr: Math.trunc(_.zone / 60),
+  min: _.zone % 60,
+  sec: 0,
+  ms: 0
 });
-```
+
+### _(Date).toJSONUTC
+via _(Date).toObjectUTC.toJSON._
+
+_(new Date(0)).toJSONUTC._
+
+JSON.stringify({
+  yrUTC: 1970,
+  moUTC: 1,
+  dtUTC: 1,
+  dyUTC: 4,
+  hrUTC: 0,
+  minUTC: 0,
+  secUTC: 0
+})
+
+### _(JSON).toDate
+invert of _(Date).toJSON._
+
+_(new Date(0)).toJSON.toDate.toObject._
+
+/*
+  {
+    yr: 1970,
+    mo: 1,
+    dt: 1,
+    dy: 4,
+    hr: Math.trunc(_.zone / 60),
+    min: _.zone % 60,
+    sec: 0,
+    ms: 0
+  }
+*/
+
+### _(Date).toJSONUTC
+invert of _(Date).toJSONUTC._
+
+_(new Date(0)).toJSONUTC.toDateUTC.toObjectUTC._
+
+/*
+  {
+    yrUTC: 1970,
+    moUTC: 1,
+    dtUTC: 1,
+    dyUTC: 4,
+    hrUTC: 0,
+    minUTC: 0,
+    secUTC: 0
+  }
+*/
+
+### _.zone
+have a Timezone information on minutes base
+
+
+Special Thanks
+[mafumafuultu](https://github.com/mafumafuultu)
