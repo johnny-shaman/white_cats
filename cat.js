@@ -465,412 +465,414 @@
     }
   });
 
-  _.put(_['#'], {Function: _.upto(_['#'].Object)});
-  _.defines(_['#'].Function, {
-    delegate: {
-      configurable: true,
-      value (s) {
-        return this.set('prototype')(_.upto(s.prototype, {
-          constructor: {
-            configurable: true,
-            writable: true,
-            enumerable: false,
-            value: this._
-          }
-        }));
+  _.put(_['#'], {
+    Function: _.upto(_['#'].Object, {
+      delegate: {
+        configurable: true,
+        value (s) {
+          return this.set('prototype')(_.upto(s.prototype, {
+            constructor: {
+              configurable: true,
+              writable: true,
+              enumerable: false,
+              value: this._
+            }
+          }));
+        }
+      },
+      prepends: {
+        configurable: true,
+        value (o) {
+          return this.loop(c => _.put(c.prototype, o));
+        }
+      },
+      implements: {
+        configurable: true,
+        value (o) {
+          return this.loop(c => _.defines(c.prototype, o));
+        }
+      },
+      done: {
+        configurable: true,
+        value (...v) {
+          return this.pipe(_.apply(v));
+        }
+      },
+      take: {
+        configurable: true,
+        value (v) {
+          return _(v, this.$_, this._);
+        }
+      },
+      each: {
+        configurable: true,
+        value (...v) {
+          return this.pipe(v.map.bind(v));
+        }
       }
-    },
-    prepends: {
-      configurable: true,
-      value (o) {
-        return this.loop(c => _.put(c.prototype, o));
-      }
-    },
-    implements: {
-      configurable: true,
-      value (o) {
-        return this.loop(c => _.defines(c.prototype, o));
-      }
-    },
-    done: {
-      configurable: true,
-      value (...v) {
-        return this.pipe(_.apply(v));
-      }
-    },
-    take: {
-      configurable: true,
-      value (v) {
-        return _(v, this.$_, this._);
-      }
-    },
-    each: {
-      configurable: true,
-      value (...v) {
-        return this.pipe(v.map.bind(v));
-      }
-    }
+    })
   });
 
-  _.put(_['#'], {Array: _.upto(_['#'].Object)});
-  _.defines(_['#'].Array, {
-    liken: {
-      configurable: true,
-      value (a) {
-        return this.pick(...a);
-      }
-    },
-    equaly: {
-      configurable: true,
-      value (a) {
-        return this.pipe(a => [...a]).filter((v, k) => a[k] === v);
-      }
-    },
-    toggle: {
-      configurable: true,
-      value (...d) {
-        return this.pipe(
-          s => ({
-            s: s.filter(v => !d.includes(v)),
-            d: d.filter(v => !s.includes(v))
-          }),
-          ({s, d}) => s.concat(d)
-        );
-      }
-    },
-    pick: {
-      configurable: true,
-      value (...a) {
-        return this.filter(v => a.includes(v));
-      }
-    },
-    drop: {
-      configurable: true,
-      value (...a) {
-        return this.filter(v => !a.includes(v));
-      }
-    },
-    chunk: {
-      configurable: true,
-      value (n) {
-        return this.pipe(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(_(a).slice(n).chunk(n)._));
-      }
-    },
-    unique: {
-      configurable: true,
-      get () {
-        return this.pipe(a => [...new Set(a)]);
-      }
-    },
-    union: {
-      configurable: true,
-      value (...b) {
-        return this.pipe(a => [...new Set(a.concat(...b))]);
-      }
-    },
-    put: {
-      configurable: true,
-      value (a) {
-        return this.map((v, k) => a[k] == null ? v : a[k]);
-      }
-    },
-    exist: {
-      configurable: true,
-      get () {
-        return this.call('includes');
-      }
-    },
-    pickKey: {
-      configurable: true,
-      value (s) {
-        return this.map(o => _(o).pick(s)._);
-      }
-    },
-    dropKey: {
-      configurable: true,
-      value (s) {
-        return this.map(o => _(o).drop(s)._);
-      }
-    },
-    pushL: {
-      configurable: true,
-      get () {
-        return this.cast('unshift');
-      }
-    },
-    pushR: {
-      configurable: true,
-      get () {
-        return this.cast('push');
-      }
-    },
-    popL: {
-      configurable: true,
-      get () {
-        return this.call('shift')();
-      }
-    },
-    popR: {
-      configurable: true,
-      get () {
-        return this.call('pop')();
-      }
-    },
-    omitL: {
-      configurable: true,
-      get () {
-        return this.cast('shift')();
-      }
-    },
-    omitR: {
-      configurable: true,
-      get () {
-        return this.cast('pop')();
-      }
-    },
-    each: {
-      configurable: true,
-      value (...f) {
-        return this.cast('forEach')(_.pipe(...f));
-      }
-    },
-    lift: {
-      configurable: true,
-      value (...f) {
-        return this.pipe(...f);
-      }
-    },
-    fold: {
-      configurable: true,
-      get () {
-        return this.foldL;
-      }
-    },
-    foldL: {
-      configurable: true,
-      get () {
-        return this.call('reduce');
-      }
-    },
-    foldR: {
-      configurable: true,
-      get () {
-        return this.call('reduceRight');
-      }
-    },
-    filter: {
-      configurable: true,
-      get () {
-        return this.call('filter');
-      }
-    },
-    rotate: {
-      get () {
-        return this.pipe(a => _.keys(a[0]).map(c => a.map(r => r[c])));
-      }
-    },
-    aMap: {
-      configurable: true,
-      value (a) {
-        return this.map(f => a.map(g => typeof f === 'function' ? f(g) : g(f)));
-      }
-    },
-    map: {
-      configurable: true,
-      value (...f) {
-        return this.call('map')(_.pipe(...f));
-      }
-    },
-    fMap: {
-      configurable: true,
-      value (...f) {
-        return this.call('flatMap')(_.pipe(...f));
-      }
-    },
-    flat: {
-      configurable: true,
-      get () {
-        return this.call('flat');
-      }
-    },
-    back: {
-      configurable: true,
-      get () {
-        return this.call('reverse')();
-      }
-    },
-    adapt: {
-      configurable: true,
-      get () {
-        return this.adaptL;
-      }
-    },
-    adaptL: {
-      configurable: true,
-      value (...v) {
-        return this.pipe(_.adaptL(...v));
-      }
-    },
-    adaptR: {
-      configurable: true,
-      value (...v) {
-        return this.pipe(_.adaptR(...v));
-      }
-    },
-    concat: {
-      configurable: true,
-      get () {
-        return this.call('concat');
-      }
-    },
-    replace: {
-      configurable: true,
-      get () {
-        return this.cast('splice');
-      }
-    },
-    splice: {
-      configurable: true,
-      get () {
-        return this.call('splice');
-      }
-    },
-    slice: {
-      configurable: true,
-      get () {
-        return this.call('slice');
-      }
-    },
-    sort: {
-      configurable: true,
-      get () {
-        return this.pipe(_.sure).call('sort');
-      }
-    },
-    indexL: {
-      configurable: true,
-      get () {
-        return this.call('indexOf');
-      }
-    },
-    indexR: {
-      configurable: true,
-      get () {
-        return this.call('lastIndexOf');
-      }
-    },
-    any: {
-      configurable: true,
-      get () {
-        return this.call('some');
-      }
-    },
-    all: {
-      configurable: true,
-      get () {
-        return this.call('every');
-      }
-    },
-    apply: {
-      configurable: true,
-      value (f) {
-        return this.pipe(_.lazy(f));
-      }
-    },
-    sum: {
-      configurable: true,
-      get () {
-        return this.fold((p, c) => p + c);
-      }
-    },
-    pi: {
-      configurable: true,
-      get () {
-        return this.fold((p, c) => p * c);
-      }
-    },
-    average: {
-      configurable: true,
-      get () {
-        return this.pipe(a => a.reduce((p, c) => p + c) / a.length);
-      }
-    },
-    max: {
-      configurable: true,
-      get () {
-        return this.apply(Math.max);
-      }
-    },
-    min: {
-      configurable: true,
-      get () {
-        return this.apply(Math.min);
-      }
-    },
-    mid: {
-      configurable: true,
-      get () {
-        return this.sort((v, w) => v < w).pipe(
-          a => (
-            a.length === 0
-            ? undefined
-            : (
-              a.length % 2 === 0
-              ? (a[a.length / 2 - 1] + a[a.length / 2]) / 2
-              : a[a.length / 2 - 0.5]
+  _.put(_['#'], {
+    Array: _.upto(_['#'].Object, {
+      liken: {
+        configurable: true,
+        value (a) {
+          return this.pick(...a);
+        }
+      },
+      equaly: {
+        configurable: true,
+        value (a) {
+          return this.pipe(a => [...a]).filter((v, k) => a[k] === v);
+        }
+      },
+      toggle: {
+        configurable: true,
+        value (...d) {
+          return this.pipe(
+            s => ({
+              s: s.filter(v => !d.includes(v)),
+              d: d.filter(v => !s.includes(v))
+            }),
+            ({s, d}) => s.concat(d)
+          );
+        }
+      },
+      pick: {
+        configurable: true,
+        value (...a) {
+          return this.filter(v => a.includes(v));
+        }
+      },
+      drop: {
+        configurable: true,
+        value (...a) {
+          return this.filter(v => !a.includes(v));
+        }
+      },
+      chunk: {
+        configurable: true,
+        value (n) {
+          return this.pipe(a => a.length == 0 ? [] : [a.slice( 0, n )].concat(_(a).slice(n).chunk(n)._));
+        }
+      },
+      unique: {
+        configurable: true,
+        get () {
+          return this.pipe(a => [...new Set(a)]);
+        }
+      },
+      union: {
+        configurable: true,
+        value (...b) {
+          return this.pipe(a => [...new Set(a.concat(...b))]);
+        }
+      },
+      put: {
+        configurable: true,
+        value (a) {
+          return this.map((v, k) => a[k] == null ? v : a[k]);
+        }
+      },
+      exist: {
+        configurable: true,
+        get () {
+          return this.call('includes');
+        }
+      },
+      pickKey: {
+        configurable: true,
+        value (s) {
+          return this.map(o => _(o).pick(s)._);
+        }
+      },
+      dropKey: {
+        configurable: true,
+        value (s) {
+          return this.map(o => _(o).drop(s)._);
+        }
+      },
+      pushL: {
+        configurable: true,
+        get () {
+          return this.cast('unshift');
+        }
+      },
+      pushR: {
+        configurable: true,
+        get () {
+          return this.cast('push');
+        }
+      },
+      popL: {
+        configurable: true,
+        get () {
+          return this.call('shift')();
+        }
+      },
+      popR: {
+        configurable: true,
+        get () {
+          return this.call('pop')();
+        }
+      },
+      omitL: {
+        configurable: true,
+        get () {
+          return this.cast('shift')();
+        }
+      },
+      omitR: {
+        configurable: true,
+        get () {
+          return this.cast('pop')();
+        }
+      },
+      each: {
+        configurable: true,
+        value (...f) {
+          return this.cast('forEach')(_.pipe(...f));
+        }
+      },
+      lift: {
+        configurable: true,
+        value (...f) {
+          return this.pipe(...f);
+        }
+      },
+      fold: {
+        configurable: true,
+        get () {
+          return this.foldL;
+        }
+      },
+      foldL: {
+        configurable: true,
+        get () {
+          return this.call('reduce');
+        }
+      },
+      foldR: {
+        configurable: true,
+        get () {
+          return this.call('reduceRight');
+        }
+      },
+      filter: {
+        configurable: true,
+        get () {
+          return this.call('filter');
+        }
+      },
+      rotate: {
+        get () {
+          return this.pipe(a => _.keys(a[0]).map(c => a.map(r => r[c])));
+        }
+      },
+      aMap: {
+        configurable: true,
+        value (a) {
+          return this.map(f => a.map(g => typeof f === 'function' ? f(g) : g(f)));
+        }
+      },
+      map: {
+        configurable: true,
+        value (...f) {
+          return this.call('map')(_.pipe(...f));
+        }
+      },
+      fMap: {
+        configurable: true,
+        value (...f) {
+          return this.call('flatMap')(_.pipe(...f));
+        }
+      },
+      flat: {
+        configurable: true,
+        get () {
+          return this.call('flat');
+        }
+      },
+      back: {
+        configurable: true,
+        get () {
+          return this.call('reverse')();
+        }
+      },
+      adapt: {
+        configurable: true,
+        get () {
+          return this.adaptL;
+        }
+      },
+      adaptL: {
+        configurable: true,
+        value (...v) {
+          return this.pipe(_.adaptL(...v));
+        }
+      },
+      adaptR: {
+        configurable: true,
+        value (...v) {
+          return this.pipe(_.adaptR(...v));
+        }
+      },
+      concat: {
+        configurable: true,
+        get () {
+          return this.call('concat');
+        }
+      },
+      replace: {
+        configurable: true,
+        get () {
+          return this.cast('splice');
+        }
+      },
+      splice: {
+        configurable: true,
+        get () {
+          return this.call('splice');
+        }
+      },
+      slice: {
+        configurable: true,
+        get () {
+          return this.call('slice');
+        }
+      },
+      sort: {
+        configurable: true,
+        get () {
+          return this.pipe(_.sure).call('sort');
+        }
+      },
+      indexL: {
+        configurable: true,
+        get () {
+          return this.call('indexOf');
+        }
+      },
+      indexR: {
+        configurable: true,
+        get () {
+          return this.call('lastIndexOf');
+        }
+      },
+      any: {
+        configurable: true,
+        get () {
+          return this.call('some');
+        }
+      },
+      all: {
+        configurable: true,
+        get () {
+          return this.call('every');
+        }
+      },
+      apply: {
+        configurable: true,
+        value (f) {
+          return this.pipe(_.lazy(f));
+        }
+      },
+      sum: {
+        configurable: true,
+        get () {
+          return this.fold((p, c) => p + c);
+        }
+      },
+      pi: {
+        configurable: true,
+        get () {
+          return this.fold((p, c) => p * c);
+        }
+      },
+      average: {
+        configurable: true,
+        get () {
+          return this.pipe(a => a.reduce((p, c) => p + c) / a.length);
+        }
+      },
+      max: {
+        configurable: true,
+        get () {
+          return this.apply(Math.max);
+        }
+      },
+      min: {
+        configurable: true,
+        get () {
+          return this.apply(Math.min);
+        }
+      },
+      mid: {
+        configurable: true,
+        get () {
+          return this.sort((v, w) => v < w).pipe(
+            a => (
+              a.length === 0
+              ? undefined
+              : (
+                a.length % 2 === 0
+                ? (a[a.length / 2 - 1] + a[a.length / 2]) / 2
+                : a[a.length / 2 - 0.5]
+              )
             )
-          )
-        );
+          );
+        }
+      },
+      less: {
+        configurable: true,
+        get () {
+          return this.vals;
+        }
+      },
+      sure: {
+        configurable: true,
+        get () {
+          return this.pipe(_.sure);
+        }
+      },
+      fullen: {
+        configurable: true,
+        get () {
+          return this.pipe(a => !([...a].includes(undefined) || [...a].includes(null)));
+        }
+      },
+      pair: {
+        configurable: true,
+        value (...v) {
+          return this.fold((p, c, k) => _.put(p, {[v[k]]: c}), {});
+        }
+      },
+      to: {
+        configurable: true,
+        value (...w) {
+          return this['@'] ? this.pipe(
+            _.adaptL(...w),
+            a => _((_(a).fullen._ && this['@']) ? this['@'](...a) : a,
+              this.$,
+              _(a).fullen._ ? null : this['@']
+            )
+          )._ : this;
+        }
+      },
+      of: {
+        configurable: true,
+        value (...w) {
+          return this['@'] ? this.pipe(
+            _.adaptR(...w),
+            a => _((_(a).fullen._ && this['@']) ? this['@'](...a) : a,
+              this.$,
+              _(a).fullen._ ? null : this['@']
+            )
+          )._ : this;
+        }
       }
-    },
-    less: {
-      configurable: true,
-      get () {
-        return this.vals;
-      }
-    },
-    sure: {
-      configurable: true,
-      get () {
-        return this.pipe(_.sure);
-      }
-    },
-    fullen: {
-      configurable: true,
-      get () {
-        return this.pipe(a => !([...a].includes(undefined) || [...a].includes(null)));
-      }
-    },
-    pair: {
-      configurable: true,
-      value (...v) {
-        return this.fold((p, c, k) => _.put(p, {[v[k]]: c}), {});
-      }
-    },
-    to: {
-      configurable: true,
-      value (...w) {
-        return this['@'] ? this.pipe(
-          _.adaptL(...w),
-          a => _((_(a).fullen._ && this['@']) ? this['@'](...a) : a,
-            this.$,
-            _(a).fullen._ ? null : this['@']
-          )
-        )._ : this;
-      }
-    },
-    of: {
-      configurable: true,
-      value (...w) {
-        return this['@'] ? this.pipe(
-          _.adaptR(...w),
-          a => _((_(a).fullen._ && this['@']) ? this['@'](...a) : a,
-            this.$,
-            _(a).fullen._ ? null : this['@']
-          )
-        )._ : this;
-      }
-    }
+    })
   });
 
   _.defines(_['#'].String, {
@@ -905,139 +907,140 @@
     zone : _(new Date(0)).pipe(d => d.getHours() * 60 + d.getMinutes())._
   });
 
-  _.put(_['#'], {Date: _.upto(_['#'].Object)});
-  _.defines(_['#'].Date, {
-    get: {
-      configurable: true,
-      value (s) {
-        return this.pipe(
-          d => _({
-            yr:     d.getFullYear(),
-            mo:     d.getMonth() + 1,
-            dt:     d.getDate(),
-            dy:     d.getDay(),
-            hr:     d.getHours(),
-            min:    d.getMinutes(),
-            sec:    d.getSeconds(),
-            ms:     d.getMilliseconds(),
-            yrUTC:  d.getUTCFullYear(),
-            moUTC:  d.getUTCMonth() + 1,
-            dtUTC:  d.getUTCDate(),
-            dyUTC:  d.getUTCDay(),
-            hrUTC:  d.getUTCHours(),
-            minUTC: d.getUTCMinutes(),
-            secUTC: d.getUTCSeconds()
-          }),
-          o => s.includes(',') ? o.pick(s)._ : o.get(s)._
-        );
-      }
-    },
-    put: {
-      configurable: true,
-      value (o) {
-        return this.loop(
-          _.pipe(
-            d => ({
-              yr:     v => d.setFullYear(v),
-              mo:     v => d.setMonth(v - 1),
-              dt:     v => d.setDate(v),
-              hr:     v => d.setHours(v),
-              min:    v => d.setMinutes(v),
-              sec:    v => d.setSeconds(v),
-              ms:     v => d.setMilliseconds(v),
-              yrUTC:  v => d.setUTCFullYear(v),
-              moUTC:  v => d.setUTCMonth(v - 1),
-              dtUTC:  v => d.setUTCDate(v),
-              hrUTC:  v => d.setUTCHours(v),
-              minUTC: v => d.setUTCMinutes(v),
-              secUTC: v => d.setUTCSeconds(v)
+  _.put(_['#'], {
+    Date: _.upto(_['#'].Object, {
+      get: {
+        configurable: true,
+        value (s) {
+          return this.pipe(
+            d => _({
+              yr:     d.getFullYear(),
+              mo:     d.getMonth() + 1,
+              dt:     d.getDate(),
+              dy:     d.getDay(),
+              hr:     d.getHours(),
+              min:    d.getMinutes(),
+              sec:    d.getSeconds(),
+              ms:     d.getMilliseconds(),
+              yrUTC:  d.getUTCFullYear(),
+              moUTC:  d.getUTCMonth() + 1,
+              dtUTC:  d.getUTCDate(),
+              dyUTC:  d.getUTCDay(),
+              hrUTC:  d.getUTCHours(),
+              minUTC: d.getUTCMinutes(),
+              secUTC: d.getUTCSeconds()
             }),
-            p => _.entries(o).forEach(([k, v]) => p[k](v))
-          )
-        );
+            o => s.includes(',') ? o.pick(s)._ : o.get(s)._
+          );
+        }
+      },
+      put: {
+        configurable: true,
+        value (o) {
+          return this.loop(
+            _.pipe(
+              d => ({
+                yr:     v => d.setFullYear(v),
+                mo:     v => d.setMonth(v - 1),
+                dt:     v => d.setDate(v),
+                hr:     v => d.setHours(v),
+                min:    v => d.setMinutes(v),
+                sec:    v => d.setSeconds(v),
+                ms:     v => d.setMilliseconds(v),
+                yrUTC:  v => d.setUTCFullYear(v),
+                moUTC:  v => d.setUTCMonth(v - 1),
+                dtUTC:  v => d.setUTCDate(v),
+                hrUTC:  v => d.setUTCHours(v),
+                minUTC: v => d.setUTCMinutes(v),
+                secUTC: v => d.setUTCSeconds(v)
+              }),
+              p => _.entries(o).forEach(([k, v]) => p[k](v))
+            )
+          );
+        }
+      },
+      map: {
+        configurable: true,
+        value (s) {
+          return (...f) => this.put(
+            this.get(s).pipe(
+              ...f,
+              o => s.includes(',')
+              ? o
+              : {[s]: o}
+            )._
+          );
+        }
+      },
+      endOfMo: {
+        configurable: true,
+        get () {
+          return this
+          .put({dt: 1})
+          .map('mo, dt')(
+            ({mo, dt}) => ({mo: mo + 1, dt: dt - 1})
+          );
+        }
+      },
+      endOfMoUTC: {
+        configurable: true,
+        get () {
+          return this
+          .put({dtUTC: 1})
+          .map('moUTC, dtUTC')(
+            ({moUTC, dtUTC}) => ({moUTC: moUTC + 1, dtUTC: dtUTC - 1})
+          );
+        }
+      },
+      zone: {
+        configurable: true,
+        get () {
+          return this.pipe(o => o.getTimezoneOffset());
+        }
+      },
+      raw: {
+        configurable: true,
+        get () {
+          return this.pipe(o => o.getTime());
+        }
+      },
+      ISO: {
+        configurable: true,
+        get () {
+          return this.pipe(o => o.toISOString());
+        }
+      },
+      UTC: {
+        configurable: true,
+        get () {
+          return this.pipe(o => o.toUTCString());
+        }
+      },
+      toObject: {
+        configurable: true,
+        get () {
+          return this.get('yr, mo, dt, dy, hr, min, sec, ms');
+        }
+      },
+      toObjectUTC: {
+        configurable: true,
+        get () {
+          return this.get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC');
+        }
+      },
+      toJSON: {
+        configurable: true,
+        get () {
+          return this.toObject.toJSON;
+        }
+      },
+      toJSONUTC: {
+        configurable: true,
+        get () {
+          return this.toObjectUTC.toJSON;
+        }
       }
-    },
-    map: {
-      configurable: true,
-      value (s) {
-        return (...f) => this.put(
-          this.get(s).pipe(
-            ...f,
-            o => s.includes(',')
-            ? o
-            : {[s]: o}
-          )._
-        );
-      }
-    },
-    endOfMo: {
-      configurable: true,
-      get () {
-        return this
-        .put({dt: 1})
-        .map('mo, dt')(
-          ({mo, dt}) => ({mo: mo + 1, dt: dt - 1})
-        );
-      }
-    },
-    endOfMoUTC: {
-      configurable: true,
-      get () {
-        return this
-        .put({dtUTC: 1})
-        .map('moUTC, dtUTC')(
-          ({moUTC, dtUTC}) => ({moUTC: moUTC + 1, dtUTC: dtUTC - 1})
-        );
-      }
-    },
-    zone: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getTimezoneOffset());
-      }
-    },
-    raw: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.getTime());
-      }
-    },
-    ISO: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.toISOString());
-      }
-    },
-    UTC: {
-      configurable: true,
-      get () {
-        return this.pipe(o => o.toUTCString());
-      }
-    },
-    toObject: {
-      configurable: true,
-      get () {
-        return this.get('yr, mo, dt, dy, hr, min, sec, ms');
-      }
-    },
-    toObjectUTC: {
-      configurable: true,
-      get () {
-        return this.get('yrUTC, moUTC, dtUTC, dyUTC, hrUTC, minUTC, secUTC');
-      }
-    },
-    toJSON: {
-      configurable: true,
-      get () {
-        return this.toObject.toJSON;
-      }
-    },
-    toJSONUTC: {
-      configurable: true,
-      get () {
-        return this.toObjectUTC.toJSON;
-      }
-    }
+    })
   });
   'process' in apex ? (module.exports = _) : (apex._ = _);
 })((this || 0).self || global);

@@ -17,7 +17,7 @@ and...
 
 ### browser
 ```html
-<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.2/cat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.5/cat.js"></script>
 ```
 
 ## contents:
