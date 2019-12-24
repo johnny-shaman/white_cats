@@ -141,7 +141,7 @@
         return this._ == null ? this.$ : this._;
       }
     },
-    _pipe: {
+    flat: {
       configurable: true,
       value (f) {
         return _(

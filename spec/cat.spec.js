@@ -450,24 +450,24 @@ describe("White Cats", function () {
     )
   );
 
-  it('_()._pipe has Kleisli Triple and function piping',
+  it('_().flat has Kleisli Triple and function piping',
     () => {
       expect(
-        _({a: 5})._pipe(o => _({a: o.a * 3}))._
+        _({a: 5}).flat(o => _({a: o.a * 3}))._
       ).toEqual(
         (o => _({a: o.a * 3}))({a: 5})._
       );
 
       expect(
-        _({a: 5})._pipe(_)._pipe(_)._
+        _({a: 5}).flat(_).flat(_)._
       ).toEqual(
         {a: 5}
       );
 
       expect(
-        _({a: 5})._pipe(o => _({a: o.a * 3}))._pipe(o => _({a: o.a + 5}))._
+        _({a: 5}).flat(o => _({a: o.a * 3})).flat(o => _({a: o.a + 5}))._
       ).toEqual(
-        _({a: 5})._pipe(o => _({a: o.a * 3})._pipe(o => _({a: o.a + 5})))._
+        _({a: 5}).flat(o => _({a: o.a * 3}).flat(o => _({a: o.a + 5})))._
       );
     }
   );

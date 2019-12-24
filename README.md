@@ -17,7 +17,7 @@ and...
 
 ### browser
 ```html
-<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.5/cat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.6/cat.js"></script>
 ```
 
 ## contents:
@@ -300,21 +300,35 @@ _(3, 4).re
 // it same at _(4, 3)
 ```
 
-### _()._pipe
+### _().flat
 has Kleisli Triple and function piping
 
 ```javascript
 // left Identity
-_({a: 5})._pipe(o => _({a: o.a * 3}))._
+_({a: 5})
+.flat(o => _({a: o.a * 3}))
+._
 (o => _({a: o.a * 3}))({a: 5})._
 
 // Right Identity
-_({a: 5})._pipe(_)._pipe(_)._
+_({a: 5})
+.flat(_)
+.flat(_)
+._
 // {a: 5}
 
 // Associativity
-_({a: 5})._pipe(o => _({a: o.a * 3}))._pipe(o => _({a: o.a + 5}))._
-_({a: 5})._pipe(o => _({a: o.a * 3})._pipe(o => _({a: o.a + 5})))._
+_({a: 5})
+.flat(o => _({a: o.a * 3}))
+.flat(o => _({a: o.a + 5}))
+._
+_({a: 5})
+.flat(
+  o => _({a: o.a * 3})
+  .flat(
+    o => _({a: o.a + 5})
+  )
+)._
 ```
 
 ### _().pipe
