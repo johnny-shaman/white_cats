@@ -17,7 +17,7 @@ and...
 
 ### browser
 ```html
-<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.6/cat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.7/cat.js"></script>
 ```
 
 ## contents:
@@ -1160,11 +1160,11 @@ _([1, 2, 3, 4, 5])
 // [5, 10, 15, 20, 25]
 ```
 
-### _([]).flat
+### _([]).flatten
 is Array flatten
 
 ```javascript
-_([[1, 2], 3, [4, [5]]]).flat(2)._
+_([[1, 2], 3, [4, [5]]]).flatten(2)._
 // [ 1, 2, 3, 4, 5 ]
 ```
 

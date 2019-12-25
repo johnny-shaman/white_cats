@@ -33,11 +33,11 @@
   };
 
   Object.assign(_, {
+    WhiteCats: '0.1.7',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
     ),
-    version: '0.0.1',
     id: v => v,
     pipe: (...m) => m.reduceRight((f, g) => (...v) => {
       try {
@@ -59,7 +59,7 @@
     }, _.id),
     apply: a => f => f(...a),
     lazy: f => a => f(...a),
-    alter: (v, w) => w,
+    alter: (...a) => a.pop(),
     upto: Object.create,
     put: Object.assign,
     set: (...o) => p => _.put(p, ...o),
@@ -125,7 +125,8 @@
         o
       ).s,
       s => s.includes('[') ? _.Q(s) : s.split(/,+/g)
-    )
+    ),
+    MyPrime: 57
   });
 
   _.defines(_.prototype, {
@@ -688,7 +689,7 @@
           return this.call('flatMap')(_.pipe(...f));
         }
       },
-      flat: {
+      flatten: {
         configurable: true,
         get () {
           return this.call('flat');

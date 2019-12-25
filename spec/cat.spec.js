@@ -1501,10 +1501,10 @@ describe("White Cats", function () {
     }
   );
 
-  it('_([]).flat',
+  it('_([]).flatten',
     () => {
       expect(
-        _(TA).map(v => [v * 5]).flat()._
+        _(TA).map(v => [v * 5]).flatten()._
       ).toEqual(
         TA.map(v => [v * 5]).flat()
       );
