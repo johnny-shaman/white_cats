@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.8',
+    WhiteCats: '0.1.9',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -314,7 +314,7 @@
         return this.pipe(
           o => s
           .flatMap(w => w.split('.'))
-          .reduce((p, c) => (p == null || p[c] == null) ? undefined : p[c], o)
+          .reduce((p, c) => p == null ? undefined : p[c], o)
         );
       }
     },
