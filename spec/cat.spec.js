@@ -82,13 +82,13 @@ describe("White Cats", function () {
       .toBe( 150 );
 
       expect(
-        _.pipe(f, g, h)()
+        isNaN(_.pipe(f, g, h)())
       )
-      .toBe();
+      .toBe(true);
 
       expect(
         _.pipe(
-          v => v * 2,
+          f,
           v => ({}).push(v),
           h
         )(1)[0]

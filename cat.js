@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.9',
+    WhiteCats: '0.1.10',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -41,19 +41,17 @@
     id: v => v,
     pipe: (...m) => m.reduceRight((f, g) => (...v) => {
       try {
-        return v[0] == null ? undefined : (v.unshift(g(...v)), f(...v));
+        return (v.unshift(g(...v)), f(...v));
       } catch (e) {
         console.error(e);
-        v.push(e);
         return v;
       }
     }, _.id),
     loop: (...m) => m.reduceRight((f, g) => (...v) => {
       try {
-        return v[0] == null ? undefined : (v.push(g(...v)), f(...v));
+        return (v.push(g(...v)), f(...v));
       } catch (e) {
         console.error(e);
-        v.push(e);
         return v[0];
       }
     }, _.id),
@@ -149,7 +147,7 @@
       configurable: true,
       value (f) {
         return _(
-          _.pipe(f)(this._$)._,
+          _.pipe(f)(this._)._,
           this.$_,
           this['@']
         );
@@ -158,13 +156,13 @@
     pipe: {
       configurable: true,
       value (...f) {
-        return _(_.pipe(...f)(this._$), this.$_, this['@']);
+        return _(_.pipe(...f)(this._), this.$_, this['@']);
       }
     },
     loop: {
       configurable: true,
       value (...f) {
-        return _(_.loop(...f)(this._$), this.$_, this['@']);
+        return _(_.loop(...f)(this._), this.$_, this['@']);
       }
     },
     done: {
@@ -312,9 +310,7 @@
       configurable: true,
       value (...s) {
         return this.pipe(
-          o => s
-          .flatMap(w => w.split('.'))
-          .reduce((p, c) => p == null ? undefined : p[c], o)
+          o => s.flatMap(s => s.split('.')).reduce((p, c) => p == null ? undefined : p[c], o)
         );
       }
     },
@@ -322,7 +318,7 @@
       configurable: true,
       value (...s) {
         return v => this.loop(
-          o => _(s).pipe(
+            o => _(s).pipe(
             a => a.flatMap(s => s.split('.')),
             a => ({a, l: a.pop()}),
             ({a, l}) => a.reduce((p, c) => _.isObject(p[c]) ? p[c] : _.put(p, {[c]: {}})[c], o)[l] = v
@@ -358,8 +354,7 @@
       configurable: true,
       value (...s) {
         return (...v) => (...f) => this.set(...s)(
-          this
-          .get(...s)
+          this.get(...s)
           .pipe(p => _.pipe(...f)(p, ...v))
           ._
         );
