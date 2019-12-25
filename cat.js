@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.7',
+    WhiteCats: '0.1.8',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -104,17 +104,20 @@
     ), p),
     take: p => o => (_.entries(o).reduce(
       (q, [k, v]) => _.isObject(v) && _.isObject(q[k]) ? (_.give(v)(q[k]), q) : _.put(q, {[k]: v}), p
-    ), p)
+    ), p),
+    xs: /\s+/g,
+    xComma: /,+/g,
+    xQBsplit: /[[|,|\]]/g,
+    xQBmatch: /[$|.|\w]+\[+[$|.|\w|,]+\]/g
   });
-
   Object.assign(_, {
     adapt: _.adaptL,
     Q: _.pipe(
-      s => s.replace(/\s+/g, ''),
-      s => ({s, r: s.match(/[$|.|\w]+\[+[$|.|\w|,]+\]/g) || []}),
+      s => s.replace(_.xs, ''),
+      s => ({s, r: s.match(_.xQBmatch) || []}),
       o => o.r.reduce(
         (p, c) => _.put(p, {
-          s: o.s.replace(c, c.split(/[[|,|\]]/g)
+          s: o.s.replace(c, c.split(_.xQBsplit)
           .filter(v => v.length > 0)
           .reduce(
             (p, c, k) => k === 0 ? _.put(p, {c}) : (p.push(`${p.c}.${c}`), p),
@@ -124,7 +127,7 @@
         }),
         o
       ).s,
-      s => s.includes('[') ? _.Q(s) : s.split(/,+/g)
+      s => s.includes('[') ? _.Q(s) : s.split(_.xComma)
     ),
     MyPrime: 57
   });
