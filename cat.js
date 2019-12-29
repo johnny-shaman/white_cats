@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.10',
+    WhiteCats: '0.1.11',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -103,15 +103,17 @@
     take: p => o => (_.entries(o).reduce(
       (q, [k, v]) => _.isObject(v) && _.isObject(q[k]) ? (_.give(v)(q[k]), q) : _.put(q, {[k]: v}), p
     ), p),
-    xs: /\s+/g,
+    xS: /\s+/g,
     xComma: /,+/g,
+    xCs: /[\s|,]+/g,
     xQBsplit: /[[|,|\]]/g,
     xQBmatch: /[$|.|\w]+\[+[$|.|\w|,]+\]/g
   });
+
   Object.assign(_, {
     adapt: _.adaptL,
     Q: _.pipe(
-      s => s.replace(_.xs, ''),
+      s => s.replace(_.xS, ''),
       s => ({s, r: s.match(_.xQBmatch) || []}),
       o => o.r.reduce(
         (p, c) => _.put(p, {
