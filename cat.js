@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.13',
+    WhiteCats: '0.1.14',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -886,7 +886,7 @@
     toObject: {
       configurable: true,
       get () {
-        return this.pipe(JSON.parse);
+        return this.pipe(s => {try {return JSON.parse(s)} catch (e) {return s}});
       }
     },
     toDate: {
@@ -897,7 +897,7 @@
           t => t.pipe(
             s => new Date(s),
             d => isNaN(d.getFullYear())
-            ? _(JSON.parse(t._)).toDate._
+            ? t.toObject.toDate._
             : d
           )._
         );

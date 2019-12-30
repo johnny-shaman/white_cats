@@ -1930,6 +1930,11 @@ describe("White Cats", function () {
         {a: 5}
       );
       expect(
+        _('abc').toObject._
+      ).toBe(
+        'abc'
+      );
+      expect(
         _(null).toObject._
       ).toBe(
         null

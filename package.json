@@ -1,6 +1,6 @@
 {
   "name": "white_cats",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Non Dirty Pure Functions on Any javascripts",
   "main": "cat.js",
   "scripts": {
