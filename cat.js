@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.12',
+    WhiteCats: '0.1.13',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -257,6 +257,12 @@
       configurable: true,
       get () {
         return this.pipe(JSON.stringify);
+      }
+    },
+    toObject: {
+      configurable: true,
+      get () {
+        return this;
       }
     }
   });

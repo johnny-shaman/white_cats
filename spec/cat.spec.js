@@ -609,11 +609,18 @@ describe("White Cats", function () {
   );
 
   it('_().toJSON',
-    () => expect(
-      _(O(3, 5, 7)).toJSON._
-    ).toBe(
-      JSON.stringify(O(3, 5, 7))
-    )
+    () => {
+      expect(
+        _(O(3, 5, 7)).toJSON._
+      ).toBe(
+        JSON.stringify(O(3, 5, 7))
+      );
+      expect(
+        _(null).toJSON._
+      ).toBe(
+        'null'
+      )
+    }
   );
 
   it('_(async).then',
@@ -1916,11 +1923,23 @@ describe("White Cats", function () {
   );
 
   it("_('').toObject",
-    () => expect(
-      _({a: 5}).toJSON.toObject._
-    ).toEqual(
-      {a: 5}
-    )
+    () => {
+      expect(
+        _({a: 5}).toJSON.toObject._
+      ).toEqual(
+        {a: 5}
+      );
+      expect(
+        _(null).toObject._
+      ).toBe(
+        null
+      );
+      expect(
+        _({a: 5}).toObject._
+      ).toEqual(
+        {a: 5}
+      );
+    }
   );
 
   it("_('').toDate",
