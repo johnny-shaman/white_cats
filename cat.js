@@ -905,7 +905,10 @@
   });
 
   Object.assign(_, {
-    zone : _(new Date(0)).pipe(d => d.getHours() * 60 + d.getMinutes())._
+    zone : _(new Date(0)).pipe(
+      d => d.getDate === 31
+      ? -(d.getHours() * 60 + d.getMinutes())
+      : d.getHours() * 60 + d.getMinutes())._
   });
 
   _.put(_['#'], {
