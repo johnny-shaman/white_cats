@@ -17,7 +17,7 @@ and...
 
 ### browser
 ```html
-<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.14/cat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.15/cat.js"></script>
 ```
 
 ## contents:
@@ -396,6 +396,21 @@ _([3, 5, 7])
 ._
 // [7, 5, 12, 5, 6, 4, 3]
 ```
+### _().As
+is Chaining method calling in the way to take a Object
+
+```javascript
+_([3, 5, 7])
+.As
+[0](7)(console.log)       // refer
+[1](10)(console.log)      // 
+[2](5)(console.log)       // 
+.push(5, 6)(console.log)  // 5
+.push(4, 3)(console.log)  // 7
+.As
+._
+// [3, 5, 7, 5, 6, 4, 3]
+```
 
 ### _().toJSON
 is JSON.stringify
@@ -507,6 +522,26 @@ _({a: 3, b: {c: 4, d: {e: 6}}}).cut('b.d')._
 // {a: 3, b: {c: 4}}
 
 _({a: 3, b: {c: 4, d: {e: 6}}}).cut('b.e')._
+// {a: 3, b: {c: 4, d: {e: 6}}}
+```
+
+### _({}).refer
+property referer callback
+
+```javascript
+_({a: 3, b: {c: 4, d: {e: 6}}})
+.refer('b.d.e')(console.log)
+._ // 6
+// {a: 3, b: {c: 4, d: {e: 6}}}
+```
+
+### _({}).gaze
+is refer property and get's more argument
+
+```javascript
+_({a: 3, b: {c: 4, d: {e: 6}}})
+.gaze('b.d.e')(4, 5, 6)(console.log)
+._
 // {a: 3, b: {c: 4, d: {e: 6}}}
 ```
 

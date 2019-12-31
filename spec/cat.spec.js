@@ -604,7 +604,34 @@ describe("White Cats", function () {
         r
       ).toEqual(
         [8, 13, 20, 16, 208, 4160, 19, 227, 4387]
-      )
+      );
+    }
+  );
+
+  it('_().As',
+    () => {
+      const r = [];
+      expect(
+      _(O(0, 5, 2))
+        .As
+        .a(3)(r.push)
+        .b(10)(r.push)
+        .c(5)(r.push)
+        .ad( 5 )(a => a.map(v => r.push(v)))
+        .mt( 2 )(a => a.map(v => r.push(v)))
+        .ad( 3 )(a => a.map(v => r.push(v)))
+        .As
+        ._
+        .c
+      ).toBe(
+        1313
+      );
+
+      expect(
+        r
+      ).toEqual(
+        [5, 10, 12, 10, 100, 1200, 13, 113, 1313]
+      );
     }
   );
 
@@ -754,6 +781,22 @@ describe("White Cats", function () {
         {a: 3, b: {c: 4, d: {e: 6}}}
       );
     }
+  );
+
+  it('_({}).refer',
+    () => expect(
+      _({a: 3, b: {c: 4, d: {e: 6}}}).refer('b.d.e')(v => v * 3)._.b.d.e
+    ).toBe(
+      6
+    )
+  );
+
+  it('_({}).gaze',
+    () => expect(
+      _({a: 3, b: {c: 4, d: {e: 6}}}).gaze('b.d.e')(4)((v, w) => v * w)._.b.d.e
+    ).toBe(
+      6
+    )
   );
 
   it('_({}).mend',

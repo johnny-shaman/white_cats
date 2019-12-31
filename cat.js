@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.14',
+    WhiteCats: '0.1.15',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -235,6 +235,22 @@
         });
       }
     },
+    As: {
+      configurable: true,
+      get () {
+        return new Proxy(this, {
+          get (t, k) {
+            return k === 'As'
+            ? t
+            : (...v) => (...f) => (
+              typeof t._[k] === 'function'
+              ? t.s_r(k)(...v)(...f)
+              : t.gaze(k)(...v)(...f)
+            ).As;
+          }
+        });
+      }
+    },
     re: {
       configurable: true,
       get () {
@@ -352,10 +368,18 @@
         );
       }
     },
-    mend: {
+    gaze: {
       configurable: true,
       value (...s) {
-        return (...f) => this.modify(...s)()(...f);
+        return (...v) => (...f) => this.loop(
+          o =>  _(o).get(...s)
+          .pipe(p => _.pipe(...f)(p, ...v))
+        )
+      }
+    },
+    refer: {
+      value (...s) {
+        return (...f) => this.gaze(...s)()(...f);
       }
     },
     modify: {
@@ -366,6 +390,12 @@
           .pipe(p => _.pipe(...f)(p, ...v))
           ._
         );
+      }
+    },
+    mend: {
+      configurable: true,
+      value (...s) {
+        return (...f) => this.modify(...s)()(...f);
       }
     },
     give: {
@@ -912,9 +942,10 @@
 
   Object.assign(_, {
     zone : _(new Date(0)).pipe(
-      d => d.getDate === 31
+      d => d.getFullYear < 1970
       ? -(d.getHours() * 60 + d.getMinutes())
-      : d.getHours() * 60 + d.getMinutes())._
+      : d.getHours() * 60 + d.getMinutes()
+    )._
   });
 
   _.put(_['#'], {
