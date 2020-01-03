@@ -1,6 +1,7 @@
 describe("White Cats", function () {
   'use strict';
   const _ = require('../cat.js');
+  const EventEmitter = require("events").EventEmitter;
 
   const sp = function (a, b, c) {
     _.put(this, {a, b, c});
@@ -62,6 +63,19 @@ describe("White Cats", function () {
   const fixed = Object.freeze({a: true, b: true});
   const TA = [..._._(15)];
 
+  const EETest = function () {
+    EventEmitter.call(this);
+  };
+
+  EETest.prototype = Object.create(EventEmitter.prototype, {
+    constructor: {
+      configurable: true,
+      writable: true,
+      value: EETest
+    }
+  });
+
+  const eeTest = _(new EETest());
 
   it('_.id',
     () => expect(
@@ -614,12 +628,12 @@ describe("White Cats", function () {
       expect(
       _(O(0, 5, 2))
         .As
-        .a(3)(r.push)
-        .b(10)(r.push)
-        .c(5)(r.push)
-        .ad( 5 )(a => a.map(v => r.push(v)))
-        .mt( 2 )(a => a.map(v => r.push(v)))
-        .ad( 3 )(a => a.map(v => r.push(v)))
+        .a(r.push.bind(r))
+        .b(r.push.bind(r))
+        .c(r.push.bind(r))
+        .ad( 5 )
+        .mt( 2 )
+        .ad( 3 )
         .As
         ._
         .c
@@ -630,7 +644,7 @@ describe("White Cats", function () {
       expect(
         r
       ).toEqual(
-        [5, 10, 12, 10, 100, 1200, 13, 113, 1313]
+        [0, 5, 2]
       );
     }
   );
@@ -2276,4 +2290,21 @@ describe("White Cats", function () {
       }
     )
   );
+
+  it("once",
+    () => expect(
+      eeTest.once({
+        "put" (e) {return e}
+      })._.emit("put")
+    ).toBe(true)
+  );
+
+  it("on",
+    () => expect(
+      eeTest.on({
+        "get" (e) {return e}
+      })._.emit("get")
+    ).toBe(true)
+  );
+
 });

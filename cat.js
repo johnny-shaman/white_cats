@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.15',
+    WhiteCats: '0.1.20',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -242,10 +242,10 @@
           get (t, k) {
             return k === 'As'
             ? t
-            : (...v) => (...f) => (
+            : (...v) => (
               typeof t._[k] === 'function'
-              ? t.s_r(k)(...v)(...f)
-              : t.gaze(k)(...v)(...f)
+              ? t.cast(k)(...v)
+              : t.refer(k)(...v)
             ).As;
           }
         });
@@ -1083,5 +1083,21 @@
       }
     })
   });
+
+  'process' in apex && _.defines(_['#'].Object, {
+    on: {
+      configurable: true,
+      value (o) {
+        return this.loop(t => _(o).each((k, f) => t.on(k, f.bind(o))));
+      }
+    },
+    once: {
+      configurable: true,
+      value (o) {
+        return this.loop(t => _(o).each((k, f) => t.once(k, f.bind(o))));
+      }
+    }
+  });
+
   'process' in apex ? (module.exports = _) : (apex._ = _);
 })((this || 0).self || global);

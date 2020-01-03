@@ -17,7 +17,7 @@ and...
 
 ### browser
 ```html
-<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.15/cat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.20/cat.js"></script>
 ```
 
 ## contents:
@@ -402,11 +402,11 @@ is Chaining method calling in the way to take a Object
 ```javascript
 _([3, 5, 7])
 .As
-[0](7)(console.log)       // refer
-[1](10)(console.log)      // 
-[2](5)(console.log)       // 
-.push(5, 6)(console.log)  // 5
-.push(4, 3)(console.log)  // 7
+[0](console.log)       // refer
+[1](console.log)      // 
+[2](console.log)       // 
+.push(5, 6)  // 5
+.push(4, 3)  // 7
 .As
 ._
 // [3, 5, 7, 5, 6, 4, 3]
@@ -1771,6 +1771,40 @@ _(new Date(0)).toJSONUTC.toDateUTC.toObjectUTC._
 ### _.zone
 have a Timezone information on minutes base
 
+
+## Event driven development:
+
+~~~javascript
+const EETest = _(EventEmitter).fork(function () {
+  EventEmitter.call(this)
+})._
+
+const eeTest = new EETest()
+
+//addLitener
+_(eeTest).on({
+  a: 3,
+  "get" () {
+    this.a === 3 // true
+    this.put() // can call it
+  },
+  "put": () => {},
+  "post": () => {},
+  "delete": () => {}
+})
+
+//addOnce
+_(eeTest).once({
+  b: 10,
+  "get" () {
+    this.b === 10 // true
+    this.put() // can call it
+  },
+  "put": () => {},
+  "post": () => {},
+  "delete": () => {}
+})
+~~~
 
 Special Thanks
 [mafumafuultu](https://github.com/mafumafuultu)
