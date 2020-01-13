@@ -17,7 +17,7 @@ and...
 
 ### browser
 ```html
-<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.20/cat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.21/cat.js"></script>
 ```
 
 ## contents:
@@ -1386,7 +1386,7 @@ _([ , ,3 ,4 , , ,5 , ,]).sure._
 from Array to Object
 
 ```javascript
-_([1, 2, 3, 4, 5]).pair(...'a, b, c, d, e'))._
+_([1, 2, 3, 4, 5]).pair(...'abcde')._
 /*
   {
     a: 1,
