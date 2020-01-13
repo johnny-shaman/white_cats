@@ -1565,6 +1565,22 @@ describe("White Cats", function () {
     }
   );
 
+  it('_([]).mapDeep',
+    () => {
+      expect(
+        _([TA, [TA]]).mapDeep(v => v * 5)._
+      ).toEqual(
+        [TA.map(v => v * 5), [TA.map(v => v * 5)]]
+      );
+
+      expect(
+        TA
+      ).toEqual(
+        [..._._(15)]
+      );
+    }
+  );
+
   it('_([]).flatten',
     () => {
       expect(

@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.21',
+    WhiteCats: '0.1.25',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -723,6 +723,14 @@
         configurable: true,
         value (...f) {
           return this.call('flatMap')(_.pipe(...f));
+        }
+      },
+      mapDeep: {
+        configurable: true,
+        value (...f) {
+          return this.call('map')(
+            o => _.isArray(o) ? _(o).mapDeep(_.pipe(...f))._ : _.pipe(...f)(o)
+          );
         }
       },
       flatten: {

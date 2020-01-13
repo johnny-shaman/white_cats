@@ -1180,9 +1180,12 @@ is map to other Array
 
 ```javascript
 _([1, 2, 3, 4, 5])
-.map(v => v * 5)
+.map(
+  v => v * 5,
+  v => v + 3,
+)
 ._
-// [5, 10, 15, 20, 25]
+// [8, 13, 18, 23, 28]
 ```
 
 ### _([]).fMap
@@ -1190,9 +1193,25 @@ is Array flatMap
 
 ```javascript
 _([1, 2, 3, 4, 5])
-.fMap(v => [v * 5])
+.fMap(
+  v => [v * 5],
+  v => [v + 3],
+)
 ._
-// [5, 10, 15, 20, 25]
+// [8, 13, 18, 23, 28]
+```
+
+### _([]).mapDeep
+is map to other Array it apply deep Array
+
+```javascript
+_([1, [2, [3, [4, [5]]]]])
+.map(
+  v => v * 5,
+  v => v + 3,
+)
+._
+// [8, [13, [18, [23, [28]]]]]
 ```
 
 ### _([]).flatten
