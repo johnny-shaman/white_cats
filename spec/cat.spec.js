@@ -748,6 +748,12 @@ describe("White Cats", function () {
       ).toBe(
         undefined
       );
+
+      expect(
+        _().get('b.e.f')._
+      ).toBe(
+        undefined
+      );
     }
   );
 
