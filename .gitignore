@@ -68,3 +68,4 @@ typings/
 package-lock.json
 spec/index.html
 .npmignore
+jsconfig.json

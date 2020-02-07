@@ -133,18 +133,8 @@
   });
 
   _.defines(_.prototype, {
-    $_: {
-      configurable: true,
-      get () {
-        return this.$ == null ? this._ : this.$;
-      }
-    },
-    _$: {
-      configurable: true,
-      get () {
-        return this._ == null ? this.$ : this._;
-      }
-    },
+    $_: {get () {return this.$ == null ? this._ : this.$;}},
+    _$: {get () {return this._ == null ? this.$ : this._;}},
     flat: {
       configurable: true,
       value (f) {
@@ -155,24 +145,8 @@
         );
       }
     },
-    pipe: {
-      configurable: true,
-      value (...f) {
-        return _(_.pipe(...f)(this._), this.$_, this['@']);
-      }
-    },
-    loop: {
-      configurable: true,
-      value (...f) {
-        return _(_.loop(...f)(this._), this.$_, this['@']);
-      }
-    },
-    done: {
-      configurable: true,
-      value () {
-        return this;
-      }
-    },
+    pipe: {value (...f) {return _(_.pipe(...f)(this._), this.$_, this['@']);}},
+    loop: {value (...f) {return _(_.loop(...f)(this._), this.$_, this['@']);}},
     call: {
       configurable: true,
       value (s) {
@@ -215,9 +189,7 @@
     },
     cast: {
       configurable: true,
-      value (s) {
-        return (...v) => this.s_r(s)(...v)();
-      }
+      value (s) {return (...v) => this.s_r(s)(...v)();}
     },
     Been: {
       configurable: true,
@@ -227,7 +199,7 @@
             return k === 'To'
             ? t
             : (...v) => (...f) => (
-              typeof t._[k] === 'function'
+              typeof t.get(k)._ === 'function'
               ? t.s_r(k)(...v)(...f)
               : t.modify(k)(...v)(...f)
             ).Been;
@@ -243,7 +215,7 @@
             return k === 'As'
             ? t
             : (...v) => (
-              typeof t._[k] === 'function'
+              typeof t.get(k)._ === 'function'
               ? t.cast(k)(...v)
               : t.refer(k)(...v)
             ).As;
@@ -251,42 +223,69 @@
         });
       }
     },
-    re: {
-      configurable: true,
-      get () {
-        return _(this.$_, this._$, this['@']);
-      }
-    },
-    to: {
-      configurable: true,
-      value () {
-        return this;
-      }
-    },
-    of: {
-      configurable: true,
-      value () {
-        return this;
-      }
-    },
-    get: {
-      configurable: true,
-      value () {
-        return this;
-      }
-    },
-    toJSON: {
-      configurable: true,
-      get () {
-        return this.pipe(JSON.stringify);
-      }
-    },
-    toObject: {
-      configurable: true,
-      get () {
-        return this;
-      }
-    }
+    re: {configurable: true, get () {return _(this.$_, this._$, this['@']);}},
+    to: {configurable: true, value () {return this;}},
+    of: {configurable: true, value () {return this;}},
+    get: {configurable: true, value () {return this;}},
+    set: {configurable: true, value () {return () => this;}},
+    put: {configurable: true, value () {return this;}},
+    cut: {configurable: true, value () {return this;}},
+    map: {configurable: true, get () {return this.pipe;}},
+    mapDeep: {configurable: true, value () {return this;}},
+    seq: {configurable: true, value () {return this;}},
+    each: {configurable: true, get () {return this.loop;}},
+    give: {configurable: true, value () {return this;}},
+    take: {configurable: true, value () {return this;}},
+    done: {configurable: true, value () {return this;}},
+    keys: {configurable: true, value () {return this;}},
+    vals: {configurable: true, value () {return this;}},
+    entries: {configurable: true, value () {return this;}},
+    define: {configurable: true, value () {return this;}},
+    append: {configurable: true, value () {return this;}},
+    depend: {configurable: true, value () {return this;}},
+    filter: {configurable: true, value () {return this;}},
+    liken: {configurable: true, value () {return this;}},
+    equaly: {configurable: true, value () {return this;}},
+    toggle: {configurable: true, value () {return this;}},
+    chunk: {configurable: true, value () {return this;}},
+    unique: {configurable: true, get () {return this;}},
+    unione: {configurable: true, value () {return this;}},
+    exist: {configurable: true, value () {return this;}},
+    pushL: {configurable: true, value () {return this;}},
+    pushR: {configurable: true, value () {return this;}},
+    popL: {configurable: true, get () {return this;}},
+    popR: {configurable: true, get () {return this;}},
+    back: {configurable: true, get () {return this;}},
+    omitL: {configurable: true, get () {return this;}},
+    omitR: {configurable: true, get () {return this;}},
+    pick: {configurable: true, value () {return this;}},
+    drop: {configurable: true, value () {return this;}},
+    lift: {configurable: true, value () {return this;}},
+    sort: {configurable: true, value () {return this;}},
+    indexL: {configurable: true, value () {return this;}},
+    indexR: {configurable: true, value () {return this;}},
+    flatten: {configurable: true, value () {return this;}},
+    fold: {configurable: true, value () {return this;}},
+    foldL: {configurable: true, value () {return this;}},
+    foldR: {configurable: true, value () {return this;}},
+    adapt: {configurable: true, value () {return this;}},
+    adaptL: {configurable: true, value () {return this;}},
+    adaptR: {configurable: true, value () {return this;}},
+    concat: {configurable: true, value () {return this;}},
+    replace: {configurable: true, value () {return this;}},
+    slice: {configurable: true, value () {return this;}},
+    splice: {configurable: true, value () {return this;}},
+    pickKey: {configurable: true, value () {return this;}},
+    dropKey: {configurable: true, value () {return this;}},
+    rotate: {configurable: true, get () {return this;}},
+    gaze: {configurable: true, value () {return () => () => this;}},
+    modify: {configurable: true, value () {return () => () => this;}},
+    refer: {configurable: true, value () {return () => this;}},
+    mend: {configurable: true, value () {return () => this;}},
+    toJSON: {configurable: true, get () {return this.pipe(v => `${JSON.stringify(v)}`);}},
+    toObject: {configurable: true, get () {return this;}},
+    toDate: {configurable: true, value () {return this;}},
+    toDateUTC: {configurable: true, value () {return this;}}
   });
 
   _.defines(_['#'].Promise, {
@@ -713,7 +712,7 @@
           return this.pipe(a => _.keys(a[0]).map(c => a.map(r => r[c])));
         }
       },
-      aMap: {
+      seq: {
         configurable: true,
         value (a) {
           return this.map(f => a.map(g => typeof f === 'function' ? f(g) : g(f)));
@@ -725,7 +724,7 @@
           return this.call('map')(_.pipe(...f));
         }
       },
-      fMap: {
+      flat: {
         configurable: true,
         value (...f) {
           return this.call('flatMap')(_.pipe(...f));
@@ -972,6 +971,7 @@
               yr:     d.getFullYear(),
               mo:     d.getMonth() + 1,
               dt:     d.getDate(),
+              wk:     Math.floor((d.getDate() + 6 ) / 7),
               dy:     d.getDay(),
               hr:     d.getHours(),
               min:    d.getMinutes(),
