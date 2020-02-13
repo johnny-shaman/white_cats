@@ -17,7 +17,7 @@ and...
 
 ### browser
 ```html
-<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.26/cat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/white_cats@0.1.27/cat.js"></script>
 ```
 
 ## contents:
@@ -243,6 +243,17 @@ _.isArray({})
 // [0, 1, 2, 3, 4, 5]
 ```
 
+### _.spin([])
+create loop infinite iterator
+
+```javascript
+const r = _.spin([1, 2, 3]);
+r.now // 1
+r.now // 2
+r.now // 3
+r.now // 1
+```
+
 ### _.async(resolver)
 create Promise
 
@@ -417,20 +428,6 @@ is JSON.stringify
 
 ```javascript
 _({a: 5, b: 6}).toJSON._ === JSON.stringify({a: 5, b: 6})
-```
-
-### _(async).then
-is pipe runner on promise
-
-```javascript
-_(_.async(r => r([3, 5, 7]))).then(
-    a => _.async(r => r(a, a.push(11))),
-    a => (a.push(13), a),
-    a => _.async(r => r(a, a.push(17))),
-    a => _.async(r => r(a, a.push(19))),
-    console.log    // output : [3, 5, 7, 11, 13, 17, 19]
-  )
-)._
 ```
 
 ### _(function*).take
@@ -1401,11 +1398,11 @@ _([ , ,3 ,4 , , ,5 , ,]).sure._
 // [undefined ,undefined ,3 ,4 ,undefined ,undefined ,5 ,undefined]
 ```
 
-### _([]).pair
+### _([]).admix
 from Array to Object
 
 ```javascript
-_([1, 2, 3, 4, 5]).pair(...'abcde')._
+_([1, 2, 3, 4, 5]).admix(...'abcde')._
 /*
   {
     a: 1,

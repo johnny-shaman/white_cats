@@ -95,6 +95,18 @@
       }
       yield a > b ? b : a;
     },
+    spin: a => _.upto(pSpin, {
+      '@': {
+        configurable: true,
+        value: (function * () {
+          while (true) {
+            for (let v of a) {
+              yield v;
+            }
+          }
+        })()
+      }
+    }),
     async: f => new Promise(f),
     asyncAll: (...a) => Promise.all(a),
     give: o => p => (_.entries(o).reduce(
@@ -131,6 +143,43 @@
     ),
     MyPrime: 57
   });
+
+  const pSpin = _.upto(Object.prototype, {
+    now: {
+      configurable: true,
+      get () {
+        return this['@'].next().value;
+      }
+    }
+  });
+
+  const returnThis = {
+    configurable: true,
+    value () {
+      return this;
+    }
+  };
+
+  const getThis = {
+    configurable: true,
+    get () {
+      return this;
+    }
+  };
+
+  const cr1This = {
+    configurable: true,
+    value () {
+      return () => this;
+    }
+  };
+
+  const cr2This = {
+    configurable: true,
+    value () {
+      return () => () => this;
+    }
+  };
 
   _.defines(_.prototype, {
     $_: {get () {return this.$ == null ? this._ : this.$;}},
@@ -223,76 +272,86 @@
         });
       }
     },
-    re: {configurable: true, get () {return _(this.$_, this._$, this['@']);}},
-    to: {configurable: true, value () {return this;}},
-    of: {configurable: true, value () {return this;}},
-    get: {configurable: true, value () {return this;}},
-    set: {configurable: true, value () {return () => this;}},
-    put: {configurable: true, value () {return this;}},
-    cut: {configurable: true, value () {return this;}},
-    map: {configurable: true, get () {return this.pipe;}},
-    mapDeep: {configurable: true, value () {return this;}},
-    seq: {configurable: true, value () {return this;}},
-    each: {configurable: true, get () {return this.loop;}},
-    give: {configurable: true, value () {return this;}},
-    take: {configurable: true, value () {return this;}},
-    done: {configurable: true, value () {return this;}},
-    keys: {configurable: true, value () {return this;}},
-    vals: {configurable: true, value () {return this;}},
-    entries: {configurable: true, value () {return this;}},
-    define: {configurable: true, value () {return this;}},
-    append: {configurable: true, value () {return this;}},
-    depend: {configurable: true, value () {return this;}},
-    filter: {configurable: true, value () {return this;}},
-    liken: {configurable: true, value () {return this;}},
-    equaly: {configurable: true, value () {return this;}},
-    toggle: {configurable: true, value () {return this;}},
-    chunk: {configurable: true, value () {return this;}},
-    unique: {configurable: true, get () {return this;}},
-    unione: {configurable: true, value () {return this;}},
-    exist: {configurable: true, value () {return this;}},
-    pushL: {configurable: true, value () {return this;}},
-    pushR: {configurable: true, value () {return this;}},
-    popL: {configurable: true, get () {return this;}},
-    popR: {configurable: true, get () {return this;}},
-    back: {configurable: true, get () {return this;}},
-    omitL: {configurable: true, get () {return this;}},
-    omitR: {configurable: true, get () {return this;}},
-    pick: {configurable: true, value () {return this;}},
-    drop: {configurable: true, value () {return this;}},
-    lift: {configurable: true, value () {return this;}},
-    sort: {configurable: true, value () {return this;}},
-    indexL: {configurable: true, value () {return this;}},
-    indexR: {configurable: true, value () {return this;}},
-    flatten: {configurable: true, value () {return this;}},
-    fold: {configurable: true, value () {return this;}},
-    foldL: {configurable: true, value () {return this;}},
-    foldR: {configurable: true, value () {return this;}},
-    adapt: {configurable: true, value () {return this;}},
-    adaptL: {configurable: true, value () {return this;}},
-    adaptR: {configurable: true, value () {return this;}},
-    concat: {configurable: true, value () {return this;}},
-    replace: {configurable: true, value () {return this;}},
-    slice: {configurable: true, value () {return this;}},
-    splice: {configurable: true, value () {return this;}},
-    pickKey: {configurable: true, value () {return this;}},
-    dropKey: {configurable: true, value () {return this;}},
-    rotate: {configurable: true, get () {return this;}},
-    gaze: {configurable: true, value () {return () => () => this;}},
-    modify: {configurable: true, value () {return () => () => this;}},
-    refer: {configurable: true, value () {return () => this;}},
-    mend: {configurable: true, value () {return () => this;}},
-    toJSON: {configurable: true, get () {return this.pipe(v => `${JSON.stringify(v)}`);}},
-    toObject: {configurable: true, get () {return this;}},
-    toDate: {configurable: true, value () {return this;}},
-    toDateUTC: {configurable: true, value () {return this;}}
-  });
-
-  _.defines(_['#'].Promise, {
-    then: {
+    re: {configurable: true, get () {return _(this.$, this._, this['@']);}},
+    to: returnThis,
+    of: returnThis,
+    get: returnThis,
+    set: cr1This,
+    put: returnThis,
+    cut: returnThis,
+    map: returnThis,
+    mapDeep: returnThis,
+    seq: returnThis,
+    each: returnThis,
+    give: returnThis,
+    take: returnThis,
+    done: returnThis,
+    keys: returnThis,
+    vals: returnThis,
+    entries: returnThis,
+    define: returnThis,
+    append: returnThis,
+    depend: returnThis,
+    filter: returnThis,
+    liken: returnThis,
+    equaly: returnThis,
+    toggle: returnThis,
+    chunk: returnThis,
+    unique: getThis,
+    unione: returnThis,
+    exist: returnThis,
+    pushL: returnThis,
+    pushR: returnThis,
+    popL: getThis,
+    popR: getThis,
+    back: getThis,
+    omitL: getThis,
+    omitR: getThis,
+    pick: returnThis,
+    drop: returnThis,
+    lift: returnThis,
+    sort: returnThis,
+    indexL: returnThis,
+    indexR: returnThis,
+    flatten: returnThis,
+    fold: returnThis,
+    foldL: returnThis,
+    foldR: returnThis,
+    adapt: returnThis,
+    adaptL: returnThis,
+    adaptR: returnThis,
+    concat: returnThis,
+    replace: returnThis,
+    slice: returnThis,
+    splice: returnThis,
+    pickKey: returnThis,
+    dropKey: returnThis,
+    rotate: getThis,
+    gaze: cr2This,
+    modify: cr2This,
+    refer: cr1This,
+    mend: cr1This,
+    apply: cr1This,
+    unite: returnThis,
+    any: returnThis,
+    all: returnThis,
+    sum: getThis,
+    pi: getThis,
+    average: getThis,
+    max: getThis,
+    min: getThis,
+    mid: getThis,
+    less:getThis,
+    sure:getThis,
+    admix: returnThis,
+    fullen: returnThis,
+    toObject: getThis,
+    toDate: returnThis,
+    toDateUTC: returnThis,
+    toJSON: {
       configurable: true,
-      value (...m) {
-        return this.loop(p => m.map(f => p.then(f)));
+      get () {
+        return this.pipe(v => `${JSON.stringify(v)}`);
       }
     }
   });
@@ -822,7 +881,7 @@
           return this.call('every');
         }
       },
-      apply: {
+      unite: {
         configurable: true,
         value (f) {
           return this.pipe(_.lazy(f));
@@ -849,13 +908,13 @@
       max: {
         configurable: true,
         get () {
-          return this.apply(Math.max);
+          return this.unite(Math.max);
         }
       },
       min: {
         configurable: true,
         get () {
-          return this.apply(Math.min);
+          return this.unite(Math.min);
         }
       },
       mid: {
@@ -892,10 +951,12 @@
           return this.pipe(a => !([...a].includes(undefined) || [...a].includes(null)));
         }
       },
-      pair: {
+      admix: {
         configurable: true,
         value (...v) {
-          return this.fold((p, c, k) => _.put(p, {[v[k]]: c}), {});
+          return v.length === 0
+          ? this
+          : this.fold((p, c, k) => _.put(p, {[v[k]]: c}), {});
         }
       },
       to: {

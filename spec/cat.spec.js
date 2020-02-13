@@ -355,54 +355,32 @@ describe("White Cats", function () {
 
   it('_.isArray',
     () => {
-      expect(
-        _.isArray([])
-      )
-      .toBe(
-        true
-      );
-      expect(
-        _.isArray({})
-      )
-      .toBe(
-        false
-      );
+      expect( _.isArray([]) ).toBe( true );
+      expect( _.isArray({}) ).toBe( false );
     }
   );
 
   it('_._',
     () => {
-      expect(
-        [..._._(0, 8, 2)]
-      )
-      .toEqual(
-        [0, 2, 4, 6, 8]
-      );
-
-      expect(
-        [..._._(8, 0, -2)]
-      )
-      .toEqual(
-        [8, 6, 4, 2, 0]
-      );
-
-      expect(
-        [..._._(5)]
-      )
-      .toEqual(
-        [0, 1, 2, 3, 4, 5]
-      );
+      expect( [..._._(0, 8, 2)] ).toEqual( [0, 2, 4, 6, 8] );
+      expect( [..._._(8, 0, -2)] ).toEqual( [8, 6, 4, 2, 0] );
+      expect( [..._._(5)] ).toEqual( [0, 1, 2, 3, 4, 5] );
     }
   );
 
+  it('_.spin',
+    () => {
+      const r = _.spin([1, 2, 3]);
+      expect( r.now ).toBe( 1 );
+      expect( r.now ).toBe( 2 );
+      expect( r.now ).toBe( 3 );
+      expect( r.now ).toBe( 1 );
+    }
+  )
+
   it('_.async',
     () => _.async(r => r(3)).then(
-      v => expect(
-        v
-      )
-      .toBe(
-        3
-      )
+      v => expect( v ) .toBe( 3 )
     )
   );
 
@@ -411,57 +389,28 @@ describe("White Cats", function () {
       _.async(r => r(3)),
       _.async(r => r(4)),
       _.async(r => r(5))
-    )
-    .then(
-      a => expect(
-      a
-      ).toEqual(
-        [3, 4, 5]
-      )
+    ).then(
+      a => expect( a ).toEqual( [3, 4, 5] )
     )
   );
 
   it('_().$_',
     () => {
-      expect(
-        _(3).$_
-      ).toBe(
-        3
-      );
-      expect(
-        _(3, 4).$_
-      ).toBe(
-        4
-      );
+      expect( _(3).$_ ).toBe( 3 );
+      expect( _(3, 4).$_ ).toBe( 4 );
     }
   );
 
   it('_()._$',
     () => {
-      expect(
-        _(3)._$
-      ).toBe(
-        3
-      );
-      expect(
-        _(3, 4)._$
-      ).toBe(
-        3
-      );
-      expect(
-        _(null, 4)._$
-      ).toBe(
-        4
-      )
+      expect( _(3)._$ ).toBe( 3 );
+      expect( _(3, 4)._$ ).toBe( 3 );
+      expect( _(null, 4)._$ ).toBe( 4 );
     }
   );
 
   it('_().re',
-    () => expect(
-      _(3, 4).re._
-    ).toBe(
-      4
-    )
+    () => expect( _(3, 4).re._ ).toBe( 4 )
   );
 
   it('_().flat has Kleisli Triple and function piping',
@@ -488,47 +437,21 @@ describe("White Cats", function () {
 
   it('_().pipe',
     () => {
-      expect(
-        _({a: 5})
-        .pipe(
-          o => ({a: o.a * 3}),
-          o => ({a: o.a + 5})
-        )
-        ._
-      ).toEqual(
-        {a: 20}
-      );
-
-      expect(
-        _().pipe(
-          o => ({a: o.a * 3}),
-          o => ({a: o.a + 5})
-        )
-        ._
-      ).toEqual([undefined]);
+      const f = o => ({a: o.a * 3}),
+            g = o => ({a: o.a + 5});
+      expect( _({a: 5}).pipe(f, g)._ ).toEqual( {a: 20} );
+      expect( _().pipe(f, g)._ ).toEqual( [undefined] );
     }
   );
 
   it('_().loop',
     () => {
-      expect(
-        _(O(3, 5, 7))
-        .loop(
-          o => o.ad( 5 ),
-          o => o.mt( 2 ),
-          o => o.ad( 3 )
-        )
-        ._
-        .c
-      ).toBe(4387);
+      const f = o => o.ad( 5 ),
+            g = o => o.mt( 2 ),
+            h = o => o.ad( 3 );
 
-      expect(
-        _().loop(
-          o => ({a: o.a * 3}),
-          o => ({a: o.a + 5})
-        )
-        ._
-      ).toEqual(undefined);
+      expect( _(O(3, 5, 7)).loop(f, g, h)._.c ).toBe( 4387 );
+      expect( _().loop(f, g, h)._ ).toEqual(undefined);
     }
   );
 
@@ -559,81 +482,47 @@ describe("White Cats", function () {
     () => {
       const o = O(3, 5, 7);
       const t = [];
+      const f = (w, v) => t.push(v + w);
+
       expect(
         _(o).s_r('prog')(5, 6)(a => a.map(v => t.push(v)))._
       ).toBe(
         o
       );
 
-      expect(
-        _(o).s_r('a')(5)((w, v) => t.push(v + w))._
-      ).toBe(
-        o
-      );
-
-      expect(
-        _(o).s_r('d')()()._
-      ).toBe(
-        o
-      );
-
-      expect(
-        _().s_r('d')(6)((w, v) => t.push(v + w))._
-      ).toBe();
-
-      expect(
-        t
-      ).toEqual(
-        [5, 6, 7, 8]
-      );
+      expect( _(o).s_r('a')(5)(f)._ ).toBe( o );
+      expect( _(o).s_r('d')()()._ ).toBe( o );
+      expect( _().s_r('d')(6)(f)._ ).toBe();
+      expect( t ).toEqual( [5, 6, 7, 8] );
     }
   );
 
   it('_().cast',
     () => {
       const o = O(3, 5, 7);
-      expect(
-        _(o).cast('prog')(5, 6)._
-      ).toBe(
-        o
-      );
 
-      expect(
-        _(o).cast('a')(5, 6)._
-      ).toBe(
-        o
-      );
-
-      expect(
-        _(o).cast('d.e')(5, 6)._
-      ).toBe(
-        o
-      );
-
-      expect(
-        o.a
-      ).toBe(
-        3
-      );
-
-      expect(
-        _().cast('d')(5, 6)._
-      ).toBe();
+      expect( _(o).cast('prog')(5, 6)._ ).toBe( o );
+      expect( _(o).cast('a')(5, 6)._ ).toBe( o );
+      expect( _(o).cast('d.e')(5, 6)._ ).toBe( o );
+      expect( o.a ).toBe( 3 );
+      expect( _().cast('d')(5, 6)._ ).toBe();
     }
   );
 
   it('_().Been',
     () => {
       const r = [];
+      const f = (v, w) => v + w;
+      const g = a => a.map(v => r.push(v));
       expect(
       _(O(0, 5, 2))
         .Been
         .a(3)(_.alter)
         .b(10)()
-        .c(5)((v, w) => v + w)
-        .ad( 5 )(a => a.map(v => r.push(v)))
-        .mt( 2 )(a => a.map(v => r.push(v)))
-        .ad( 3 )(a => a.map(v => r.push(v)))
+        .c(5)(f)
+        .ad( 5 )(g)
+        .mt( 2 )(g)
+        .ad( 3 )(g)
         .To
         ._
         .c
@@ -646,10 +535,10 @@ describe("White Cats", function () {
         .Been
         .a(3)(_.alter)
         .b(10)()
-        .c(5)((v, w) => v + w)
-        .ad( 5 )(a => a.map(v => r.push(v)))
-        .mt( 2 )(a => a.map(v => r.push(v)))
-        .ad( 3 )(a => a.map(v => r.push(v)))
+        .c(5)(f)
+        .ad( 5 )(g)
+        .mt( 2 )(g)
+        .ad( 3 )(g)
         .To
         ._
       ).toBe();
@@ -744,9 +633,11 @@ describe("White Cats", function () {
 
   it('_({}).filter',
     () =>{
+      const f = v => v < 4;
+
       expect(
         _({a: 5, b: 4, c: 3, d: 2, e : 1})
-        .filter(v => v < 4)
+        .filter(f)
         .keys
         ._
       ).toEqual(
@@ -755,7 +646,7 @@ describe("White Cats", function () {
 
       expect(
         _()
-        .filter(v => v < 4)
+        .filter(f)
         ._
       ).toBe();
     }
@@ -766,55 +657,27 @@ describe("White Cats", function () {
       const x = {d: 3, e: 4, f: 5};
       const y = {};
       const z = {};
+      const f = (k, v) => _.put(y, {[`${k.toUpperCase()}`]: v + 5}),
+            g = (k, v) => _.put(z, {[`${k}z`]: v});
 
-      expect(
-        _(x)
-        .each(
-          (k, v) => _.put(y, {[`${k.toUpperCase()}`]: v + 5}),
-          (k, v) => _.put(z, {[`${k}z`]: v})
-        )
-        .take(y, z)
-        ._
-      ).toBe(
-        x
-      );
-
-      expect(
-        _()
-        .each(
-          (k, v) => _.put(y, {[`${k.toUpperCase()}`]: v + 5}),
-          (k, v) => _.put(z, {[`${k}z`]: v})
-        )
-        ._
-      ).toBe();
-
-      expect(
-        _(x).keys._
-      ).toEqual(
-        ['d','e','f', 'D', 'E', 'F', 'dz', 'ez', 'fz']
-      );
+      expect( _(x).each(f, g).take(y, z)._ ).toBe( x );
+      expect( _().each(f, g) ._ ).toBe();
+      expect( _(x).keys._ ).toEqual( ['d','e','f', 'D', 'E', 'F', 'dz', 'ez', 'fz'] );
     }
   );
 
   it('_({}).map',
     () => {
+      const f = v => v + 5,
+            g = v => v * 3;
+
       expect(
-        _({a: 5, b: 4, c: 6})
-        .map(
-          v => v + 5,
-          v => v * 3
-        )._
+        _({a: 5, b: 4, c: 6}).map(f, g)._
       ).toEqual(
         {a: 30, b: 27, c: 33}
       );
 
-      expect(
-        isNaN(_()
-        .map(
-          v => v + 5,
-          v => v * 3
-        )._)
-      ).toBe(true);
+      expect( _().map(f, g)._ ).toBe();
     }
   );
 
@@ -922,22 +785,24 @@ describe("White Cats", function () {
 
   it('_({}).refer',
     () => {
+      const f = v => v * 3;
+
       expect(
-      _({a: 3, b: {c: 4, d: {e: 6}}}).refer('b.d.e')(v => v * 3)._.b.d.e
+        _({a: 3, b: {c: 4, d: {e: 6}}}).refer('b.d.e')(f)._.b.d.e
       ).toBe(
         6
       );
 
-      expect(
-        _().refer('b.d.e')(v => v * 3)._
-      ).toBe()
+      expect( _().refer('b.d.e')(f)._ ).toBe();
     }
   );
 
   it('_({}).gaze',
     () => {
+      const f = (v, w) => v * w;
+
       expect(
-        _({a: 3, b: {c: 4, d: {e: 6}}}).gaze('b.d.e')(4)((v, w) => v * w)._.b.d.e
+        _({a: 3, b: {c: 4, d: {e: 6}}}).gaze('b.d.e')(4)(f)._.b.d.e
       ).toBe(
         6
       );
@@ -949,15 +814,17 @@ describe("White Cats", function () {
       );
 
       expect(
-        _().gaze('b.d.e')(4)((v, w) => v * w)._
+        _().gaze('b.d.e')(4)(f)._
       ).toBe();
     }
   );
 
   it('_({}).mend',
     () => {
+      const f = v => v * 3;
+
       expect(
-        _({a: 3, b: {c: 4, d: {e: 6}}}).mend('b.d.e')(v => v * 3)._.b.d.e
+        _({a: 3, b: {c: 4, d: {e: 6}}}).mend('b.d.e')(f)._.b.d.e
       ).toBe(
         18
       );
@@ -969,15 +836,17 @@ describe("White Cats", function () {
       );
 
       expect(
-        _().mend('b.d.e')(v => v * 3)._
+        _().mend('b.d.e')(f)._
       ).toBe();
     }
   );
 
   it('_({}).modify',
     () => {
+      const f = (v, w) => v * w;
+
       expect(
-      _({a: 3, b: {c: 4, d: {e: 6}}}).modify('b.d.e')(4)((v, w) => v * w)._.b.d.e
+      _({a: 3, b: {c: 4, d: {e: 6}}}).modify('b.d.e')(4)(f)._.b.d.e
       ).toBe(
         24
       );
@@ -989,8 +858,8 @@ describe("White Cats", function () {
         );
   
       expect(
-        _().modify('b.d.e')(4)((v, w) => v * w)._
-        ).toBe();
+        _().modify('b.d.e')(4)(f)._
+      ).toBe();
     }
   );
 
@@ -1145,7 +1014,7 @@ describe("White Cats", function () {
         }
       );
 
-      expect(_().pick('a, b.g')._).toBe();
+      expect( _().pick('a, b.g')._ ).toBe();
     }
   );
 
@@ -1181,7 +1050,7 @@ describe("White Cats", function () {
         }
       );
 
-      expect(_().drop('a, b.g')._).toBe();
+      expect( _().drop('a, b.g')._ ).toBe();
     }
   );
 
@@ -1301,14 +1170,15 @@ describe("White Cats", function () {
 
   it('_(function).each is applying each value',
     () => {
+      const f = v => v * 3;
       expect(
-        _(v => v * 3).each(3, 5, 7)._
+        _(f).each(3, 5, 7)._
       ).toEqual(
         [9, 15, 21]
       );
 
       expect(
-        _(v => v * 3).each()._
+        _(f).each()._
       ).toEqual([]);
     }
   );
@@ -1341,11 +1211,7 @@ describe("White Cats", function () {
         _().liken([1, 100, 2, 200, 3, 300])._
       ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1361,11 +1227,7 @@ describe("White Cats", function () {
         _().equaly([1, 1, 2, 3, 5, 8])._
       ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1381,11 +1243,7 @@ describe("White Cats", function () {
         _().toggle(..._._(0, 15, 2), ..._._(16, 18))._
       ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1397,11 +1255,7 @@ describe("White Cats", function () {
         [2, 5, 6]
       );
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1413,11 +1267,7 @@ describe("White Cats", function () {
         [1, 3, 5, 7, 9, 11, 13, 15]
       );
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1433,11 +1283,7 @@ describe("White Cats", function () {
         _().chunk(2)._
       ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1487,11 +1333,7 @@ describe("White Cats", function () {
         [2, 4, 6, 8, 4, 5]
       );
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1513,11 +1355,7 @@ describe("White Cats", function () {
         _().exist(20)._
       ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1652,104 +1490,53 @@ describe("White Cats", function () {
         [0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105, 120]
       );
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
   it('_([]).lift',
     () => {
-      expect(
-        _([1,2,3,4,5]).lift(
-          a => a
-          .map(v => v + 8)
-          .reduce((p, c) => p + c)
-        )._
-      ).toBe(
-        55
-      );
+      const f = a => a.map(v => v + 8).reduce((p, c) => p + c);
 
-      expect(
-        _().lift(
-          a => a
-          .map(v => v + 8)
-          .reduce((p, c) => p + c)
-        )._
-      ).toBe();
-      
+      expect( _([1,2,3,4,5]).lift(f)._ ).toBe( 55 );
+      expect( _().lift(f)._ ).toBe();
     }
   );
 
   it('_([]).fold',
     () => {
-      expect(
-        _(TA).fold((p, c) => `${p}, ${c}`)._
-      ).toEqual(
-        TA.join(', ')
-      );
+      const f = (p, c) => `${p}, ${c}`;
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
-
-      expect( _().fold((p, c) => `${p}, ${c}`)._ ).toBe();
+      expect( _(TA).fold(f)._ ).toEqual( TA.join(', ') );
+      expect( TA ).toEqual( [..._._(15)] );
+      expect( _().fold(f)._ ).toBe();
     }
   );
 
   it('_([]).foldL',
     () => {
-      expect(
-        _(TA).foldL((p, c) => `${p}, ${c}`)._
-      ).toEqual(
-        TA.join(', ')
-      );
+      const f = (p, c) => `${p}, ${c}`;
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
-
-      expect( _().foldL((p, c) => `${p}, ${c}`)._ ).toBe();
+      expect( _(TA).foldL(f)._ ).toEqual( TA.join(', ') );
+      expect( TA ).toEqual( [..._._(15)] );
+      expect( _().foldL(f)._ ).toBe();
     }
   );
 
   it('_([]).foldR',
     () => {
-      expect(
-        _(TA).foldR((p, c) => `${p}, ${c}`)._
-      ).toEqual(
-        TA.reverse().join(', ')
-      );
+      const f = (p, c) => `${p}, ${c}`;
 
-      expect(
-        TA.reverse()
-      ).toEqual(
-        [..._._(15)]
-      );
-
-      expect( _().foldR((p, c) => `${p}, ${c}`)._ ).toBe();
+      expect( _(TA).foldR(f)._ ).toEqual( [...TA].reverse().join(', ') );
+      expect( TA ).toEqual( [..._._(15)] );
+      expect( _().foldR(f)._ ).toBe();
     }
   );
 
   it('_([]).filter',
     () => {
-      expect(
-        _(TA).filter(v => v < 8)._
-      ).toEqual(
-        TA.filter(v => v < 8)
-      );
-
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( _(TA).filter(v => v < 8)._ ).toEqual( TA.filter(v => v < 8) );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1775,79 +1562,63 @@ describe("White Cats", function () {
 
   it('_([]).seq is a Apllicative Map',
     () => {
+      const a = [v => v + 5, v => v * 5]
       expect(
-        _([v => v + 5, v => v * 5]).seq(TA)._
+        _(a).seq(TA)._
       ).toEqual(
         [TA.map(v => v + 5), TA.map(v => v * 5)]
       );
 
       expect(
-        _(TA).seq([v => v + 5, v => v * 5]).rotate._
+        _(TA).seq(a).rotate._
       ).toEqual(
         [TA.map(v => v + 5), TA.map(v => v * 5)]
       );
 
-      expect( _().seq._ ).toBe();
+      expect( _().seq(a).rotate._ ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
   it('_([]).map',
     () => {
-      expect(
-        _(TA).map(v => v * 5)._
-      ).toEqual(
-        TA.map(v => v * 5)
-      );
-
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      const f = v => v * 5;
+      expect( _(TA).map(f)._ ).toEqual( TA.map(f) );
+      expect( _().map(f)._ ).toBe();
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
   it('_([]).flat',
     () => {
+      const f = v => [v * 5];
       expect(
-        _(TA).flat(v => [v * 5])._
+        _(TA).flat(f)._
       ).toEqual(
-        TA.flatMap(v => [v * 5])
+        TA.flatMap(f)
       );
 
       expect(
-        _().flat(v => [v * 5])._
+        _().flat(f)._
       ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
   it('_([]).mapDeep',
     () => {
+      const f = v => v * 5;
       expect(
-        _([TA, [TA]]).mapDeep(v => v * 5)._
+        _([TA, [TA]]).mapDeep(f)._
       ).toEqual(
-        [TA.map(v => v * 5), [TA.map(v => v * 5)]]
+        [TA.map(f), [TA.map(f)]]
       );
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
 
-      expect( _().mapDeep(v => v * 5)._ ).toBe();
+      expect( _().mapDeep(f)._ ).toBe();
     }
   );
 
@@ -1862,11 +1633,7 @@ describe("White Cats", function () {
       expect( _().flatten()._ ).toBe();
 
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1880,11 +1647,7 @@ describe("White Cats", function () {
 
       expect( _().back._ ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -1969,11 +1732,7 @@ describe("White Cats", function () {
         _().concat([1, 2, 4, 5])._
       ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -2017,11 +1776,7 @@ describe("White Cats", function () {
         _().slice(5, 8)._
       ).toBe();
 
-      expect(
-        TA
-      ).toEqual(
-        [..._._(15)]
-      );
+      expect( TA ).toEqual( [..._._(15)] );
     }
   );
 
@@ -2068,67 +1823,74 @@ describe("White Cats", function () {
   );
 
   it('_([]).any',
-    () => expect(
-      _([1, 2, 3, 2, 5]).any(v => v > 4)._
-    ).toBe(
-      [1, 2, 3, 4, 5].some(v => v > 4)
-    )
+    () => {
+      const f = v => v > 4;
+      expect(
+        _([1, 2, 3, 2, 5]).any(f)._
+      ).toBe(
+        [1, 2, 3, 4, 5].some(f)
+      );
+      expect( _().any(f)._ ).toBe();
+    }
   );
 
   it('_([]).all',
-    () => expect(
-      _([1, 2, 3, 2, 5]).all(v => v > 4)._
+  () => {
+    const f = v => v > 4;
+    expect(
+      _([1, 2, 3, 2, 5]).all(f)._
     ).toBe(
-      [1, 2, 3, 4, 5].every(v => v > 4)
-    )
-  );
+      [1, 2, 3, 4, 5].every(f)
+    );
+    expect( _().all(f)._ ).toBe();
+  }
+);
 
-  it('_([]).apply',
-    () => expect(
-      _([1, 2, 3]).apply((a, b, c) => (a + b) * c)._
-    ).toBe(
-      9
-    )
+  it('_([]).unite',
+    () => {
+      const f = (a, b, c) => (a + b) * c;
+      expect(
+        _([1, 2, 3]).unite(f)._
+      ).toBe(
+        9
+      );
+      expect(_().unite(f)._).toBe();
+    }
   );
 
   it('_([]).sum',
-    () => expect(
-      _(TA).sum._
-    ).toBe(
-      120
-    )
+    () => {
+      expect( _(TA).sum._ ).toBe( 120 );
+      expect( _().sum._ ).toBe();
+    }
   );
 
   it('_([]).pi',
-    () => expect(
-      _([1,2,3,4,5]).pi._
-    ).toBe(
-      120
-    )
+    () => {
+      expect( _([1,2,3,4,5]).pi._ ).toBe( 120 );
+      expect( _().pi._ ).toBe();
+    }
   );
 
   it('_([]).average',
-    () => expect(
-      _(TA).average._
-    ).toBe(
-      7.5
-    )
+    () => {
+      expect( _(TA).average._ ).toBe( 7.5 );
+      expect( _().average._ ).toBe();
+    }
   );
 
   it('_([]).max',
-    () => expect(
-      _(TA).max._
-    ).toBe(
-      15
-    )
+    () => {
+      expect( _(TA).max._ ).toBe( 15 );
+      expect( _().max._ ).toBe();
+    }
   );
 
   it('_([]).min',
-    () => expect(
-      _(TA).min._
-    ).toBe(
-      0
-    )
+    () => {
+      expect( _(TA).min._ ).toBe( 0 );
+      expect( _().min._ ).toBe();
+    }
   );
 
   it('_([]).mid',
@@ -2148,37 +1910,46 @@ describe("White Cats", function () {
       expect(
         _([]).mid._
       ).toBe();
+
+      expect(
+        _().mid._
+      ).toBe();
     }
   );
 
   it('_([]).less',
-    () => expect(
-      _([ , ,3 ,4 , , ,5 , ,]).less._
-    ).toEqual(
-      [3, 4, 5]
-    )
+    () => {
+      expect( _([ , ,3 ,4 , , ,5 , ,]).less._ ).toEqual( [3, 4, 5] );
+      expect( _().less._ ).toBe();
+    }
   );
 
   it('_([]).sure',
-    () => expect(
-      _([ , ,3 ,4 , , ,5 , ,]).sure._
-    ).toEqual(
-      [undefined ,undefined ,3 ,4 ,undefined ,undefined ,5 ,undefined]
-    )
+    () => {
+      expect(
+        _([ , ,3 ,4 , , ,5 , ,]).sure._
+      ).toEqual(
+        [undefined ,undefined ,3 ,4 ,undefined ,undefined ,5 ,undefined]
+      );
+      expect( _().sure._ ).toBe();
+    }
   );
 
-  it('_([]).pair',
-    () => expect(
-      _([1, 2, 3, 4, 5]).pair(...'a, b, c, d, e'.split(', '))._
-    ).toEqual(
-      {
+  it('_([]).admix',
+    () => {
+      expect(
+        _([1, 2, 3, 4, 5]).admix(...'a, b, c, d, e'.split(', '))._
+      ).toEqual({
         a: 1,
         b: 2,
         c: 3,
         d: 4,
         e: 5
-      }
-    )
+      });
+
+      expect( _().admix(...'a, b, c, d, e'.split(', '))._ ).toBe();
+      expect( _([1, 2, 3, 4, 5]).admix()._ ).toEqual([1, 2, 3, 4, 5]);
+    }
   );
 
   it('_([]).to',
@@ -2368,13 +2139,14 @@ describe("White Cats", function () {
       );
 
       expect(
-        _(new Date(0)).get('yr, mo, dt, dy, hr, min, sec, ms')._
+        _(new Date(0)).get('yr, mo, dt, dy, wk, hr, min, sec, ms')._
       ).toEqual(
         {
           yr: 1970,
           mo: 1,
           dt: 1,
           dy: 4,
+          wk: 1,
           hr: Math.trunc(_.zone / 60),
           min: _.zone % 60,
           sec: 0,
