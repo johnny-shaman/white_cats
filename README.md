@@ -1326,11 +1326,11 @@ _([1, 2, 3, 2, 5]).all(v => v > 4)._
 // [1, 2, 3, 4, 5].every(v => v > 4)
 ```
 
-### _([]).apply
+### _([]).unite
 spread and apply to function
 
 ```javascript
-_([1, 2, 3]).apply((a, b, c) => (a + b) * c)._
+_([1, 2, 3]).unite((a, b, c) => (a + b) * c)._
 // 9
 ```
 
@@ -1467,6 +1467,7 @@ Get LocalTimeZone
 'mo':   month (not month ID)
 'dt':   date
 'dy':   day of the week ID
+'wk':   number of the week
 'hr':   hour
 'min':  minute
 'sec':  secounds
@@ -1501,6 +1502,7 @@ _(new Date(0)).get('yr, mo, dt, dy, hr, min, sec, ms')._
     mo: 1,
     dt: 1,
     dy: 4,
+    wk: 1,
     hr: Math.trunc(_.zone / 60),
     min: _.zone % 60,
     sec: 0,
