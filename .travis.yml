@@ -3,7 +3,7 @@ env:
     - "CC_TEST_REPORTER_ID=0edd8e96f10262bf74bbc76d82c34f2c7a6da8b72322bebd48ec69d90004a964"
     
 language: node_js
-  - "stable"
+  - "LTS"
 
 branches:
   except:
