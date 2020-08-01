@@ -67,5 +67,4 @@ typings/
 .eslintrc.js
 package-lock.json
 spec/index.html
-.npmignore
 jsconfig.json

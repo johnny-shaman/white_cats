@@ -1,5 +1,7 @@
 describe("White Cats", function () {
+
   'use strict';
+
   const _ = require('../cat.js');
   const EventEmitter = require("events").EventEmitter;
 

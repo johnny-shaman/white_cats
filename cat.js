@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.27',
+    WhiteCats: '0.1.28',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
