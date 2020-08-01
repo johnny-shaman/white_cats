@@ -1,8 +1,6 @@
 # white_cats
 White Cats define Pure functions
 
-[![Build Status](https://travis-ci.org/johnny-shaman/white_cats.svg?branch=master)](https://travis-ci.org/johnny-shaman/white_cats) [![Test Coverage](https://api.codeclimate.com/v1/badges/796f5fbe409a4fdb78a2/test_coverage)](https://codeclimate.com/github/johnny-shaman/white_cats/test_coverage)
-
 ## Usage:
 ### node.js@^LTS
 
