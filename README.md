@@ -1,7 +1,7 @@
 # white_cats
 White Cats define Pure functions
 
-[Node.js CI](https://github.com/johnny-shaman/white_cats/workflows/Node.js%20CI/badge.svg)
+![Node.js CI](https://github.com/johnny-shaman/white_cats/workflows/Node.js%20CI/badge.svg)
 
 ## Usage:
 ### node.js@^LTS
