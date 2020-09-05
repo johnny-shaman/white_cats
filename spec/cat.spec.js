@@ -381,17 +381,25 @@ describe("White Cats", function () {
   )
 
   it('_.async',
-    () => _.async(r => r(3)).then(
-      v => expect( v ) .toBe( 3 )
+    () => _(_.async(r => r(3)))
+    .loop(
+      v => (expect( v ) .toBe( 3 ), _.async(r => r(4))),
+      v => (expect( v ) .toBe( 3 ), 5),
+      v =>  expect( v ) .toBe( 3 )
+    )
+    .pipe(
+      v => (expect( v ) .toBe( 3 ), _.async(r => r(4))),
+      v => (expect( v ) .toBe( 4 ), 5),
+      v =>  expect( v ) .toBe( 5 )
     )
   );
 
   it('_.asyncAll',
-    () => _.asyncAll(
+    () => _(_.asyncAll(
       _.async(r => r(3)),
       _.async(r => r(4)),
       _.async(r => r(5))
-    ).then(
+    )).pipe(
       a => expect( a ).toEqual( [3, 4, 5] )
     )
   );

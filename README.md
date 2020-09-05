@@ -888,7 +888,8 @@ _(v => v * 3).each(3, 5, 7)._
 // [9, 15, 21]
 ```
 
-### _(function).done is manageing onto delaying and forceing or applying
+### _(function).done
+is manageing onto delaying and forceing or applying
 
 ```javascript
 _(v => v * 5)
@@ -898,6 +899,34 @@ _(v => v * 5)
 ._
 
 // 15
+```
+
+### _(Promise).pipe
+is promiseObj.then pipe chaining;
+
+```javascript
+_(_.async(r => r(3)))
+.pipe(
+  v => v + 5,
+  v => v * 2
+)
+._
+
+// {fullfilled, 16}
+```
+
+### _(Promise).pipe
+is promiseObj.then pipe chaining;
+
+```javascript
+_(_.async(r => r(3)))
+.loop(
+  console.log,
+  console.log
+)
+._
+
+// {fullfilled, 3}
 ```
 
 ### _([]).liken

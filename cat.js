@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.28',
+    WhiteCats: '0.1.30',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -611,10 +611,23 @@
           return this.pipe(v.map.bind(v));
         }
       }
-    })
-  });
+    }),
 
-  _.put(_['#'], {
+    Promise: _.upto(_["#"].Object, {
+      pipe: {
+        configurable: true,
+        value (...f) {
+          return _["#"].Object.pipe.call(this, p => _(f).fold((a, c) => a.then(c), p)._);
+        }
+      },
+      loop: {
+        configurable: true,
+        value (...f) {
+          return _["#"].Object.loop.call(this, p => f.map(g => p.then(g)));
+        }
+      }
+    }),
+
     Array: _.upto(_['#'].Object, {
       liken: {
         configurable: true,
@@ -983,46 +996,8 @@
           )._ : this;
         }
       }
-    })
-  });
+    }),
 
-  _.defines(_['#'].String, {
-    toObject: {
-      configurable: true,
-      get () {
-        return this.pipe(s => {try {return JSON.parse(s)} catch (e) {return s}});
-      }
-    },
-    toDate: {
-      configurable: true,
-      get () {
-        return this.pipe(
-          _,
-          t => t.pipe(
-            s => new Date(s),
-            d => isNaN(d.getFullYear())
-            ? t.toObject.toDate._
-            : d
-          )._
-        );
-      }
-    },
-    toDateUTC: {
-      get () {
-        return this.pipe(s => _(JSON.parse(s)).toDateUTC._);
-      }
-    }
-  });
-
-  Object.assign(_, {
-    zone : _(new Date(0)).pipe(
-      d => d.getFullYear < 1970
-      ? -(d.getHours() * 60 + d.getMinutes())
-      : d.getHours() * 60 + d.getMinutes()
-    )._
-  });
-
-  _.put(_['#'], {
     Date: _.upto(_['#'].Object, {
       get: {
         configurable: true,
@@ -1157,6 +1132,45 @@
         }
       }
     })
+  });
+
+  _.defines(_['#'].String, {
+    toObject: {
+      configurable: true,
+      get () {
+        return this.pipe(s => {try {return JSON.parse(s)} catch (e) {return s}});
+      }
+    },
+    toDate: {
+      configurable: true,
+      get () {
+        return this.pipe(
+          _,
+          t => t.pipe(
+            s => new Date(s),
+            d => isNaN(d.getFullYear())
+            ? t.toObject.toDate._
+            : d
+          )._
+        );
+      }
+    },
+    toDateUTC: {
+      get () {
+        return this.pipe(s => _(JSON.parse(s)).toDateUTC._);
+      }
+    }
+  });
+
+  Object.assign(_, {
+    zone : _(new Date(0)).pipe(
+      d => d.getFullYear < 1970
+      ? -(d.getHours() * 60 + d.getMinutes())
+      : d.getHours() * 60 + d.getMinutes()
+    )._
+  });
+
+  _.put(_['#'], {
   });
 
   'process' in apex && _.defines(_['#'].Object, {
