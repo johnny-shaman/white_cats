@@ -394,6 +394,30 @@ describe("White Cats", function () {
     )
   );
 
+  it('_.async2',
+    () => _(
+      _.async(r => r(
+        _.upto({a: 5}, {
+          async add (v) {
+            this.a += v;
+            return await _.async(r => r(_.upto({b: this.a}, {
+              async mult (v) {
+                this.b *= v;
+                return this
+              }
+            })));
+          }
+        })
+      ))
+    ).
+    Been
+    .add(5)
+    .mult(2)
+    .b(
+      v => expect( v ).toBe( 20 )
+    )
+  );
+
   it('_.asyncAll',
     () => _(_.asyncAll(
       _.async(r => r(3)),

@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.30',
+    WhiteCats: '0.1.40',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -140,8 +140,7 @@
         o
       ).s,
       s => s.includes('[') ? _.Q(s) : s.split(_.xComma)
-    ),
-    MyPrime: 57
+    )
   });
 
   const pSpin = _.upto(Object.prototype, {
@@ -624,6 +623,22 @@
         configurable: true,
         value (...f) {
           return _["#"].Object.loop.call(this, p => f.map(g => p.then(g)));
+        }
+      },
+      Been: {
+        connfigurable: true,
+        get () {
+          return new Proxy (this, {
+            get (t, k) {
+              return k === 'To'
+              ? t
+              : (...v) => t.pipe(
+                async o => typeof o[k] ==='function'
+                ? await o[k].call(o, ...v)
+                : _.pipe(...v)(o[k])
+              ).Been
+            }            
+          });
         }
       }
     }),

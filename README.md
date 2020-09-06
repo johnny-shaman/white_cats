@@ -915,7 +915,7 @@ _(_.async(r => r(3)))
 // {fullfilled, 16}
 ```
 
-### _(Promise).pipe
+### _(Promise).loop
 is promiseObj.then pipe chaining;
 
 ```javascript
@@ -927,6 +927,16 @@ _(_.async(r => r(3)))
 ._
 
 // {fullfilled, 3}
+```
+### _(Promise).Been
+is promiseObj.pipeline method chaining;
+
+```javascript
+// It is like to use wavy dot
+//  const data = await disk~.openDirectory('foo')~.openFile('bar.txt')~.read();
+async () => {
+  const data = await _(getFileSystem()).Been.openDirectory('foo').openFile('bar.txt').read().To._;
+}
 ```
 
 ### _([]).liken
