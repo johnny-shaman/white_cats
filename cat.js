@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.40',
+    WhiteCats: '0.1.50',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -625,19 +625,27 @@
           return _["#"].Object.loop.call(this, p => f.map(g => p.then(g)));
         }
       },
-      Been: {
-        connfigurable: true,
+      Will: {
+        configurable: true,
         get () {
           return new Proxy (this, {
             get (t, k) {
-              return k === 'To'
+              return k === 'Done'
               ? t
-              : (...v) => t.pipe(
-                async o => typeof o[k] ==='function'
-                ? await o[k].call(o, ...v)
-                : _.pipe(...v)(o[k])
-              ).Been
-            }            
+              : (...v) => t.pipe(async o => 
+                k === 'Be'
+                ? (
+                  typeof o ==='function'
+                  ? await o(...v)
+                  : await _.pipe(...v)(o)
+                )
+                : (
+                  typeof o[k] ==='function'
+                  ? await o[k].call(o, ...v)
+                  : await _(o).mend(k)(...v)._
+                )
+              ).Will
+            }
           });
         }
       }

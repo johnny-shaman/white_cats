@@ -410,12 +410,28 @@ describe("White Cats", function () {
         })
       ))
     ).
-    Been
+    Will
     .add(5)
     .mult(2)
+    .mult(2)
     .b(
-      v => expect( v ).toBe( 20 )
+      v => expect( v ).toBe( 40 )
     )
+  );
+
+  it('_.async3',
+    () => _(
+      _.async(r => r(
+        v => _.async(r => r(
+          w => _.async(r => r(v + w))
+        ))
+      ))
+    )
+    .Will
+    .Be(2)
+    .Be(5)
+    .Done
+    .pipe(v => expect( v ).toBe(7))
   );
 
   it('_.asyncAll',

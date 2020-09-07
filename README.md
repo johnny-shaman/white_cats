@@ -928,14 +928,21 @@ _(_.async(r => r(3)))
 
 // {fullfilled, 3}
 ```
-### _(Promise).Been
+### _(Promise).Will
 is promiseObj.pipeline method chaining;
 
 ```javascript
 // It is like to use wavy dot
-//  const data = await disk~.openDirectory('foo')~.openFile('bar.txt')~.read();
+//  const data = await disk~.(...args)~.openDirectory('foo')~.openFile('bar.txt')~.read();
 async () => {
-  const data = await _(getFileSystem()).Been.openDirectory('foo').openFile('bar.txt').read().To._;
+  const data = await _(getFileSystem())
+    .Will
+    .Be(...arg)
+    .openDirectory('foo')
+    .openFile('bar.txt')
+    .read()
+    .Done
+  ._;
 }
 ```
 
