@@ -931,8 +931,6 @@ _(_.async(r => r(3)))
 ### _(Promise).Will
 is promiseObj.pipeline method chaining;
 
-this function is pending (beta);
-
 ```javascript
 // It is like to use wavy dot
 //  const data = await disk~.(...args)~.openDirectory('foo')~.openFile('bar.txt')~.read();

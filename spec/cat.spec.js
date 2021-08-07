@@ -398,14 +398,18 @@ describe("White Cats", function () {
     () => _(
       _.async(r => r(
         _.upto({a: 5}, {
-          async add (v) {
-            this.a += v;
-            return await _.async(r => r(_.upto({b: this.a}, {
-              async mult (v) {
-                this.b *= v;
-                return this
-              }
-            })));
+          add: {
+            async value (v) {
+              this.a += v;
+              return await _.async(r => r(_.upto({b: this.a}, {
+                mult: {
+                  async value (v) {
+                    this.b *= v;
+                    return this
+                  }
+                }
+              })));
+            }
           }
         })
       ))
