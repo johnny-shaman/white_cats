@@ -33,7 +33,7 @@
   };
 
   Object.assign(_, {
-    WhiteCats: '0.1.52',
+    WhiteCats: '0.1.53',
     '#': (
       ['Object', 'String', '*', 'Promise']
       .reduce((p, c) => Object.assign(p, {[c]: Object.create(_.prototype)}), {})
@@ -972,7 +972,7 @@
       less: {
         configurable: true,
         get () {
-          return this.vals;
+          return this.pipe(_.less);
         }
       },
       sure: {
