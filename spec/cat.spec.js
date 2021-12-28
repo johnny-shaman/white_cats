@@ -375,8 +375,14 @@ describe("White Cats", function () {
       const r = _.spin([1, 2, 3]);
       expect( r.now ).toBe( 1 );
       expect( r.now ).toBe( 2 );
+      expect( r.again ).toBe( 2 );
       expect( r.now ).toBe( 3 );
+      expect( r.again ).toBe( 3 );
       expect( r.now ).toBe( 1 );
+      expect( r.again ).toBe( 1 );
+      expect( r.now ).toBe( 2 );
+      expect( r.again ).toBe( 2 );
+      expect( r.again ).toBe( 2 );
     }
   )
 

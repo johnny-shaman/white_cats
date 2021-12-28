@@ -230,7 +230,7 @@ _.isArray([])
 _.isArray({})
 ```
 
-### _._(start, end, step)
+### \_._(start, end, step)
 
 ```javascript
 [..._._(0, 8, 2)]
@@ -250,6 +250,7 @@ create loop infinite iterator
 const r = _.spin([1, 2, 3]);
 r.now // 1
 r.now // 2
+r.again // 2
 r.now // 3
 r.now // 1
 ```
@@ -278,7 +279,7 @@ async () => await _.asyncAll(
 // 3sec after return [3, 4, 5]
 ```
 
-### _().$_
+### \_().$_
 return right first
 
 ```javascript
@@ -289,7 +290,7 @@ _(3, 4).$_
 // 4
 ```
 
-### _()._$
+### \_()._$
 return left first
 
 ```javascript

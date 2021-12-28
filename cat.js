@@ -96,6 +96,11 @@
       yield a > b ? b : a;
     },
     spin: a => _.upto(pSpin, {
+      '@@': {
+        configurable: true,
+        writable:true,
+        value: {value: a[0]}
+      },
       '@': {
         configurable: true,
         value: (function * () {
@@ -147,7 +152,13 @@
     now: {
       configurable: true,
       get () {
-        return this['@'].next().value;
+        return _.put(this['@@'], this['@'].next()).value;
+      }
+    },
+    again: {
+      configurable: true,
+      get () {
+        return this['@@'].value;
       }
     }
   });
