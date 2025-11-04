@@ -1,7 +1,7 @@
 # white_cats
 White Cats define Pure functions
 
-<img alt="_(white_cats)._" src="./white_cats.svg" width="256px"/>
+<img alt="_(white_cats)._" src="./white_cats.svg" width="512px"/>
 
 ![Node.js CI](https://github.com/johnny-shaman/white_cats/workflows/Node.js%20CI/badge.svg)
 
